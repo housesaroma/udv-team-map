@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/persontree-frontend:latest
+    container_name: persontree-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"  
+    networks:
+      - persontree-network
+
+networks:
+  persontree-network:
+    name: persontree-network
+    external: true

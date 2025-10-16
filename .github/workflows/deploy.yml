@@ -57,7 +57,7 @@ jobs:
     - name: Deploy to server
       run: |
         ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "
-          cd ~/PersonTree/Frontend && \
+          cd /home/admin-tree/PersonTree/Frontend && \
           echo \"DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}\" > .env && \
           docker-compose down && \
           docker-compose up -d

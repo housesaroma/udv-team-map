@@ -19,17 +19,6 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
     return (
         <div className="flex flex-col gap-2 bg-secondary p-3 rounded-lg shadow-lg border-1 surface-border">
             {/* Верхний ряд - Fit to View */}
-            <Button
-                icon="pi pi-search"
-                onClick={onFitToView}
-                tooltip="Приблизить карту к виду по умолчанию"
-                tooltipOptions={{ position: "left" }}
-                className="bg-primary hover:bg-primary-600 text-white border-0"
-                size="small"
-            />
-
-            {/* Разделитель */}
-            <div className="border-t border-gray-300 my-1"></div>
 
             {/* Масштабирование */}
             <Button
@@ -56,10 +45,10 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
 
             <Button
                 icon="pi pi-refresh"
-                onClick={onReset}
-                className="bg-primary hover:bg-primary-600 text-white border-0"
-                tooltip="Сбросить масштаб (Ctrl + 0)"
+                onClick={onFitToView}
+                tooltip="Приблизить карту к виду по умолчанию"
                 tooltipOptions={{ position: "left" }}
+                className="bg-primary hover:bg-primary-600 text-white border-0"
                 size="small"
             />
         </div>

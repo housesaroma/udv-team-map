@@ -1,10 +1,9 @@
-import React from "react";
 import { Button } from "primereact/button";
+import React from "react";
 
 interface ZoomControlsProps {
     onZoomIn: () => void;
     onZoomOut: () => void;
-    onReset: () => void;
     onFitToView: () => void;
     zoom: number;
 }
@@ -12,7 +11,6 @@ interface ZoomControlsProps {
 export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
     onZoomIn,
     onZoomOut,
-    onReset,
     onFitToView,
     zoom,
 }) => {

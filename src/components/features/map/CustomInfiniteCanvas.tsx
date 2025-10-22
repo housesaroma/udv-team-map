@@ -126,10 +126,6 @@ const CustomCanvas: React.FC = () => {
         dispatch(setZoom(Math.max(zoom - 0.25, 0.25)));
     };
 
-    const handleResetZoom = () => {
-        dispatch(resetZoom());
-    };
-
     // Альтернативный вариант с SVG для лучшей производительности
     const SvgDotPattern = () => {
         return (
@@ -168,7 +164,6 @@ const CustomCanvas: React.FC = () => {
                 <ZoomControlsComponent
                     onZoomIn={handleZoomIn}
                     onZoomOut={handleZoomOut}
-                    onReset={handleResetZoom}
                     onFitToView={handleFitToView}
                     zoom={zoom}
                 />

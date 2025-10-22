@@ -16,7 +16,6 @@
     "primereact": "^10.9.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-infinite-canvas": "^3.4.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4"
   },

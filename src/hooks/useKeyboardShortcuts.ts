@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "./redux";
-import { setZoom } from "../stores/mapSlice";
+import { resetZoom, zoomIn, zoomOut } from "../stores/mapSlice";
+import { useAppDispatch } from "./redux";
 
 export const useKeyboardShortcuts = () => {
     const dispatch = useAppDispatch();
-    const currentZoom = useAppSelector((state) => state.map.zoom);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -13,15 +12,15 @@ export const useKeyboardShortcuts = () => {
                     case "=":
                     case "+":
                         event.preventDefault();
-                        dispatch(setZoom(Math.min(currentZoom + 0.25, 5)));
+                        dispatch(zoomIn());
                         break;
                     case "-":
                         event.preventDefault();
-                        dispatch(setZoom(Math.max(currentZoom - 0.25, 0.25)));
+                        dispatch(zoomOut());
                         break;
                     case "0":
                         event.preventDefault();
-                        dispatch(setZoom(1));
+                        dispatch(resetZoom());
                         break;
                 }
             }
@@ -29,5 +28,5 @@ export const useKeyboardShortcuts = () => {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [dispatch, currentZoom]); // Добавляем currentZoom в зависимости
+    }, [dispatch]);
 };

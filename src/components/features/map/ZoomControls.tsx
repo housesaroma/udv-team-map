@@ -1,52 +1,67 @@
 import React from "react";
 import { Button } from "primereact/button";
-import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
-import { setZoom } from "../../../stores/mapSlice";
 
-const ZoomControls: React.FC = () => {
-    const dispatch = useAppDispatch();
-    const { zoom } = useAppSelector((state) => state.map);
+interface ZoomControlsProps {
+    onZoomIn: () => void;
+    onZoomOut: () => void;
+    onReset: () => void;
+    onFitToView: () => void;
+    zoom: number;
+}
 
-    const handleZoomIn = () => {
-        dispatch(setZoom(Math.min(zoom + 0.25, 5)));
-    };
-
-    const handleZoomOut = () => {
-        dispatch(setZoom(Math.max(zoom - 0.25, 0.25)));
-    };
-
-    const handleReset = () => {
-        dispatch(setZoom(1));
-    };
-
+export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
+    onZoomIn,
+    onZoomOut,
+    onReset,
+    onFitToView,
+    zoom,
+}) => {
     return (
-        <div className="absolute bottom-4 right-4 flex flex-col gap-2 bg-secondary p-3 rounded-lg shadow-lg border border-gray-200">
+        <div className="flex flex-col gap-2 bg-secondary p-3 rounded-lg shadow-lg border-1 surface-border">
+            {/* Верхний ряд - Fit to View */}
+            <Button
+                icon="pi pi-search"
+                onClick={onFitToView}
+                tooltip="Приблизить карту к виду по умолчанию"
+                tooltipOptions={{ position: "left" }}
+                className="bg-primary hover:bg-primary-600 text-white border-0"
+                size="small"
+            />
+
+            {/* Разделитель */}
+            <div className="border-t border-gray-300 my-1"></div>
+
+            {/* Масштабирование */}
             <Button
                 icon="pi pi-plus"
-                onClick={handleZoomIn}
+                onClick={onZoomIn}
                 tooltip="Увеличить (Ctrl +)"
                 tooltipOptions={{ position: "left" }}
                 className="bg-primary hover:bg-primary-600 text-white border-0"
+                size="small"
             />
-            <div className="text-center text-sm font-medium text-gray-800">
+
+            <div className="text-center text-sm font-medium text-gray-800 font-golos bg-white py-1 rounded border">
                 {Math.round(zoom * 100)}%
             </div>
+
             <Button
                 icon="pi pi-minus"
-                onClick={handleZoomOut}
+                onClick={onZoomOut}
                 tooltip="Уменьшить (Ctrl -)"
                 tooltipOptions={{ position: "left" }}
                 className="bg-primary hover:bg-primary-600 text-white border-0"
+                size="small"
             />
+
             <Button
                 icon="pi pi-refresh"
-                onClick={handleReset}
-                className="mt-2 bg-primary hover:bg-primary-600 text-white border-0"
-                tooltip="Сбросить масштаб"
+                onClick={onReset}
+                className="bg-primary hover:bg-primary-600 text-white border-0"
+                tooltip="Сбросить масштаб (Ctrl + 0)"
                 tooltipOptions={{ position: "left" }}
+                size="small"
             />
         </div>
     );
 };
-
-export default ZoomControls;

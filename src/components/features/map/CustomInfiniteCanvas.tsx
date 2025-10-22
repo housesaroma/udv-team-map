@@ -130,6 +130,37 @@ const CustomCanvas: React.FC = () => {
         dispatch(resetZoom());
     };
 
+    // Альтернативный вариант с SVG для лучшей производительности
+    const SvgDotPattern = () => {
+        return (
+            <svg
+                className="absolute inset-0 pointer-events-none w-full h-full"
+                style={{
+                    background: "transparent",
+                }}
+            >
+                <defs>
+                    <pattern
+                        id="dot-pattern"
+                        x={position.x % 20}
+                        y={position.y % 20}
+                        width="20"
+                        height="20"
+                        patternUnits="userSpaceOnUse"
+                    >
+                        <circle
+                            cx="2"
+                            cy="2"
+                            r="1.5"
+                            fill="rgba(156, 163, 175, 0.3)"
+                        />
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#dot-pattern)" />
+            </svg>
+        );
+    };
+
     return (
         <div className="w-full h-full bg-primary relative overflow-hidden">
             {/* Компонент управления zoom и Fit to View */}
@@ -146,7 +177,7 @@ const CustomCanvas: React.FC = () => {
             {/* Canvas контейнер */}
             <div
                 ref={containerRef}
-                className="w-full h-full cursor-grab"
+                className="w-full h-full cursor-grab bg-primary"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -161,6 +192,11 @@ const CustomCanvas: React.FC = () => {
                 role="application"
                 aria-label="Интерактивная карта организационной структуры"
             >
+                {/* Паттерн точек на фоне */}
+                <SvgDotPattern />
+                {/* Раскомментируйте строку ниже для SVG варианта */}
+                {/* <SvgDotPattern /> */}
+
                 {/* Контент с трансформацией */}
                 <div
                     className="w-full h-full"

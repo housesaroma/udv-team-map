@@ -11,15 +11,14 @@ const Header: React.FC = () => {
         <Button
             onClick={() => navigate("/")}
             text
-            className="p-0 hover:bg-transparent"
+            className="p-0 hover:bg-transparent focus:shadow-none"
         >
             <div className="flex items-center">
-                <div className="w-8 h-8 bg-secondary rounded-md mr-2 flex items-center justify-center">
-                    <span className="text-primary font-bold text-sm">UDV</span>
-                </div>
-                <span className="font-bold text-xl text-secondary">
-                    UDV Team Map
-                </span>
+                <img
+                    src="src/assets/logo.svg"
+                    alt="UDV Team Map Logo"
+                    className="h-8"
+                />
             </div>
         </Button>
     );
@@ -30,7 +29,7 @@ const Header: React.FC = () => {
                 onClick={() => navigate("/profile")}
                 text
                 rounded
-                className="p-0 hover:bg-transparent"
+                className="p-0 hover:bg-transparent focus:shadow-none"
             >
                 <Avatar
                     icon="pi pi-user"
@@ -42,11 +41,12 @@ const Header: React.FC = () => {
     );
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-lg">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm shadow-lg px-20 px-5 py-1">
             <Menubar
                 start={startContent}
                 end={endContent}
-                className="border-none bg-primary"
+                model={[]}
+                className="border-none bg-transparent"
             />
         </header>
     );

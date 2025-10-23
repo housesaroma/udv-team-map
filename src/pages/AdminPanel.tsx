@@ -2,7 +2,7 @@ import React from "react";
 
 const AdminPanel: React.FC = () => {
     return (
-        <div className="container mx-auto p-6 bg-primary min-h-screen">
+        <div className="container mx-auto p-6 pt-24">
             <div className="bg-secondary rounded-lg shadow-md p-8">
                 <h1 className="text-3xl font-bold text-primary mb-4 font-golos">
                     Административная панель

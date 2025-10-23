@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menubar } from "primereact/menubar";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
+import { AdminButton } from "../ui/AdminButton";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Header: React.FC = () => {
         >
             <div className="flex items-center">
                 <img
-                    src="src/assets/logo.svg"
+                    src="/src/assets/logo.svg"
                     alt="UDV Team Map Logo"
                     className="h-8"
                 />
@@ -25,6 +26,7 @@ const Header: React.FC = () => {
 
     const endContent = (
         <div className="flex items-center gap-4">
+            <AdminButton />
             <Button
                 onClick={() => navigate("/profile")}
                 text

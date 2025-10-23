@@ -1,8 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
-import { setZoom, setPosition, resetZoom } from "../../../stores/mapSlice";
+import { setZoom, setPosition } from "../../../stores/mapSlice";
 import { useKeyboardShortcuts } from "../../../hooks/useKeyboardShortcuts";
 import { ZoomControlsComponent } from "./ZoomControls";
+import { SvgDotPattern } from "./SvgDotPattern";
 
 const CustomCanvas: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -10,15 +11,18 @@ const CustomCanvas: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const [isAnimating, setIsAnimating] = useState(false);
 
     // Используем ref для позиции чтобы избежать замыканий
     const positionRef = useRef(position);
+    const zoomRef = useRef(zoom);
     const animationFrameRef = useRef<number>(0);
 
-    // Синхронизируем ref с актуальной позицией
+    // Синхронизируем ref с актуальными значениями
     useEffect(() => {
         positionRef.current = position;
-    }, [position]);
+        zoomRef.current = zoom;
+    }, [position, zoom]);
 
     // Используем хук горячих клавиш
     useKeyboardShortcuts();
@@ -33,7 +37,7 @@ const CustomCanvas: React.FC = () => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const delta = -e.deltaY * 0.005;
+                const delta = -e.deltaY * 0.0025;
                 const newZoom = Math.min(Math.max(zoom + delta, 0.25), 5);
                 dispatch(setZoom(newZoom));
             }
@@ -45,7 +49,7 @@ const CustomCanvas: React.FC = () => {
 
     const handleMouseDown = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
-            if (e.button !== 0) return;
+            if (e.button !== 0 || isAnimating) return;
             setIsDragging(true);
             setDragStart({
                 x: e.clientX - positionRef.current.x,
@@ -59,12 +63,12 @@ const CustomCanvas: React.FC = () => {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         },
-        []
+        [isAnimating]
     );
 
     const handleMouseMove = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
-            if (!isDragging) return;
+            if (!isDragging || isAnimating) return;
 
             // Используем один requestAnimationFrame на кадр
             if (animationFrameRef.current) {
@@ -77,7 +81,7 @@ const CustomCanvas: React.FC = () => {
                 dispatch(setPosition({ x: newX, y: newY }));
             });
         },
-        [isDragging, dragStart, dispatch]
+        [isDragging, dragStart, dispatch, isAnimating]
     );
 
     const handleMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -104,6 +108,78 @@ const CustomCanvas: React.FC = () => {
         []
     );
 
+    // Функция плавной анимации
+    const animateTo = useCallback(
+        (targetZoom: number, targetPosition: { x: number; y: number }) => {
+            setIsAnimating(true);
+
+            const startZoom = zoomRef.current;
+            const startPosition = { ...positionRef.current };
+            const startTime = performance.now();
+            const duration = 500; // 600ms для плавной анимации
+
+            const animate = (currentTime: number) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Кубическая easing функция для плавного ускорения и замедления
+                const easeProgress =
+                    progress < 0.5
+                        ? 4 * progress * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                // Интерполируем значения
+                const newZoom =
+                    startZoom + (targetZoom - startZoom) * easeProgress;
+                const newX =
+                    startPosition.x +
+                    (targetPosition.x - startPosition.x) * easeProgress;
+                const newY =
+                    startPosition.y +
+                    (targetPosition.y - startPosition.y) * easeProgress;
+
+                // Обновляем состояние
+                dispatch(setZoom(newZoom));
+                dispatch(setPosition({ x: newX, y: newY }));
+
+                if (progress < 1) {
+                    animationFrameRef.current = requestAnimationFrame(animate);
+                } else {
+                    // Анимация завершена
+                    setIsAnimating(false);
+                    // Убедимся, что финальные значения точные
+                    dispatch(setZoom(targetZoom));
+                    dispatch(setPosition(targetPosition));
+                }
+            };
+
+            animationFrameRef.current = requestAnimationFrame(animate);
+        },
+        [dispatch]
+    );
+
+    const handleFitToView = useCallback(() => {
+        // Отменяем текущую анимацию если есть
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+        }
+
+        // Анимируем к исходному состоянию
+        animateTo(1, { x: 0, y: 0 });
+    }, [animateTo]);
+
+    const handleZoomIn = useCallback(() => {
+        if (isAnimating) return;
+        const newZoom = Math.min(zoom + 0.25, 5);
+        dispatch(setZoom(newZoom));
+    }, [zoom, dispatch, isAnimating]);
+
+    const handleZoomOut = useCallback(() => {
+        if (isAnimating) return;
+        const newZoom = Math.max(zoom - 0.25, 0.25);
+        dispatch(setZoom(newZoom));
+    }, [zoom, dispatch, isAnimating]);
+
     // Очистка при размонтировании
     useEffect(() => {
         return () => {
@@ -112,50 +188,6 @@ const CustomCanvas: React.FC = () => {
             }
         };
     }, []);
-
-    const handleFitToView = () => {
-        dispatch(resetZoom());
-        dispatch(setPosition({ x: 0, y: 0 }));
-    };
-
-    const handleZoomIn = () => {
-        dispatch(setZoom(Math.min(zoom + 0.25, 5)));
-    };
-
-    const handleZoomOut = () => {
-        dispatch(setZoom(Math.max(zoom - 0.25, 0.25)));
-    };
-
-    // Альтернативный вариант с SVG для лучшей производительности
-    const SvgDotPattern = () => {
-        return (
-            <svg
-                className="absolute inset-0 pointer-events-none w-full h-full"
-                style={{
-                    background: "transparent",
-                }}
-            >
-                <defs>
-                    <pattern
-                        id="dot-pattern"
-                        x={position.x % 20}
-                        y={position.y % 20}
-                        width="20"
-                        height="20"
-                        patternUnits="userSpaceOnUse"
-                    >
-                        <circle
-                            cx="2"
-                            cy="2"
-                            r="1.5"
-                            fill="rgba(156, 163, 175, 0.3)"
-                        />
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#dot-pattern)" />
-            </svg>
-        );
-    };
 
     return (
         <div className="w-full h-full bg-primary relative overflow-hidden">
@@ -180,17 +212,19 @@ const CustomCanvas: React.FC = () => {
                 style={{
                     userSelect: "none",
                     touchAction: "none",
-                    // Улучшаем производительность
                     transform: "translateZ(0)",
                     willChange: "transform",
+                    cursor: isAnimating
+                        ? "wait"
+                        : isDragging
+                        ? "grabbing"
+                        : "grab",
                 }}
                 role="application"
                 aria-label="Интерактивная карта организационной структуры"
             >
                 {/* Паттерн точек на фоне */}
-                <SvgDotPattern />
-                {/* Раскомментируйте строку ниже для SVG варианта */}
-                {/* <SvgDotPattern /> */}
+                <SvgDotPattern position={position} />
 
                 {/* Контент с трансформацией */}
                 <div
@@ -198,9 +232,10 @@ const CustomCanvas: React.FC = () => {
                     style={{
                         transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
                         transformOrigin: "center center",
-                        transition: isDragging
-                            ? "none"
-                            : "transform 0.1s ease-out",
+                        transition:
+                            isDragging || isAnimating
+                                ? "none"
+                                : "transform 0.15s ease-out",
                         // Улучшаем производительность анимаций
                         willChange: "transform",
                     }}

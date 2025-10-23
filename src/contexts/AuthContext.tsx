@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import type { User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
 import { AuthContext } from "./AuthContextInstance";
+import { PageLoader } from "../components/ui/PageLoader";
 
 export interface AuthContextType {
     user: User | null;
@@ -71,6 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }),
         [user, isLoading]
     );
+
+    if (isLoading) {
+        return <PageLoader />;
+    }
 
     return (
         <AuthContext.Provider value={contextValue}>

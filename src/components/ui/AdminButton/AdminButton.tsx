@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "primereact/button";
-import { PermissionGuard } from "../features/auth/PermissionGuard";
-import { Permission } from "../../types/permissions";
 import styles from "./AdminButton.module.css";
+import { PermissionGuard } from "../../features/auth/PermissionGuard";
+import { Permission } from "../../../types/permissions";
 
 export const AdminButton: React.FC = () => {
     const navigate = useNavigate();

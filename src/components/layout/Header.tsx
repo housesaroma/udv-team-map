@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menubar } from "primereact/menubar";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
-import { AdminButton } from "../ui/AdminButton";
+import { AdminButton } from "../ui/AdminButton/AdminButton";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();

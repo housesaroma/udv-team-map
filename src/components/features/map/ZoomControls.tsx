@@ -15,39 +15,43 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
     zoom,
 }) => {
     return (
-        <div className="flex flex-col gap-2 bg-secondary p-3 rounded-lg shadow-lg border-1 surface-border">
-            {/* Верхний ряд - Fit to View */}
-
-            {/* Масштабирование */}
-            <Button
-                icon="pi pi-plus"
-                onClick={onZoomIn}
-                tooltip="Увеличить (Ctrl +)"
-                tooltipOptions={{ position: "left" }}
-                className="bg-primary hover:bg-primary-600 text-white border-0"
-                size="small"
-            />
-
-            <div className="text-center text-sm font-medium text-gray-800 font-golos bg-white py-1 rounded border">
-                {Math.round(zoom * 100)}%
-            </div>
-
+        <div className="flex items-center gap-2 bg-secondary p-2 rounded-lg shadow-lg border-1 surface-border">
+            {/* Кнопка уменьшения */}
             <Button
                 icon="pi pi-minus"
                 onClick={onZoomOut}
                 tooltip="Уменьшить (Ctrl -)"
-                tooltipOptions={{ position: "left" }}
-                className="bg-primary hover:bg-primary-600 text-white border-0"
+                tooltipOptions={{ position: "top" }}
+                className="text-primary hover:bg-primary/10 border-0 focus:shadow-none"
                 size="small"
+                text
             />
 
+            {/* Отображение процентов */}
+            <div className="text-center text-sm font-medium text-primary font-golos bg-secondary py-1 px-2 rounded border min-w-[60px]">
+                {Math.round(zoom * 100)}%
+            </div>
+
+            {/* Кнопка увеличения */}
+            <Button
+                icon="pi pi-plus"
+                onClick={onZoomIn}
+                tooltip="Увеличить (Ctrl +)"
+                tooltipOptions={{ position: "top" }}
+                className="text-primary hover:bg-primary/10 border-0 focus:shadow-none"
+                size="small"
+                text
+            />
+
+            {/* Кнопка сброса */}
             <Button
                 icon="pi pi-refresh"
                 onClick={onFitToView}
-                tooltip="Приблизить карту к виду по умолчанию"
-                tooltipOptions={{ position: "left" }}
-                className="bg-primary hover:bg-primary-600 text-white border-0"
+                tooltip="Сбросить масштаб"
+                tooltipOptions={{ position: "top" }}
+                className="text-primary hover:bg-primary/10 border-0 focus:shadow-none"
                 size="small"
+                text
             />
         </div>
     );

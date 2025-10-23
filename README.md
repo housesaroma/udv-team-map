@@ -21,7 +21,6 @@ UDV Team Map решает ключевые бизнес-задачи:
 - **Frontend**: React 18 + TypeScript
 - **Стили**: UnoCSS с кастомной темой
 - **UI Components**: PrimeReact
-- **Карта**: React Infinite Canvas
 - **State Management**: Redux Toolkit
 - **Роутинг**: React Router DOM
 - **Сборка**: Vite

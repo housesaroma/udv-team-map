@@ -10,6 +10,10 @@ export default defineConfig({
                     name: "Golos Text",
                     weights: ["400", "500", "600", "700"],
                 },
+                inter: {
+                    name: "Inter",
+                    weights: ["400", "500", "600", "700"],
+                },
             },
         }),
     ],
@@ -20,6 +24,9 @@ export default defineConfig({
 
             // Вторичные цвета
             secondary: "#f8fafc",
+
+            // Акцентные цвета
+            accent: "#28CA9E",
 
             // Цвета для отделов (из ТЗ - 6 подразделений)
             department: {

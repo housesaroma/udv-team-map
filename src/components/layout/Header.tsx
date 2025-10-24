@@ -4,6 +4,7 @@ import { Menubar } from "primereact/menubar";
 import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { AdminButton } from "../ui/AdminButton/AdminButton";
+import logo from "../../assets/logo.svg";
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
@@ -15,11 +16,7 @@ const Header: React.FC = () => {
             className="p-0 hover:bg-transparent focus:shadow-none"
         >
             <div className="flex items-center">
-                <img
-                    src="/src/assets/logo.svg"
-                    alt="UDV Team Map Logo"
-                    className="h-8"
-                />
+                <img src={logo} alt="UDV Team Map Logo" className="h-8" />
             </div>
         </Button>
     );

@@ -61,7 +61,7 @@ export const treeUtils = {
             x: 0,
             y: 0,
             width: 280,
-            height: 140, // Одинаковая высота для ВСЕХ узлов
+            height: 140,
             children: [],
             departmentColor: getDepartmentColor(node.department || ""),
         };
@@ -109,7 +109,7 @@ export const treeUtils = {
         startY: number = 0
     ): TreeNode[] {
         const HORIZONTAL_SPACING = 20;
-        const VERTICAL_SPACING = 200; // Увеличим вертикальное расстояние для больших карточек
+        const VERTICAL_SPACING = 200;
 
         // Функция для расчета ширины поддерева с учетом всех развернутых узлов
         const calculateSubtreeWidth = (node: TreeNode): number => {
@@ -148,7 +148,7 @@ export const treeUtils = {
                 };
             }
 
-            // Рассчитываем общую ширину поддерева
+            // Рассчитываем общую ширину поддерева детей
             const subtreeWidth = calculateSubtreeWidth(node);
 
             // Начальная позиция для первого ребенка
@@ -160,8 +160,9 @@ export const treeUtils = {
             // Позиционируем каждого ребенка
             for (const child of node.children) {
                 const childSubtreeWidth = calculateSubtreeWidth(child);
-                const childX =
-                    currentX + childSubtreeWidth / 2 - child.width / 2;
+
+                // Ребенок позиционируется по центру своего поддерева
+                const childX = currentX + childSubtreeWidth / 2;
                 const childY = y + VERTICAL_SPACING;
 
                 const laidOutChild = layoutNode(child, childX, childY);
@@ -217,7 +218,9 @@ export const treeUtils = {
         for (let i = 0; i < departmentNodes.length; i++) {
             const node = departmentNodes[i];
             const deptWidth = departmentWidths[i];
-            const nodeX = currentDeptX + deptWidth / 2 - node.width / 2;
+
+            // Отдел позиционируется по центру своего поддерева
+            const nodeX = currentDeptX + deptWidth / 2;
             const nodeY = startY + VERTICAL_SPACING;
 
             const laidOutDept = layoutNode(node, nodeX, nodeY);

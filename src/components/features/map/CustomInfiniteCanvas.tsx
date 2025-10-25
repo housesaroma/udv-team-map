@@ -1,9 +1,10 @@
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
-import { setZoom, setPosition } from "../../../stores/mapSlice";
 import { useKeyboardShortcuts } from "../../../hooks/useKeyboardShortcuts";
-import { ZoomControlsComponent } from "./ZoomControls";
+import { setPosition, setZoom } from "../../../stores/mapSlice";
+import { OrganizationTree } from "../organization/OrganizationTree";
 import { SvgDotPattern } from "./SvgDotPattern";
+import { ZoomControlsComponent } from "./ZoomControls";
 
 const CustomCanvas: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -226,50 +227,8 @@ const CustomCanvas: React.FC = () => {
                 {/* Паттерн точек на фоне */}
                 <SvgDotPattern position={position} />
 
-                {/* Контент с трансформацией */}
-                <div
-                    className="w-full h-full"
-                    style={{
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-                        transformOrigin: "center center",
-                        transition:
-                            isDragging || isAnimating
-                                ? "none"
-                                : "transform 0.15s ease-out",
-                        // Улучшаем производительность анимаций
-                        willChange: "transform",
-                    }}
-                >
-                    {/* Заглушка "функционал в разработке" */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div className="bg-secondary border border-gray-200 rounded-lg p-8 text-center max-w-md font-golos shadow-lg">
-                            <div className="text-primary mb-4">
-                                <i className="pi pi-info-circle text-4xl"></i>
-                            </div>
-                            <h3 className="text-xl text-primary mb-3 font-bold">
-                                Функционал в разработке
-                            </h3>
-                            <p className="text-gray-700 mb-4">
-                                Организационная структура компании будет
-                                отображаться здесь в виде интерактивного дерева
-                            </p>
-                            <div className="text-sm text-gray-600">
-                                Скоро здесь появится древовидная схема
-                                сотрудников
-                            </div>
-
-                            {/* Индикатор цветов отделов */}
-                            <div className="flex justify-center space-x-2 mt-6">
-                                <span className="w-3 h-3 bg-department-it rounded-full"></span>
-                                <span className="w-3 h-3 bg-department-hr rounded-full"></span>
-                                <span className="w-3 h-3 bg-department-finance rounded-full"></span>
-                                <span className="w-3 h-3 bg-department-marketing rounded-full"></span>
-                                <span className="w-3 h-3 bg-department-sales rounded-full"></span>
-                                <span className="w-3 h-3 bg-department-operations rounded-full"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Организационное дерево */}
+                <OrganizationTree />
             </div>
         </div>
     );

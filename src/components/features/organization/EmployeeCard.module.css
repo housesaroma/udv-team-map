@@ -1,0 +1,27 @@
+/* Обнуление паддингов для карточек организационной структуры */
+.noPaddingCard :global(.p-card-content) {
+    padding: 0 !important;
+}
+
+.noPaddingCard :global(.p-card-body) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.noPaddingCard :global(.p-card) {
+    padding: 0 !important;
+}
+
+.noPaddingCard :global(.p-card-footer) {
+    padding: 0 !important;
+}
+
+.noPaddingCard :global(.text-s) {
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.noPaddingCard :global(h4) {
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+}

@@ -3,7 +3,7 @@ import CustomCanvas from "../components/features/map/CustomInfiniteCanvas";
 
 const HomePage: React.FC = () => {
     return (
-        <div className="w-full h-full min-h-0 bg-primary relative">
+        <div className="w-full h-100vh bg-primary relative">
             <CustomCanvas />
         </div>
     );

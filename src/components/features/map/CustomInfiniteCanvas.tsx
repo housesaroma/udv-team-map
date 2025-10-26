@@ -38,8 +38,8 @@ const CustomCanvas: React.FC = () => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const delta = -e.deltaY * 0.0025;
-                const newZoom = Math.min(Math.max(zoom + delta, 0.25), 5);
+                const delta = -e.deltaY * 0.0005;
+                const newZoom = Math.min(Math.max(zoom + delta, 0.25), 2);
                 dispatch(setZoom(newZoom));
             }
         };
@@ -171,7 +171,7 @@ const CustomCanvas: React.FC = () => {
 
     const handleZoomIn = useCallback(() => {
         if (isAnimating) return;
-        const newZoom = Math.min(zoom + 0.25, 5);
+        const newZoom = Math.min(zoom + 0.25, 2);
         dispatch(setZoom(newZoom));
     }, [zoom, dispatch, isAnimating]);
 

@@ -14,6 +14,10 @@ const CustomCanvas: React.FC = () => {
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [isAnimating, setIsAnimating] = useState(false);
 
+    // Константы для граничных значений
+    const MIN_ZOOM = 0.25;
+    const MAX_ZOOM = 2;
+
     // Используем ref для позиции чтобы избежать замыканий
     const positionRef = useRef(position);
     const zoomRef = useRef(zoom);
@@ -39,7 +43,7 @@ const CustomCanvas: React.FC = () => {
                 e.stopPropagation();
 
                 const delta = -e.deltaY * 0.0005;
-                const newZoom = Math.min(Math.max(zoom + delta, 0.25), 2);
+                const newZoom = Math.min(Math.max(zoom + delta, MIN_ZOOM), MAX_ZOOM);
                 dispatch(setZoom(newZoom));
             }
         };
@@ -171,14 +175,18 @@ const CustomCanvas: React.FC = () => {
 
     const handleZoomIn = useCallback(() => {
         if (isAnimating) return;
-        const newZoom = Math.min(zoom + 0.25, 2);
-        dispatch(setZoom(newZoom));
+        const newZoom = Math.min(zoom + 0.25, MAX_ZOOM);
+        if (newZoom !== zoom) {
+            dispatch(setZoom(newZoom));
+        }
     }, [zoom, dispatch, isAnimating]);
 
     const handleZoomOut = useCallback(() => {
         if (isAnimating) return;
-        const newZoom = Math.max(zoom - 0.25, 0.25);
-        dispatch(setZoom(newZoom));
+        const newZoom = Math.max(zoom - 0.25, MIN_ZOOM);
+        if (newZoom !== zoom) {
+            dispatch(setZoom(newZoom));
+        }
     }, [zoom, dispatch, isAnimating]);
 
     // Очистка при размонтировании
@@ -199,6 +207,8 @@ const CustomCanvas: React.FC = () => {
                     onZoomOut={handleZoomOut}
                     onFitToView={handleFitToView}
                     zoom={zoom}
+                    minZoom={MIN_ZOOM}
+                    maxZoom={MAX_ZOOM}
                 />
             </div>
 

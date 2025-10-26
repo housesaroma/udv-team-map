@@ -6,6 +6,8 @@ interface ZoomControlsProps {
     onZoomOut: () => void;
     onFitToView: () => void;
     zoom: number;
+    minZoom?: number;
+    maxZoom?: number;
 }
 
 export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
@@ -13,18 +15,30 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
     onZoomOut,
     onFitToView,
     zoom,
+    minZoom = 0.25,
+    maxZoom = 2,
 }) => {
+    const isZoomOutDisabled = zoom <= minZoom;
+    const isZoomInDisabled = zoom >= maxZoom;
+
     return (
         <div className="flex items-center gap-2 bg-secondary p-2 rounded-lg shadow-lg border-1 surface-border">
             {/* Кнопка уменьшения */}
             <Button
                 icon="pi pi-minus"
                 onClick={onZoomOut}
-                tooltip="Уменьшить (Ctrl -)"
+                tooltip={
+                    isZoomOutDisabled
+                        ? "Минимальный масштаб достигнут"
+                        : "Уменьшить (Ctrl -)"
+                }
                 tooltipOptions={{ position: "top" }}
-                className="text-primary hover:bg-primary/10 border-0 focus:shadow-none"
+                className={`text-primary hover:bg-primary/10 border-0 focus:shadow-none ${
+                    isZoomOutDisabled ? "opacity-40 cursor-not-allowed" : ""
+                }`}
                 size="small"
                 text
+                disabled={isZoomOutDisabled}
             />
 
             {/* Отображение процентов */}
@@ -36,11 +50,18 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
             <Button
                 icon="pi pi-plus"
                 onClick={onZoomIn}
-                tooltip="Увеличить (Ctrl +)"
+                tooltip={
+                    isZoomInDisabled
+                        ? "Максимальный масштаб достигнут"
+                        : "Увеличить (Ctrl +)"
+                }
                 tooltipOptions={{ position: "top" }}
-                className="text-primary hover:bg-primary/10 border-0 focus:shadow-none"
+                className={`text-primary hover:bg-primary/10 border-0 focus:shadow-none ${
+                    isZoomInDisabled ? "opacity-40 cursor-not-allowed" : ""
+                }`}
                 size="small"
                 text
+                disabled={isZoomInDisabled}
             />
 
             {/* Кнопка сброса */}

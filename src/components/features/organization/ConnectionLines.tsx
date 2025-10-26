@@ -6,51 +6,53 @@ interface ConnectionLinesProps {
 }
 
 export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ nodes }) => {
-    // Функция для получения всех соединений между узлами
-    const getConnections = (): Array<{
-        from: { x: number; y: number; width: number; height: number };
-        to: { x: number; y: number; width: number; height: number };
-        id: string;
-    }> => {
-        const connections: Array<{
+    const connections = useMemo(() => {
+        // Функция для получения всех соединений между узлами
+        const getConnections = (): Array<{
             from: { x: number; y: number; width: number; height: number };
             to: { x: number; y: number; width: number; height: number };
             id: string;
-        }> = [];
+        }> => {
+            const connections: Array<{
+                from: { x: number; y: number; width: number; height: number };
+                to: { x: number; y: number; width: number; height: number };
+                id: string;
+            }> = [];
 
-        // Функция для рекурсивного обхода дерева и создания соединений
-        const traverse = (nodeList: TreeNode[]) => {
-            for (const node of nodeList) {
-                if (node.isExpanded && node.children.length > 0) {
-                    // Для каждого ребенка создаем соединение от родителя
-                    for (const child of node.children) {
-                        connections.push({
-                            from: {
-                                x: node.x + node.width / 2,
-                                y: node.y + node.height,
-                                width: node.width,
-                                height: node.height,
-                            },
-                            to: {
-                                x: child.x + child.width / 2,
-                                y: child.y,
-                                width: child.width,
-                                height: child.height,
-                            },
-                            id: `${node.id}-${child.id}`,
-                        });
+            // Функция для рекурсивного обхода дерева и создания соединений
+            const traverse = (nodeList: TreeNode[]) => {
+                for (const node of nodeList) {
+                    if (node.isExpanded && node.children.length > 0) {
+                        // Для каждого ребенка создаем соединение от родителя
+                        for (const child of node.children) {
+                            connections.push({
+                                from: {
+                                    x: node.x + node.width / 2,
+                                    y: node.y + node.height,
+                                    width: node.width,
+                                    height: node.height,
+                                },
+                                to: {
+                                    x: child.x + child.width / 2,
+                                    y: child.y,
+                                    width: child.width,
+                                    height: child.height,
+                                },
+                                id: `${node.id}-${child.id}`,
+                            });
+                        }
+                        // Рекурсивно обходим детей
+                        traverse(node.children);
                     }
-                    // Рекурсивно обходим детей
-                    traverse(node.children);
                 }
-            }
+            };
+
+            traverse(nodes);
+            return connections;
         };
 
-        traverse(nodes);
-        return connections;
-    };
-
-    const connections = useMemo(() => getConnections(), [nodes]);
+        return getConnections();
+    }, [nodes]); // Зависимость только от nodes
 
     // Функция для отрисовки линии с прямыми углами
     const renderConnection = (

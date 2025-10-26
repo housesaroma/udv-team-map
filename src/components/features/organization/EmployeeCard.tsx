@@ -1,8 +1,9 @@
-import React, { useRef, useState, useCallback } from "react";
-import { Card } from "primereact/card";
 import { Button } from "primereact/button";
+import { Card } from "primereact/card";
+import React, { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { TreeNode } from "../../../types/organization";
+import { getDepartmentInfo } from "../../../utils/departmentUtils";
 import styles from "./EmployeeCard.module.css";
 
 interface EmployeeCardProps {
@@ -18,6 +19,8 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
     const dragThreshold = 5;
+
+    const departmentInfo = getDepartmentInfo(node.department || "");
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         dragStartRef.current = {
@@ -60,11 +63,14 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
 
     const header = (
         <div
-            className="h-3 rounded-t-lg"
+            className="rounded-t-lg relative flex items-center justify-center"
             style={{ backgroundColor: node.departmentColor }}
-        />
+        >
+            <span className="text-white font-semibold px-2 text-center line-clamp-1">
+                {departmentInfo.name}
+            </span>
+        </div>
     );
-
     const footer =
         node.children.length > 0 || node.level === 0 ? (
             <div className="flex justify-between items-center">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { TreeNode } from "../../../types/organization";
 
 interface ConnectionLinesProps {
@@ -10,10 +10,12 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ nodes }) => {
     const getConnections = (): Array<{
         from: { x: number; y: number; width: number; height: number };
         to: { x: number; y: number; width: number; height: number };
+        id: string;
     }> => {
         const connections: Array<{
             from: { x: number; y: number; width: number; height: number };
             to: { x: number; y: number; width: number; height: number };
+            id: string;
         }> = [];
 
         // Функция для рекурсивного обхода дерева и создания соединений
@@ -35,6 +37,7 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ nodes }) => {
                                 width: child.width,
                                 height: child.height,
                             },
+                            id: `${node.id}-${child.id}`,
                         });
                     }
                     // Рекурсивно обходим детей
@@ -47,31 +50,36 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ nodes }) => {
         return connections;
     };
 
-    const connections = getConnections();
+    const connections = useMemo(() => getConnections(), [nodes]);
 
     // Функция для отрисовки линии с прямыми углами
     const renderConnection = (
         from: { x: number; y: number },
-        to: { x: number; y: number }
+        to: { x: number; y: number },
+        id: string
     ) => {
         const midY = from.y + (to.y - from.y) / 2;
 
-        // Создаем путь с прямыми углами: вниз от родителя, затем горизонтально, затем вниз к ребенку
         const pathData = `
-            M ${from.x} ${from.y}
-            L ${from.x} ${midY}
-            L ${to.x} ${midY}
-            L ${to.x} ${to.y}
-        `;
+        M ${from.x} ${from.y}
+        L ${from.x} ${midY}
+        L ${to.x} ${midY}
+        L ${to.x} ${to.y}
+    `;
 
         return (
             <path
-                key={`${from.x}-${from.y}-${to.x}-${to.y}`}
+                key={id}
                 d={pathData}
                 stroke="rgba(255, 255, 255, 1)"
                 strokeWidth="5"
                 fill="none"
                 className="transition-all duration-300"
+                style={{
+                    transition:
+                        "all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                    willChange: "d",
+                }}
             />
         );
     };
@@ -81,14 +89,14 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ nodes }) => {
             className="absolute top-0 left-0 pointer-events-none"
             style={{
                 zIndex: 0,
-                width: "5000px", // Увеличиваем размеры SVG
+                width: "5000px",
                 height: "4000px",
                 minWidth: "5000px",
                 minHeight: "4000px",
             }}
         >
             {connections.map((connection) =>
-                renderConnection(connection.from, connection.to)
+                renderConnection(connection.from, connection.to, connection.id)
             )}
         </svg>
     );

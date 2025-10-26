@@ -46,9 +46,7 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
                 setHierarchy(data);
 
                 const allNodes = treeUtils.buildTreeFromHierarchy(data);
-                const nodesWithLayout = treeUtils.calculateLayout(
-                    allNodes,
-                );
+                const nodesWithLayout = treeUtils.calculateLayout(allNodes);
 
                 setTreeNodes(nodesWithLayout);
             } catch (err) {
@@ -148,6 +146,9 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
                             width: `${node.width}px`,
                             height: `${node.height}px`,
                             zIndex: node.level + 1,
+                            transition:
+                                "all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                            willChange: "transform",
                         }}
                     >
                         <EmployeeCard

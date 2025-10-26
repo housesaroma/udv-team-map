@@ -166,7 +166,7 @@ const CustomCanvas: React.FC = () => {
         }
 
         // Анимируем к исходному состоянию
-        animateTo(1, { x: 0, y: 0 });
+        animateTo(1, { x: -1500, y: 0 });
     }, [animateTo]);
 
     const handleZoomIn = useCallback(() => {

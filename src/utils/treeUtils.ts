@@ -11,9 +11,10 @@ export const treeUtils = {
 
         // CEO - корневой узел
         const ceoNode = this.convertToTreeNode(hierarchy.ceo, 0);
-        rootNodes.push(ceoNode);
 
-        // Добавляем руководителей отделов как отдельных узлов
+        // Явно добавляем детей для CEO - руководителей отделов
+        ceoNode.children = [];
+
         for (const dept of hierarchy.departments) {
             for (const employee of dept.employees) {
                 const departmentHead = this.convertToTreeNode(employee, 1);
@@ -22,13 +23,12 @@ export const treeUtils = {
                     dept.department
                 );
 
-                // Рекурсивно обрабатываем подчиненных
                 this.processSubordinates(departmentHead, dept.department);
-
-                rootNodes.push(departmentHead);
+                ceoNode.children.push(departmentHead);
             }
         }
 
+        rootNodes.push(ceoNode);
         return rootNodes;
     },
 
@@ -105,11 +105,11 @@ export const treeUtils = {
 
     calculateLayout(
         nodes: TreeNode[],
-        startX: number = 0,
+        startX: number = 2000,
         startY: number = 0
     ): TreeNode[] {
         const HORIZONTAL_SPACING = 20;
-        const VERTICAL_SPACING = 200;
+        const VERTICAL_SPACING = 300;
 
         // Функция для расчета ширины поддерева с учетом всех развернутых узлов
         const calculateSubtreeWidth = (node: TreeNode): number => {

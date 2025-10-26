@@ -16,12 +16,17 @@
     padding: 0 !important;
 }
 
-.noPaddingCard :global(.text-s) {
-    margin-top: 1rem !important;
-    margin-bottom: 1rem !important;
-}
-
 .noPaddingCard :global(h4) {
     margin-top: 1rem !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0 !important;
+}
+
+.text-left {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.position {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }

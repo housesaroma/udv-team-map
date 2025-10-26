@@ -1,5 +1,4 @@
 import { Message } from "primereact/message";
-import { ProgressSpinner } from "primereact/progressspinner";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
 import { organizationService } from "../../../services/organizationService";
@@ -10,6 +9,8 @@ import type {
 } from "../../../types/organization";
 import { treeUtils } from "../../../utils/treeUtils";
 import { EmployeeCard } from "./EmployeeCard";
+import { ConnectionLines } from "./ConnectionLines";
+import { PageLoader } from "../../ui/PageLoader";
 
 interface OrganizationTreeProps {
     className?: string;
@@ -47,8 +48,6 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
                 const allNodes = treeUtils.buildTreeFromHierarchy(data);
                 const nodesWithLayout = treeUtils.calculateLayout(
                     allNodes,
-                    0,
-                    100
                 );
 
                 setTreeNodes(nodesWithLayout);
@@ -73,29 +72,20 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
                 prevNodes,
                 nodeId
             );
-            return treeUtils.calculateLayout(updatedNodes, 0, 100);
+            return treeUtils.calculateLayout(updatedNodes);
         });
     }, []);
 
     // Сброс масштаба и позиции при загрузке - только один раз
     useEffect(() => {
         if (!loading && !error) {
-            dispatch(setZoom(0.7));
-            dispatch(setPosition({ x: 0, y: 0 }));
+            dispatch(setZoom(1));
+            dispatch(setPosition({ x: -1500, y: 0 }));
         }
     }, [loading, error, dispatch]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <ProgressSpinner />
-                    <p className="mt-4 text-gray-600 font-golos">
-                        Загрузка организационной структуры...
-                    </p>
-                </div>
-            </div>
-        );
+        return <PageLoader />;
     }
 
     if (error) {
@@ -125,16 +115,28 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
     return (
         <div
             className={`w-full h-full relative ${className}`}
-            style={{ minWidth: "2500px", minHeight: "2000px" }}
+            style={{
+                minWidth: "5000px", // Увеличиваем минимальную ширину
+                minHeight: "4000px", // Увеличиваем минимальную высоту
+                width: "5000px", // Явно задаем ширину
+                height: "4000px", // Явно задаем высоту
+            }}
         >
             {/* Общий контейнер для линий и карточек с трансформацией */}
             <div
-                className="absolute top-0 left-0 w-full h-full"
+                className="absolute top-0 left-0"
                 style={{
                     transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
                     transformOrigin: "center center",
+                    width: "5000px", // Увеличиваем размеры контейнера
+                    height: "4000px", // чтобы вместить все дерево
+                    minWidth: "5000px",
+                    minHeight: "4000px",
                 }}
             >
+                {/* Соединительные линии - рендерим ПОД карточками */}
+                <ConnectionLines nodes={treeNodes} />
+
                 {/* Карточки сотрудников */}
                 {visibleNodes.map((node) => (
                     <div

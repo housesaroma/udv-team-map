@@ -71,10 +71,12 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
     );
 
     const footer =
-        node.children.length > 0 ? (
+        node.children.length > 0 || node.level === 0 ? (
             <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">
-                    {node.children.length} подчиненных
+                    {node.level === 0
+                        ? `${node.children.length} отделов`
+                        : `${node.children.length} подчиненных`}
                 </span>
                 <Button
                     icon={`pi pi-chevron-${node.isExpanded ? "down" : "up"}`}
@@ -94,19 +96,21 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onClick={handleCardClick}
-            style={{
-                width: "280px",
-                minHeight: "120px",
-            }}
         >
-            <div className="flex flex-col space-y-2">
-                <div className="text-center">
-                    <h4 className="font-bold text-gray-800 line-clamp-2">
-                        {node.userName}
-                    </h4>
-                    <p className="text-s text-gray-600 line-clamp-2">
-                        {node.position}
+            <div className="flex flex-col">
+                {/* Имя сотрудника */}
+                <h4 className="font-bold text-gray-800 line-clamp-2">
+                    {node.userName}
+                </h4>
+
+                {/* Должность с бейджем */}
+                <div className="text-left">
+                    <p className="text-s text-gray-500 font-medium position">
+                        Должность
                     </p>
+                    <span className="inline-block bg-green-100 text-green-800 text-s px-2 py-1 rounded-full font-medium mb-4">
+                        {node.position}
+                    </span>
                 </div>
             </div>
         </Card>

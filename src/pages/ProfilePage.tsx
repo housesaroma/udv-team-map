@@ -13,12 +13,12 @@ const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
 
     const [profile, setProfile] = useState<User | null>(null);
+    const [manager, setManager] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [notFound, setNotFound] = useState<boolean>(false);
-    const [usingMockData, setUsingMockData] = useState<boolean>(false);
 
-    // Загрузка данных профиля
+    // Загрузка данных профиля и руководителя
     useEffect(() => {
         const loadProfile = async () => {
             // Если это личный профиль (без userId) и есть текущий пользователь
@@ -33,7 +33,22 @@ const ProfilePage: React.FC = () => {
                         currentUser.id
                     );
                     setProfile(userProfile);
-                    setUsingMockData(true); // Помечаем что используем mock данные
+
+                    // Загружаем данные руководителя, если есть managerId
+                    if (userProfile.managerId) {
+                        try {
+                            const managerData =
+                                await userService.getUserProfile(
+                                    userProfile.managerId
+                                );
+                            setManager(managerData);
+                        } catch (managerErr) {
+                            console.error(
+                                "Ошибка загрузки данных руководителя:",
+                                managerErr
+                            );
+                        }
+                    }
                 } catch (err) {
                     console.error("Ошибка загрузки личного профиля:", err);
                     setError("Ошибка загрузки профиля");
@@ -53,10 +68,24 @@ const ProfilePage: React.FC = () => {
                 setLoading(true);
                 setError(null);
                 setNotFound(false);
-                setUsingMockData(false);
 
                 const userProfile = await userService.getUserProfile(userId);
                 setProfile(userProfile);
+
+                // Загружаем данные руководителя, если есть managerId
+                if (userProfile.managerId) {
+                    try {
+                        const managerData = await userService.getUserProfile(
+                            userProfile.managerId
+                        );
+                        setManager(managerData);
+                    } catch (managerErr) {
+                        console.error(
+                            "Ошибка загрузки данных руководителя:",
+                            managerErr
+                        );
+                    }
+                }
             } catch (err) {
                 console.error("Ошибка загрузки профиля:", err);
 
@@ -95,6 +124,10 @@ const ProfilePage: React.FC = () => {
         navigate("/profile");
     };
 
+    const handleManagerClick = (managerId: string) => {
+        navigate(`/profile/${managerId}`);
+    };
+
     const isOwnProfile = !userId || userId === currentUser?.id;
 
     if (loading) {
@@ -104,7 +137,7 @@ const ProfilePage: React.FC = () => {
     // Обработка случая когда профиль не найден
     if (notFound) {
         return (
-            <div className="container mx-auto p-6 pt-24">
+            <div className="container mx-auto p-6 pt-24 pb-12">
                 <div className="bg-secondary rounded-lg shadow-md p-8 text-center">
                     <div className="mb-6">
                         <i className="pi pi-user-slash text-6xl text-gray-400 mb-4"></i>
@@ -140,7 +173,7 @@ const ProfilePage: React.FC = () => {
     // Обработка других ошибок
     if (error && !profile) {
         return (
-            <div className="container mx-auto p-6 pt-24">
+            <div className="container mx-auto p-6 pt-24 pb-12">
                 <div className="bg-secondary rounded-lg shadow-md p-8 text-center">
                     <div className="mb-6">
                         <i className="pi pi-exclamation-triangle text-6xl text-yellow-500 mb-4"></i>
@@ -172,7 +205,7 @@ const ProfilePage: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto p-6 pt-24">
+        <div className="container mx-auto pt-24 pb-12">
             <div className="bg-secondary rounded-lg shadow-md p-8">
                 {/* Заголовок и кнопка выхода */}
                 <div className="flex justify-between items-center mb-8">
@@ -184,11 +217,6 @@ const ProfilePage: React.FC = () => {
                                   }`.trim()
                                 : "Профиль сотрудника"}
                         </h1>
-                        {usingMockData && (
-                            <p className="text-sm text-gray-500 font-golos mt-1">
-                                📋 Используются тестовые данные
-                            </p>
-                        )}
                     </div>
                     {isOwnProfile && (
                         <Button
@@ -203,18 +231,87 @@ const ProfilePage: React.FC = () => {
 
                 {profile ? (
                     <div className="space-y-8">
-                        {/* Основная информация в две колонки */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Левая колонка - стаж и контакты */}
+                        {/* Основная информация в три колонки */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Левая колонка - фото и руководитель */}
                             <div className="space-y-6">
-                                {/* Стаж работы */}
-                                <div className="bg-white rounded-lg p-4 shadow-sm">
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-3 font-golos">
-                                        Стаж работы
-                                    </h3>
-                                    <p className="text-xl text-gray-900 font-golos font-medium">
-                                        {calculateExperience(profile.hireDate)}
-                                    </p>
+                                {/* Фото сотрудника */}
+                                <div className="bg-white rounded-lg p-6 shadow-sm text-center">
+                                    <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                        {profile.avatar ? (
+                                            <img
+                                                src={profile.avatar}
+                                                alt={`${profile.firstName} ${profile.lastName}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <i className="pi pi-user text-4xl text-gray-400"></i>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Карточка руководителя */}
+                                {manager && (
+                                    <div
+                                        className="bg-white rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                                        onClick={() =>
+                                            handleManagerClick(manager.id)
+                                        }
+                                    >
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-3 font-golos">
+                                            Руководитель
+                                        </h3>
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                {manager.avatar ? (
+                                                    <img
+                                                        src={manager.avatar}
+                                                        alt={`${manager.firstName} ${manager.lastName}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <i className="pi pi-user text-lg text-gray-400"></i>
+                                                )}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-medium text-gray-800 font-golos truncate">
+                                                    {manager.lastName}{" "}
+                                                    {manager.firstName}{" "}
+                                                    {manager.middleName || ""}
+                                                </p>
+                                                <p className="text-sm text-gray-600 font-golos truncate">
+                                                    {manager.position}
+                                                </p>
+                                                <p className="text-xs text-gray-500 font-golos truncate">
+                                                    {manager.department?.name}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Центральная колонка - основная информация */}
+                            <div className="space-y-6 lg:col-span-2">
+                                {/* Подразделение и должность */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-2 font-golos">
+                                            Подразделение
+                                        </h3>
+                                        <p className="text-gray-700 font-golos">
+                                            {profile.department?.name ||
+                                                "Не указано"}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-2 font-golos">
+                                            Должность
+                                        </h3>
+                                        <p className="text-gray-700 font-golos">
+                                            {profile.position || "Не указана"}
+                                        </p>
+                                    </div>
                                 </div>
 
                                 {/* Общая информация */}
@@ -222,7 +319,7 @@ const ProfilePage: React.FC = () => {
                                     <h3 className="text-lg font-semibold text-gray-800 mb-3 font-golos">
                                         Общая информация
                                     </h3>
-                                    <div className="space-y-3 text-gray-700 font-golos">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700 font-golos">
                                         <div>
                                             <span className="font-medium">
                                                 Город:
@@ -247,45 +344,38 @@ const ProfilePage: React.FC = () => {
                                             </span>{" "}
                                             {formatDate(profile.birthDate)}
                                         </div>
-                                        <div>
+                                        <div className="md:col-span-2">
                                             <span className="font-medium">
-                                                Подразделение:
+                                                Корпоративный чат:
                                             </span>{" "}
-                                            {profile.department?.name ||
-                                                "Не указано"}
+                                            {profile.messengerLink ||
+                                                "Не указан"}
                                         </div>
-                                        <div>
-                                            <span className="font-medium">
-                                                Должность:
-                                            </span>{" "}
-                                            {profile.position || "Не указана"}
-                                        </div>
-                                        {profile.messengerLink && (
-                                            <div>
-                                                <span className="font-medium">
-                                                    Телеграм:
-                                                </span>{" "}
-                                                {profile.messengerLink}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Правая колонка - о себе */}
-                            <div className="bg-white rounded-lg p-4 shadow-sm">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-3 font-golos">
-                                    О себе
-                                </h3>
-                                <p className="text-gray-700 font-golos leading-relaxed">
-                                    {profile.interests ||
-                                        "Информация не указана"}
-                                </p>
+                                {/* О себе */}
+                                <div className="bg-white rounded-lg p-4 shadow-sm">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-3 font-golos">
+                                        О себе
+                                    </h3>
+                                    <p className="text-gray-700 font-golos leading-relaxed">
+                                        {profile.interests ||
+                                            "Информация не указана"}
+                                    </p>
+                                </div>
+
+                                {/* Стаж работы */}
+                                <div className="bg-white rounded-lg p-4 shadow-sm">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-2 font-golos">
+                                        Стаж работы
+                                    </h3>
+                                    <p className="text-xl text-gray-900 font-golos font-medium">
+                                        {calculateExperience(profile.hireDate)}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Разделитель */}
-                        <hr className="my-6 border-gray-300" />
 
                         {/* Кнопки действий (только для своего профиля) */}
                         {isOwnProfile && (
@@ -298,7 +388,7 @@ const ProfilePage: React.FC = () => {
                                 <Button
                                     label="Редактировать"
                                     icon="pi pi-pencil"
-                                    className="font-inter bg-secondary border-secondary hover:bg-secondary-dark"
+                                    className="font-inter bg-primary border-secondary hover:bg-secondary-dark"
                                 />
                             </div>
                         )}

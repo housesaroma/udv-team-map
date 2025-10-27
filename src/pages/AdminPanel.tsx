@@ -15,7 +15,7 @@ const AdminPanel: React.FC = () => {
                     <div className="bg-gray-100 rounded-lg p-1 flex">
                         <button
                             onClick={() => setActiveView("employees")}
-                            className={`px-6 py-3 rounded-md transition-colors font-golos font-semibold mr-4 ${
+                            className={`px-6 py-3 rounded-md transition-colors font-inter mr-4 ${
                                 activeView === "employees"
                                     ? "bg-accent text-white shadow-sm"
                                     : "text-gray-600 hover:text-gray-800"
@@ -25,7 +25,7 @@ const AdminPanel: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveView("photos")}
-                            className={`px-6 py-3 rounded-md transition-colors font-golos font-semibold ${
+                            className={`px-6 py-3 rounded-md transition-colors font-inter ${
                                 activeView === "photos"
                                     ? "bg-accent text-white shadow-sm"
                                     : "text-gray-600 hover:text-gray-800"

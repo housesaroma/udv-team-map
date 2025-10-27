@@ -20,7 +20,8 @@ export const EmployeesTable: React.FC = () => {
     const [positionFilter, setPositionFilter] = useState<string[]>([]);
 
     const dt = useRef<DataTable<TableUser[]>>(null);
-    const op = useRef<OverlayPanel>(null);
+    const departmentOp = useRef<OverlayPanel>(null);
+    const positionOp = useRef<OverlayPanel>(null);
 
     useEffect(() => {
         loadUsers();
@@ -134,27 +135,49 @@ export const EmployeesTable: React.FC = () => {
         );
     };
 
+    // Header для департамента с иконкой фильтра
+    const departmentHeaderTemplate = () => {
+        return (
+            <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-900 font-golos">
+                    Подразделение
+                </span>
+                <Button
+                    icon={`pi pi-filter${
+                        departmentFilter.length > 0 ? " fill" : ""
+                    }`}
+                    className="p-button-text p-button-sm w-2 h-2 color-gray-500"
+                    onClick={(e) => departmentOp.current?.toggle(e)}
+                    tooltip="Фильтр по подразделениям"
+                    tooltipOptions={{ position: "top" }}
+                />
+            </div>
+        );
+    };
+
+    // Header для должности с иконкой фильтра
+    const positionHeaderTemplate = () => {
+        return (
+            <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-900 font-golos">
+                    Должность
+                </span>
+                <Button
+                    icon={`pi pi-filter${
+                        positionFilter.length > 0 ? " fill" : ""
+                    }`}
+                    className="p-button-text p-button-sm w-2 h-2 color-gray-500"
+                    onClick={(e) => positionOp.current?.toggle(e)}
+                    tooltip="Фильтр по должностям"
+                    tooltipOptions={{ position: "top" }}
+                />
+            </div>
+        );
+    };
+
     // Header для ФИО
     const fullNameHeaderTemplate = () => {
         return <span className="font-bold text-gray-900 font-golos">ФИО</span>;
-    };
-
-    // Header для департамента
-    const departmentHeaderTemplate = () => {
-        return (
-            <span className="font-bold text-gray-900 font-golos">
-                Подразделение
-            </span>
-        );
-    };
-
-    // Header для должности
-    const positionHeaderTemplate = () => {
-        return (
-            <span className="font-bold text-gray-900 font-golos">
-                Должность
-            </span>
-        );
     };
 
     return (
@@ -164,7 +187,7 @@ export const EmployeesTable: React.FC = () => {
                     Таблица сотрудников
                 </h2>
 
-                {/* Общий поиск и фильтры */}
+                {/* Общий поиск */}
                 <div className="flex gap-3 items-center">
                     <span className="p-input-icon-left">
                         <i className="pi pi-search text-gray-400 ml-3" />
@@ -175,14 +198,6 @@ export const EmployeesTable: React.FC = () => {
                             className="border-gray-300 focus:border-accent pl-10"
                         />
                     </span>
-
-                    <Button
-                        icon="pi pi-filter"
-                        className="p-button-outlined border-gray-300 text-gray-700 hover:bg-gray-50"
-                        onClick={(e) => op.current?.toggle(e)}
-                        tooltip="Фильтры"
-                        tooltipOptions={{ position: "top" }}
-                    />
 
                     <Button
                         icon="pi pi-refresh"
@@ -236,17 +251,14 @@ export const EmployeesTable: React.FC = () => {
                 />
             </DataTable>
 
-            {/* Оверлей с фильтрами */}
-            <OverlayPanel ref={op} className="w-80">
+            {/* Оверлей для фильтра подразделений */}
+            <OverlayPanel ref={departmentOp} className="w-80">
                 <div className="space-y-4">
                     <h3 className="font-bold text-lg text-primary font-golos mb-4">
-                        Фильтры
+                        Фильтр по подразделениям
                     </h3>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 font-golos">
-                            Подразделения
-                        </label>
                         <MultiSelect
                             value={departmentFilter}
                             options={departments}
@@ -259,10 +271,34 @@ export const EmployeesTable: React.FC = () => {
                         />
                     </div>
 
+                    <div className="flex justify-between pt-2">
+                        <Button
+                            label="Сбросить"
+                            icon="pi pi-times"
+                            className="p-button-text text-gray-600"
+                            onClick={() => {
+                                setDepartmentFilter([]);
+                                departmentOp.current?.hide();
+                            }}
+                        />
+                        <Button
+                            label="Применить"
+                            icon="pi pi-check"
+                            className="p-button-primary bg-accent border-accent"
+                            onClick={() => departmentOp.current?.hide()}
+                        />
+                    </div>
+                </div>
+            </OverlayPanel>
+
+            {/* Оверлей для фильтра должностей */}
+            <OverlayPanel ref={positionOp} className="w-80">
+                <div className="space-y-4">
+                    <h3 className="font-bold text-lg text-primary font-golos mb-4">
+                        Фильтр по должностям
+                    </h3>
+
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 font-golos">
-                            Должности
-                        </label>
                         <MultiSelect
                             value={positionFilter}
                             options={positions}
@@ -281,15 +317,15 @@ export const EmployeesTable: React.FC = () => {
                             icon="pi pi-times"
                             className="p-button-text text-gray-600"
                             onClick={() => {
-                                setDepartmentFilter([]);
                                 setPositionFilter([]);
+                                positionOp.current?.hide();
                             }}
                         />
                         <Button
                             label="Применить"
                             icon="pi pi-check"
                             className="p-button-primary bg-accent border-accent"
-                            onClick={() => op.current?.hide()}
+                            onClick={() => positionOp.current?.hide()}
                         />
                     </div>
                 </div>

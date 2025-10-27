@@ -47,6 +47,13 @@ export const EmployeesTable: React.FC = () => {
         }
     };
 
+    // Сброс всех фильтров
+    const resetAllFilters = () => {
+        setGlobalFilter("");
+        setDepartmentFilter([]);
+        setPositionFilter([]);
+    };
+
     // Фильтрация данных
     const filteredUsers = users.filter((user) => {
         const matchesGlobal =
@@ -144,9 +151,9 @@ export const EmployeesTable: React.FC = () => {
                 </span>
                 <Button
                     icon={`pi pi-filter${
-                        departmentFilter.length > 0 ? " fill" : ""
+                        departmentFilter.length > 0 ? "-fill" : ""
                     }`}
-                    className="p-button-text p-button-sm w-2 h-2 color-gray-500"
+                    className="p-button-text p-button-sm w-2 h-2 text-gray-700"
                     onClick={(e) => departmentOp.current?.toggle(e)}
                     tooltip="Фильтр по подразделениям"
                     tooltipOptions={{ position: "top" }}
@@ -164,9 +171,9 @@ export const EmployeesTable: React.FC = () => {
                 </span>
                 <Button
                     icon={`pi pi-filter${
-                        positionFilter.length > 0 ? " fill" : ""
+                        positionFilter.length > 0 ? "-fill" : ""
                     }`}
-                    className="p-button-text p-button-sm w-2 h-2 color-gray-500"
+                    className="p-button-text p-button-sm w-2 h-2 text-gray-700"
                     onClick={(e) => positionOp.current?.toggle(e)}
                     tooltip="Фильтр по должностям"
                     tooltipOptions={{ position: "top" }}
@@ -187,7 +194,7 @@ export const EmployeesTable: React.FC = () => {
                     Таблица сотрудников
                 </h2>
 
-                {/* Общий поиск */}
+                {/* Общий поиск и кнопки */}
                 <div className="flex gap-3 items-center">
                     <span className="p-input-icon-left">
                         <i className="pi pi-search text-gray-400 ml-3" />
@@ -205,6 +212,19 @@ export const EmployeesTable: React.FC = () => {
                         onClick={loadUsers}
                         tooltip="Обновить данные"
                         tooltipOptions={{ position: "top" }}
+                    />
+
+                    <Button
+                        icon="pi pi-times"
+                        className="p-button-outlined border-gray-300 text-gray-700 hover:bg-gray-50"
+                        onClick={resetAllFilters}
+                        tooltip="Сбросить все фильтры"
+                        tooltipOptions={{ position: "top" }}
+                        disabled={
+                            !globalFilter &&
+                            departmentFilter.length === 0 &&
+                            positionFilter.length === 0
+                        }
                     />
                 </div>
             </div>

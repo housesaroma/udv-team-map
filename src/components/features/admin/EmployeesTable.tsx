@@ -1,10 +1,11 @@
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable } from "primereact/datatable";
+import { DataTable, type DataTableRowClickEvent } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { MultiSelect } from "primereact/multiselect";
 import { OverlayPanel } from "primereact/overlaypanel";
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { adminService } from "../../../services/adminService";
 import type { User } from "../../../types";
 
@@ -18,6 +19,7 @@ export const EmployeesTable: React.FC = () => {
     const [globalFilter, setGlobalFilter] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
     const [positionFilter, setPositionFilter] = useState<string[]>([]);
+    const navigate = useNavigate();
 
     const dt = useRef<DataTable<TableUser[]>>(null);
     const departmentOp = useRef<OverlayPanel>(null);
@@ -52,6 +54,12 @@ export const EmployeesTable: React.FC = () => {
         setGlobalFilter("");
         setDepartmentFilter([]);
         setPositionFilter([]);
+    };
+
+    // Обработчик клика по строке
+    const onRowClick = (event: DataTableRowClickEvent) => {
+        const user = event.data as TableUser;
+        navigate(`/profile/${user.id}`);
     };
 
     // Фильтрация данных
@@ -91,7 +99,7 @@ export const EmployeesTable: React.FC = () => {
 
     // Функция для применения стилей к строкам
     const rowClassName = () => {
-        return "border-b border-gray-100 hover:bg-gray-50 transition-colors";
+        return "border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer";
     };
 
     // Шаблон для ФИО с аватаром
@@ -153,7 +161,7 @@ export const EmployeesTable: React.FC = () => {
                     icon={`pi pi-filter${
                         departmentFilter.length > 0 ? "-fill" : ""
                     }`}
-                    className="p-button-text p-button-sm w-2 h-2 text-gray-700"
+                    className="p-button-text p-button-sm w-2 h-2 text-gray-500"
                     onClick={(e) => departmentOp.current?.toggle(e)}
                     tooltip="Фильтр по подразделениям"
                     tooltipOptions={{ position: "top" }}
@@ -173,7 +181,7 @@ export const EmployeesTable: React.FC = () => {
                     icon={`pi pi-filter${
                         positionFilter.length > 0 ? "-fill" : ""
                     }`}
-                    className="p-button-text p-button-sm w-2 h-2 text-gray-700"
+                    className="p-button-text p-button-sm w-2 h-2 text-gray-500"
                     onClick={(e) => positionOp.current?.toggle(e)}
                     tooltip="Фильтр по должностям"
                     tooltipOptions={{ position: "top" }}
@@ -245,6 +253,8 @@ export const EmployeesTable: React.FC = () => {
                 className="p-datatable-sm border border-gray-200 rounded"
                 paginatorClassName="border-t border-gray-200 px-4 py-3"
                 rowClassName={rowClassName}
+                onRowClick={onRowClick}
+                selectionMode="single"
             >
                 <Column
                     field="fullName"

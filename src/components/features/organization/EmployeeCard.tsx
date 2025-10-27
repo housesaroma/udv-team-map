@@ -94,7 +94,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = ({
             <Card
                 header={header}
                 footer={footer}
-                className={`cursor-pointer shadow-md hover:shadow-lg border-1 ${styles.noPaddingCard}`}
+                className={`cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg ${styles.noPaddingCard}`}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onClick={handleCardClick}

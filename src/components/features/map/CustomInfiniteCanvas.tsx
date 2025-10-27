@@ -5,6 +5,7 @@ import { setPosition, setZoom } from "../../../stores/mapSlice";
 import { OrganizationTree } from "../organization/OrganizationTree";
 import { SvgDotPattern } from "./SvgDotPattern";
 import { ZoomControlsComponent } from "./ZoomControls";
+import { MAP_CONSTANTS } from "../../../constants/mapConstants";
 
 const CustomCanvas: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -13,10 +14,6 @@ const CustomCanvas: React.FC = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [isAnimating, setIsAnimating] = useState(false);
-
-    // Константы для граничных значений
-    const MIN_ZOOM = 0.25;
-    const MAX_ZOOM = 2;
 
     // Используем ref для позиции чтобы избежать замыканий
     const positionRef = useRef(position);
@@ -42,8 +39,12 @@ const CustomCanvas: React.FC = () => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const delta = -e.deltaY * 0.0005;
-                const newZoom = Math.min(Math.max(zoom + delta, MIN_ZOOM), MAX_ZOOM);
+                const delta =
+                    -e.deltaY * 0.01 * MAP_CONSTANTS.WHEEL_ZOOM_SENSITIVITY;
+                const newZoom = Math.min(
+                    Math.max(zoom + delta, MAP_CONSTANTS.MIN_ZOOM),
+                    MAP_CONSTANTS.MAX_ZOOM
+                );
                 dispatch(setZoom(newZoom));
             }
         };
@@ -121,7 +122,7 @@ const CustomCanvas: React.FC = () => {
             const startZoom = zoomRef.current;
             const startPosition = { ...positionRef.current };
             const startTime = performance.now();
-            const duration = 500; // 600ms для плавной анимации
+            const duration = MAP_CONSTANTS.ANIMATION_DURATION; // для плавной анимации
 
             const animate = (currentTime: number) => {
                 const elapsed = currentTime - startTime;
@@ -170,12 +171,15 @@ const CustomCanvas: React.FC = () => {
         }
 
         // Анимируем к исходному состоянию
-        animateTo(1, { x: -1500, y: 0 });
+        animateTo(MAP_CONSTANTS.INITIAL_ZOOM, MAP_CONSTANTS.INITIAL_POSITION);
     }, [animateTo]);
 
     const handleZoomIn = useCallback(() => {
         if (isAnimating) return;
-        const newZoom = Math.min(zoom + 0.25, MAX_ZOOM);
+        const newZoom = Math.min(
+            zoom + MAP_CONSTANTS.BUTTON_ZOOM_STEP,
+            MAP_CONSTANTS.MAX_ZOOM
+        );
         if (newZoom !== zoom) {
             dispatch(setZoom(newZoom));
         }
@@ -183,7 +187,10 @@ const CustomCanvas: React.FC = () => {
 
     const handleZoomOut = useCallback(() => {
         if (isAnimating) return;
-        const newZoom = Math.max(zoom - 0.25, MIN_ZOOM);
+        const newZoom = Math.max(
+            zoom - MAP_CONSTANTS.BUTTON_ZOOM_STEP,
+            MAP_CONSTANTS.MIN_ZOOM
+        );
         if (newZoom !== zoom) {
             dispatch(setZoom(newZoom));
         }
@@ -207,8 +214,8 @@ const CustomCanvas: React.FC = () => {
                     onZoomOut={handleZoomOut}
                     onFitToView={handleFitToView}
                     zoom={zoom}
-                    minZoom={MIN_ZOOM}
-                    maxZoom={MAX_ZOOM}
+                    minZoom={MAP_CONSTANTS.MIN_ZOOM}
+                    maxZoom={MAP_CONSTANTS.MAX_ZOOM}
                 />
             </div>
 

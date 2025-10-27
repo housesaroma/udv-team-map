@@ -6,8 +6,8 @@ interface ZoomControlsProps {
     onZoomOut: () => void;
     onFitToView: () => void;
     zoom: number;
-    minZoom?: number;
-    maxZoom?: number;
+    minZoom: number;
+    maxZoom: number;
 }
 
 export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
@@ -15,8 +15,8 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
     onZoomOut,
     onFitToView,
     zoom,
-    minZoom = 0.25,
-    maxZoom = 2,
+    minZoom,
+    maxZoom,
 }) => {
     const isZoomOutDisabled = zoom <= minZoom;
     const isZoomInDisabled = zoom >= maxZoom;

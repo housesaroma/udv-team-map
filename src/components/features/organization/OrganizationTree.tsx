@@ -11,6 +11,7 @@ import { treeUtils } from "../../../utils/treeUtils";
 import { EmployeeCard } from "./EmployeeCard";
 import { ConnectionLines } from "./ConnectionLines";
 import { PageLoader } from "../../ui/PageLoader";
+import { MAP_CONSTANTS } from "../../../constants/mapConstants";
 
 interface OrganizationTreeProps {
     className?: string;
@@ -77,8 +78,8 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
     // Сброс масштаба и позиции при загрузке - только один раз
     useEffect(() => {
         if (!loading && !error) {
-            dispatch(setZoom(1));
-            dispatch(setPosition({ x: -1500, y: 0 }));
+            dispatch(setZoom(MAP_CONSTANTS.INITIAL_ZOOM));
+            dispatch(setPosition(MAP_CONSTANTS.INITIAL_POSITION));
         }
     }, [loading, error, dispatch]);
 

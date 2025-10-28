@@ -1,24 +1,59 @@
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable, type DataTableRowClickEvent } from "primereact/datatable";
+import {
+    DataTable,
+    type DataTablePageEvent,
+    type DataTableRowClickEvent,
+    type DataTableSortEvent,
+} from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
 import { MultiSelect } from "primereact/multiselect";
 import { OverlayPanel } from "primereact/overlaypanel";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminService } from "../../../services/adminService";
+import {
+    adminService,
+    type UsersQueryParams,
+} from "../../../services/adminService";
 import type { User } from "../../../types";
 
 interface TableUser extends User {
     fullName: string;
 }
 
+interface TableState {
+    page: number;
+    limit: number;
+    sort: string;
+    positionFilter: string[];
+    departmentFilter: string[];
+}
+
+interface SortState {
+    sortField?: string;
+    sortOrder?: 1 | -1 | null;
+}
+
 export const EmployeesTable: React.FC = () => {
     const [users, setUsers] = useState<TableUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [globalFilter, setGlobalFilter] = useState("");
-    const [departmentFilter, setDepartmentFilter] = useState<string[]>([]);
-    const [positionFilter, setPositionFilter] = useState<string[]>([]);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [isCached, setIsCached] = useState(false);
+
+    const [tableState, setTableState] = useState<TableState>({
+        page: 0,
+        limit: 10,
+        sort: "",
+        positionFilter: [],
+        departmentFilter: [],
+    });
+
+    const [sortState, setSortState] = useState<SortState>({
+        sortField: undefined,
+        sortOrder: null,
+    });
+
     const navigate = useNavigate();
 
     const dt = useRef<DataTable<TableUser[]>>(null);
@@ -27,21 +62,44 @@ export const EmployeesTable: React.FC = () => {
 
     useEffect(() => {
         loadUsers();
-    }, []);
+    }, [tableState]);
 
     const loadUsers = async () => {
         try {
             setLoading(true);
-            const usersData = await adminService.getUsersTransformed();
 
-            const usersWithFullName: TableUser[] = usersData.map((user) => ({
+            // Преобразуем массивы фильтров в строки (подготовка для множественного выбора)
+            const positionFilterStr =
+                tableState.positionFilter.length > 0
+                    ? tableState.positionFilter.join(",")
+                    : "";
+            const departmentFilterStr =
+                tableState.departmentFilter.length > 0
+                    ? tableState.departmentFilter.join(",")
+                    : "";
+
+            const params: UsersQueryParams = {
+                page: tableState.page + 1, // Сервер использует 1-based индексацию
+                limit: tableState.limit,
+                sort: tableState.sort,
+                positionFilter: positionFilterStr,
+                departmentFilter: departmentFilterStr,
+                isCached: true,
+            };
+
+            const response = await adminService.getUsersTransformed(params);
+
+            // Преобразуем User[] в TableUser[]
+            const tableUsers: TableUser[] = response.users.map((user) => ({
                 ...user,
                 fullName: `${user.lastName} ${user.firstName} ${
                     user.middleName || ""
-                }`,
+                }`.trim(),
             }));
 
-            setUsers(usersWithFullName);
+            setUsers(tableUsers);
+            setTotalRecords(response.totalRecords);
+            setIsCached(response.isCached);
         } catch (error) {
             console.error("Ошибка загрузки пользователей:", error);
         } finally {
@@ -49,11 +107,88 @@ export const EmployeesTable: React.FC = () => {
         }
     };
 
+    // Обработчик пагинации с правильным типом
+    const onPageChange = (event: DataTablePageEvent) => {
+        setTableState((prev) => ({
+            ...prev,
+            page: event.page ?? 0,
+            limit: event.rows ?? 10,
+        }));
+    };
+
+    // Обработчик сортировки
+    const onSort = (event: DataTableSortEvent) => {
+        if (!event.sortField) {
+            // Если сортировка отменена
+            setTableState((prev) => ({ ...prev, sort: "" }));
+            setSortState({ sortField: undefined, sortOrder: null });
+            return;
+        }
+
+        // Преобразуем названия полей для сервера
+        let serverFieldName = event.sortField;
+
+        if (serverFieldName === "department.name") {
+            serverFieldName = "department";
+        } else if (serverFieldName === "fullName") {
+            serverFieldName = "username";
+        }
+        // position остается как есть
+
+        const sortDirection = event.sortOrder === 1 ? "asc" : "desc";
+        const sortString = `${serverFieldName}_${sortDirection}`;
+
+        setTableState((prev) => ({ ...prev, sort: sortString }));
+        setSortState({
+            sortField: event.sortField,
+            sortOrder: event.sortOrder as 1 | -1 | null,
+        });
+    };
+
+    // Обработчик клика по кнопке фильтра департаментов
+    const handleDepartmentFilterClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        departmentOp.current?.toggle(e);
+    };
+
+    // Обработчик клика по кнопке фильтра должностей
+    const handlePositionFilterClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Останавливаем всплытие события
+        positionOp.current?.toggle(e);
+    };
+
+    // Обработчик фильтрации по департаментам
+    const handleDepartmentFilterChange = (selectedDepartments: string[]) => {
+        setTableState((prev) => ({
+            ...prev,
+            departmentFilter: selectedDepartments,
+            page: 0, // Сбрасываем на первую страницу при изменении фильтра
+        }));
+        departmentOp.current?.hide();
+    };
+
+    // Обработчик фильтрации по должностям
+    const handlePositionFilterChange = (selectedPositions: string[]) => {
+        setTableState((prev) => ({
+            ...prev,
+            positionFilter: selectedPositions,
+            page: 0, // Сбрасываем на первую страницу при изменении фильтра
+        }));
+        positionOp.current?.hide();
+    };
+
     // Сброс всех фильтров
     const resetAllFilters = () => {
         setGlobalFilter("");
-        setDepartmentFilter([]);
-        setPositionFilter([]);
+        setTableState((prev) => ({
+            ...prev,
+            page: 0,
+            positionFilter: [],
+            departmentFilter: [],
+            sort: "",
+        }));
+        // Сбрасываем сортировку
+        setSortState({ sortField: undefined, sortOrder: null });
     };
 
     // Обработчик клика по строке
@@ -62,27 +197,7 @@ export const EmployeesTable: React.FC = () => {
         navigate(`/profile/${user.id}`);
     };
 
-    // Фильтрация данных
-    const filteredUsers = users.filter((user) => {
-        const matchesGlobal =
-            !globalFilter ||
-            user.fullName.toLowerCase().includes(globalFilter.toLowerCase()) ||
-            user.department.name
-                .toLowerCase()
-                .includes(globalFilter.toLowerCase()) ||
-            user.position.toLowerCase().includes(globalFilter.toLowerCase());
-
-        const matchesDepartment =
-            departmentFilter.length === 0 ||
-            departmentFilter.includes(user.department.name);
-        const matchesPosition =
-            positionFilter.length === 0 ||
-            positionFilter.includes(user.position);
-
-        return matchesGlobal && matchesDepartment && matchesPosition;
-    });
-
-    // Получаем уникальные значения для фильтров
+    // Получаем уникальные значения для фильтров (для MultiSelect)
     const departments = Array.from(
         new Set(users.map((user) => user.department.name))
     ).map((dept) => ({
@@ -159,10 +274,10 @@ export const EmployeesTable: React.FC = () => {
                 </span>
                 <Button
                     icon={`pi pi-filter${
-                        departmentFilter.length > 0 ? "-fill" : ""
+                        tableState.departmentFilter.length > 0 ? "-fill" : ""
                     }`}
                     className="p-button-text p-button-sm w-2 h-2 text-gray-500"
-                    onClick={(e) => departmentOp.current?.toggle(e)}
+                    onClick={handleDepartmentFilterClick}
                     tooltip="Фильтр по подразделениям"
                     tooltipOptions={{ position: "top" }}
                 />
@@ -179,10 +294,10 @@ export const EmployeesTable: React.FC = () => {
                 </span>
                 <Button
                     icon={`pi pi-filter${
-                        positionFilter.length > 0 ? "-fill" : ""
+                        tableState.positionFilter.length > 0 ? "-fill" : ""
                     }`}
                     className="p-button-text p-button-sm w-2 h-2 text-gray-500"
-                    onClick={(e) => positionOp.current?.toggle(e)}
+                    onClick={handlePositionFilterClick}
                     tooltip="Фильтр по должностям"
                     tooltipOptions={{ position: "top" }}
                 />
@@ -229,9 +344,9 @@ export const EmployeesTable: React.FC = () => {
                         tooltip="Сбросить все фильтры"
                         tooltipOptions={{ position: "top" }}
                         disabled={
-                            !globalFilter &&
-                            departmentFilter.length === 0 &&
-                            positionFilter.length === 0
+                            tableState.positionFilter.length === 0 &&
+                            tableState.departmentFilter.length === 0 &&
+                            !tableState.sort
                         }
                     />
                 </div>
@@ -239,13 +354,14 @@ export const EmployeesTable: React.FC = () => {
 
             <DataTable
                 ref={dt}
-                value={filteredUsers}
+                value={users}
                 loading={loading}
-                globalFilter={globalFilter}
-                sortMode="multiple"
+                sortMode="single"
                 removableSort
                 paginator
-                rows={10}
+                rows={tableState.limit}
+                first={tableState.page * tableState.limit}
+                totalRecords={totalRecords}
                 rowsPerPageOptions={[5, 10, 25, 50]}
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="Показано {first} - {last} из {totalRecords} сотрудников"
@@ -254,7 +370,12 @@ export const EmployeesTable: React.FC = () => {
                 paginatorClassName="border-t border-gray-200 px-4 py-3"
                 rowClassName={rowClassName}
                 onRowClick={onRowClick}
+                onPage={onPageChange}
+                onSort={onSort}
                 selectionMode="single"
+                lazy
+                sortField={sortState.sortField}
+                sortOrder={sortState.sortOrder}
             >
                 <Column
                     field="fullName"
@@ -281,6 +402,14 @@ export const EmployeesTable: React.FC = () => {
                 />
             </DataTable>
 
+            {/* Информация о кэшировании */}
+            {isCached && (
+                <div className="mt-2 text-sm text-gray-500 flex items-center gap-1">
+                    <i className="pi pi-database" />
+                    <span>Данные загружены из кэша</span>
+                </div>
+            )}
+
             {/* Оверлей для фильтра подразделений */}
             <OverlayPanel ref={departmentOp} className="w-80">
                 <div className="space-y-4">
@@ -290,9 +419,11 @@ export const EmployeesTable: React.FC = () => {
 
                     <div className="space-y-2">
                         <MultiSelect
-                            value={departmentFilter}
+                            value={tableState.departmentFilter}
                             options={departments}
-                            onChange={(e) => setDepartmentFilter(e.value)}
+                            onChange={(e) =>
+                                handleDepartmentFilterChange(e.value)
+                            }
                             placeholder="Выберите подразделения"
                             className="w-full"
                             display="chip"
@@ -306,10 +437,7 @@ export const EmployeesTable: React.FC = () => {
                             label="Сбросить"
                             icon="pi pi-times"
                             className="p-button-text text-gray-600"
-                            onClick={() => {
-                                setDepartmentFilter([]);
-                                departmentOp.current?.hide();
-                            }}
+                            onClick={() => handleDepartmentFilterChange([])}
                         />
                         <Button
                             label="Применить"
@@ -330,9 +458,11 @@ export const EmployeesTable: React.FC = () => {
 
                     <div className="space-y-2">
                         <MultiSelect
-                            value={positionFilter}
+                            value={tableState.positionFilter}
                             options={positions}
-                            onChange={(e) => setPositionFilter(e.value)}
+                            onChange={(e) =>
+                                handlePositionFilterChange(e.value)
+                            }
                             placeholder="Выберите должности"
                             className="w-full"
                             display="chip"
@@ -346,10 +476,7 @@ export const EmployeesTable: React.FC = () => {
                             label="Сбросить"
                             icon="pi pi-times"
                             className="p-button-text text-gray-600"
-                            onClick={() => {
-                                setPositionFilter([]);
-                                positionOp.current?.hide();
-                            }}
+                            onClick={() => handlePositionFilterChange([])}
                         />
                         <Button
                             label="Применить"

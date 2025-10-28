@@ -34,19 +34,19 @@ export interface ModerationItem {
 export type UserRole = "employee" | "hr" | "admin";
 
 export interface ApiUserProfile {
-    user_id: string;
     userName: string;
-    bornDate: string;
-    department: string;
     position: string;
-    workExperience: string;
-    phoneNumber: string;
-    city: string;
-    interests: string;
-    avatar: string;
-    contacts: {
-        skype: string[];
-        telegram: string[];
+    department: string;
+    userId: string;
+    avatar?: string;
+    phoneNumber?: string;
+    city?: string;
+    interests?: string;
+    bornDate?: string;
+    workExperience?: string;
+    contacts?: {
+        telegram?: string[];
+        skype?: string[];
     };
 }
 

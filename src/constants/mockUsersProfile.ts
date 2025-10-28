@@ -3,10 +3,10 @@ import type { UsersResponse } from "../services/adminService";
 // Мок-данные для админ панели в формате ApiUserProfile
 export const MOCK_USERS_RESPONSE: UsersResponse = {
     amountOfUsers: 55,
-    users: [
+    usersTable: [
         // Руководство
         {
-            user_id: "11111111-1111-1111-1111-111111111111",
+            userId: "11111111-1111-1111-1111-111111111111",
             userName: "Иванов Александр Петрович",
             bornDate: "1980-05-15",
             department: "IT",
@@ -24,7 +24,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
 
         // IT отдел
         {
-            user_id: "33333333-3333-3333-3333-333333333333",
+            userId: "33333333-3333-3333-3333-333333333333",
             userName: "Сидоров Дмитрий Игоревич",
             bornDate: "1985-08-20",
             department: "IT",
@@ -40,7 +40,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "55555555-5555-5555-5555-555555555555",
+            userId: "55555555-5555-5555-5555-555555555555",
             userName: "Васильев Андрей Николаевич",
             bornDate: "1988-03-12",
             department: "IT",
@@ -56,7 +56,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            userId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
             userName: "Новиков Павел Викторович",
             bornDate: "1990-11-05",
             department: "IT",
@@ -72,7 +72,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "cccccccc-cccc-cccc-cccc-cccccccccccc",
+            userId: "cccccccc-cccc-cccc-cccc-cccccccccccc",
             userName: "Орлова Анна Дмитриевна",
             bornDate: "1992-07-30",
             department: "IT",
@@ -88,7 +88,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "dddddddd-dddd-dddd-dddd-dddddddddddd",
+            userId: "dddddddd-dddd-dddd-dddd-dddddddddddd",
             userName: "Ткаченко Владимир Сергеевич",
             bornDate: "1993-04-18",
             department: "IT",
@@ -104,7 +104,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+            userId: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
             userName: "Жуков Алексей Борисович",
             bornDate: "1989-09-25",
             department: "IT",
@@ -120,7 +120,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            userId: "ffffffff-ffff-ffff-ffff-ffffffffffff",
             userName: "Мельников Артем Юрьевич",
             bornDate: "1991-12-08",
             department: "IT",
@@ -136,7 +136,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            userId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             userName: "Попова Светлана Витальевна",
             bornDate: "1994-06-14",
             department: "IT",
@@ -152,7 +152,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbbb-1111-1111-1111-111111111111",
+            userId: "bbbbbbbb-1111-1111-1111-111111111111",
             userName: "Семенов Игорь Васильевич",
             bornDate: "1987-02-28",
             department: "IT",
@@ -168,7 +168,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbbb-2222-2222-2222-222222222222",
+            userId: "bbbbbbbb-2222-2222-2222-222222222222",
             userName: "Ковалева Марина Сергеевна",
             bornDate: "1990-08-17",
             department: "IT",
@@ -184,7 +184,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbbb-3333-3333-3333-333333333333",
+            userId: "bbbbbbbb-3333-3333-3333-333333333333",
             userName: "Никитин Алексей Владимирович",
             bornDate: "1989-05-22",
             department: "IT",
@@ -200,7 +200,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "77777777-7777-7777-7777-777777777777",
+            userId: "77777777-7777-7777-7777-777777777777",
             userName: "Громов Сергей Олегович",
             bornDate: "1986-07-19",
             department: "IT",
@@ -216,7 +216,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "11111111-2222-3333-4444-777777777777",
+            userId: "11111111-2222-3333-4444-777777777777",
             userName: "Федоров Михаил Павлович",
             bornDate: "1984-01-30",
             department: "IT",
@@ -232,7 +232,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "22222222-3333-4444-5555-666666666666",
+            userId: "22222222-3333-4444-5555-666666666666",
             userName: "Кузнецов Роман Анатольевич",
             bornDate: "1987-11-11",
             department: "IT",
@@ -248,7 +248,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "33333333-4444-5555-6666-777777777777",
+            userId: "33333333-4444-5555-6666-777777777777",
             userName: "Семенова Татьяна Игоревна",
             bornDate: "1991-03-25",
             department: "IT",
@@ -264,7 +264,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "44444444-4444-4444-4444-444444444444",
+            userId: "44444444-4444-4444-4444-444444444444",
             userName: "Козлова Елена Владимировна",
             bornDate: "1989-09-14",
             department: "IT",
@@ -280,7 +280,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "55555555-6666-7777-8888-999999999999",
+            userId: "55555555-6666-7777-8888-999999999999",
             userName: "Воронова Надежда Львовна",
             bornDate: "1995-12-03",
             department: "IT",
@@ -296,7 +296,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "66666666-6666-6666-6666-666666666666",
+            userId: "66666666-6666-6666-6666-666666666666",
             userName: "Морозова Ирина Александровна",
             bornDate: "1983-04-20",
             department: "IT",
@@ -312,7 +312,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "77777777-8888-9999-0000-111111111111",
+            userId: "77777777-8888-9999-0000-111111111111",
             userName: "Белов Андрей Николаевич",
             bornDate: "1988-06-28",
             department: "IT",
@@ -328,7 +328,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "88888888-9999-0000-1111-222222222222",
+            userId: "88888888-9999-0000-1111-222222222222",
             userName: "Захарова Ольга Викторовна",
             bornDate: "1992-10-15",
             department: "IT",
@@ -344,7 +344,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "99999999-0000-1111-2222-333333333333",
+            userId: "99999999-0000-1111-2222-333333333333",
             userName: "Тимофеев Денис Олегович",
             bornDate: "1990-01-08",
             department: "IT",
@@ -362,7 +362,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
 
         // Финансы
         {
-            user_id: "22222222-2222-2222-2222-222222222222",
+            userId: "22222222-2222-2222-2222-222222222222",
             userName: "Петрова Ольга Сергеевна",
             bornDate: "1979-03-12",
             department: "Финансы",
@@ -378,7 +378,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            userId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
             userName: "Соколов Артем Викторович",
             bornDate: "1982-11-25",
             department: "Финансы",
@@ -394,7 +394,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+            userId: "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
             userName: "Калинина Ирина Сергеевна",
             bornDate: "1986-07-18",
             department: "Финансы",
@@ -410,7 +410,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "cccccccc-dddd-eeee-ffff-000000000000",
+            userId: "cccccccc-dddd-eeee-ffff-000000000000",
             userName: "Максимов Павел Андреевич",
             bornDate: "1991-09-05",
             department: "Финансы",
@@ -426,7 +426,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "dddddddd-eeee-ffff-0000-111111111111",
+            userId: "dddddddd-eeee-ffff-0000-111111111111",
             userName: "Григорьева Елена Владимировна",
             bornDate: "1993-12-28",
             department: "Финансы",
@@ -442,7 +442,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "eeeeeeee-ffff-0000-1111-222222222222",
+            userId: "eeeeeeee-ffff-0000-1111-222222222222",
             userName: "Лебедев Дмитрий Олегович",
             bornDate: "1980-05-14",
             department: "Финансы",
@@ -458,7 +458,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "ffffffff-0000-1111-2222-333333333333",
+            userId: "ffffffff-0000-1111-2222-333333333333",
             userName: "Лебедева Мария Андреевна",
             bornDate: "1984-08-22",
             department: "Финансы",
@@ -474,7 +474,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "00000000-1111-2222-3333-444444444444",
+            userId: "00000000-1111-2222-3333-444444444444",
             userName: "Данилова Екатерина Валерьевна",
             bornDate: "1989-02-17",
             department: "Финансы",
@@ -490,7 +490,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "11111111-2222-3333-4444-555555555555",
+            userId: "11111111-2222-3333-4444-555555555555",
             userName: "Фролов Иван Петрович",
             bornDate: "1987-06-30",
             department: "Финансы",
@@ -508,7 +508,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
 
         // HR отдел
         {
-            user_id: "22222222-4444-6666-8888-000000000000",
+            userId: "22222222-4444-6666-8888-000000000000",
             userName: "Волкова Татьяна Михайловна",
             bornDate: "1978-04-16",
             department: "HR",
@@ -524,7 +524,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "33333333-5555-7777-9999-111111111111",
+            userId: "33333333-5555-7777-9999-111111111111",
             userName: "Алексеев Сергей Владимирович",
             bornDate: "1985-10-08",
             department: "HR",
@@ -540,7 +540,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "44444444-6666-8888-0000-222222222222",
+            userId: "44444444-6666-8888-0000-222222222222",
             userName: "Савельева Юлия Романовна",
             bornDate: "1990-03-24",
             department: "HR",
@@ -556,7 +556,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "55555555-7777-9999-1111-333333333333",
+            userId: "55555555-7777-9999-1111-333333333333",
             userName: "Крылов Антон Игоревич",
             bornDate: "1988-12-19",
             department: "HR",
@@ -572,7 +572,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "66666666-8888-0000-2222-444444444444",
+            userId: "66666666-8888-0000-2222-444444444444",
             userName: "Орлов Максим Александрович",
             bornDate: "1983-07-11",
             department: "HR",
@@ -588,7 +588,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "77777777-9999-1111-3333-555555555555",
+            userId: "77777777-9999-1111-3333-555555555555",
             userName: "Медведева Анастасия Сергеевна",
             bornDate: "1987-05-03",
             department: "HR",
@@ -606,7 +606,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
 
         // Маркетинг
         {
-            user_id: "88888888-aaaa-cccc-eeee-111111111111",
+            userId: "88888888-aaaa-cccc-eeee-111111111111",
             userName: "Комаров Алексей Николаевич",
             bornDate: "1981-09-28",
             department: "Маркетинг",
@@ -622,7 +622,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "99999999-bbbb-dddd-ffff-222222222222",
+            userId: "99999999-bbbb-dddd-ffff-222222222222",
             userName: "Ильина Вероника Олеговна",
             bornDate: "1986-02-14",
             department: "Маркетинг",
@@ -638,7 +638,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaa1-cccc-eeee-1111-333333333333",
+            userId: "aaaaaaa1-cccc-eeee-1111-333333333333",
             userName: "Борисов Кирилл Андреевич",
             bornDate: "1992-11-07",
             department: "Маркетинг",
@@ -654,7 +654,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaa2-dddd-ffff-2222-444444444444",
+            userId: "aaaaaaa2-dddd-ffff-2222-444444444444",
             userName: "Зайцева Марина Викторовна",
             bornDate: "1991-04-23",
             department: "Маркетинг",
@@ -670,7 +670,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaa3-eeee-1111-3333-555555555555",
+            userId: "aaaaaaa3-eeee-1111-3333-555555555555",
             userName: "Щербаков Денис Сергеевич",
             bornDate: "1988-08-09",
             department: "Маркетинг",
@@ -686,7 +686,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaa4-ffff-2222-4444-666666666666",
+            userId: "aaaaaaa4-ffff-2222-4444-666666666666",
             userName: "Мартынова Ольга Игоревна",
             bornDate: "1993-01-26",
             department: "Маркетинг",
@@ -702,7 +702,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "aaaaaaa5-1111-3333-5555-777777777777",
+            userId: "aaaaaaa5-1111-3333-5555-777777777777",
             userName: "Силин Артем Владимирович",
             bornDate: "1990-06-12",
             department: "Маркетинг",
@@ -720,7 +720,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
 
         // Продажи
         {
-            user_id: "bbbbbbb1-2222-4444-6666-888888888888",
+            userId: "bbbbbbb1-2222-4444-6666-888888888888",
             userName: "Тихонов Михаил Александрович",
             bornDate: "1979-12-05",
             department: "Продажи",
@@ -736,7 +736,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbb2-3333-5555-7777-999999999999",
+            userId: "bbbbbbb2-3333-5555-7777-999999999999",
             userName: "Соловьева Екатерина Дмитриевна",
             bornDate: "1984-03-19",
             department: "Продажи",
@@ -752,7 +752,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbb3-4444-6666-8888-aaaaaaaaaaaa",
+            userId: "bbbbbbb3-4444-6666-8888-aaaaaaaaaaaa",
             userName: "Кузьмин Андрей Викторович",
             bornDate: "1987-07-22",
             department: "Продажи",
@@ -768,7 +768,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbb4-5555-7777-9999-bbbbbbbbbbbb",
+            userId: "bbbbbbb4-5555-7777-9999-bbbbbbbbbbbb",
             userName: "Филиппова Алина Сергеевна",
             bornDate: "1992-10-15",
             department: "Продажи",
@@ -784,7 +784,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbb5-6666-8888-aaaa-cccccccccccc",
+            userId: "bbbbbbb5-6666-8888-aaaa-cccccccccccc",
             userName: "Герасимов Иван Олегович",
             bornDate: "1989-05-28",
             department: "Продажи",
@@ -800,7 +800,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "bbbbbbb6-7777-9999-bbbb-dddddddddddd",
+            userId: "bbbbbbb6-7777-9999-bbbb-dddddddddddd",
             userName: "Давыдова Анна Михайловна",
             bornDate: "1986-09-03",
             department: "Продажи",
@@ -818,7 +818,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
 
         // Операционный отдел
         {
-            user_id: "ccccccc1-3333-6666-9999-222222222222",
+            userId: "ccccccc1-3333-6666-9999-222222222222",
             userName: "Макаров Виктор Николаевич",
             bornDate: "1980-02-11",
             department: "Операционный отдел",
@@ -834,7 +834,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "ccccccc2-4444-7777-aaaa-333333333333",
+            userId: "ccccccc2-4444-7777-aaaa-333333333333",
             userName: "Киселева Людмила Петровна",
             bornDate: "1983-11-24",
             department: "Операционный отдел",
@@ -850,7 +850,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "ccccccc3-5555-8888-bbbb-444444444444",
+            userId: "ccccccc3-5555-8888-bbbb-444444444444",
             userName: "Егоров Станислав Владимирович",
             bornDate: "1991-08-07",
             department: "Операционный отдел",
@@ -866,7 +866,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "ccccccc4-6666-9999-cccc-555555555555",
+            userId: "ccccccc4-6666-9999-cccc-555555555555",
             userName: "Щукин Александр Игоревич",
             bornDate: "1985-04-16",
             department: "Операционный отдел",
@@ -882,7 +882,7 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
         {
-            user_id: "ccccccc5-7777-aaaa-dddd-666666666666",
+            userId: "ccccccc5-7777-aaaa-dddd-666666666666",
             userName: "Ларина Виктория Андреевна",
             bornDate: "1993-12-29",
             department: "Операционный отдел",
@@ -898,4 +898,8 @@ export const MOCK_USERS_RESPONSE: UsersResponse = {
             },
         },
     ],
+    isCached: false,
+    currentPage: 0,
+    totalPages: 0,
+    pageSize: 0
 };

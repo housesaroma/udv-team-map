@@ -86,8 +86,8 @@ export const userService = {
 
             const apiData: ApiUserProfile = JSON.parse(responseText);
 
-            // Проверяем, что основные поля присутствуют
-            if (!apiData.user_id || !apiData.userName) {
+            // Проверяем, что основные поля присутствуют - FIXED: user_id → userId
+            if (!apiData.userId || !apiData.userName) {
                 console.warn(
                     "Некорректные данные профиля от сервера, пробуем мок-данные..."
                 );
@@ -159,9 +159,9 @@ export const userService = {
             return mockUser;
         }
 
-        // Затем проверяем мок-данные из админки
-        const adminMockUser = MOCK_USERS_RESPONSE.users.find(
-            (user) => user.user_id === userId
+        // Затем проверяем мок-данные из админки - FIXED: added type annotation
+        const adminMockUser = MOCK_USERS_RESPONSE.usersTable.find(
+            (user: ApiUserProfile) => user.userId === userId // FIXED: user_id → userId
         );
         if (adminMockUser) {
             console.log("Пользователь найден в мок-данных админки:", userId);
@@ -178,7 +178,7 @@ export const userService = {
 
     // Метод для получения всех пользователей из мок-данных админки
     getAdminMockUsers(): User[] {
-        return MOCK_USERS_RESPONSE.users.map(transformApiUserToUser);
+        return MOCK_USERS_RESPONSE.usersTable.map(transformApiUserToUser);
     },
 
     // Метод для получения всех доступных пользователей (в зависимости от режима)
@@ -202,8 +202,12 @@ export const userService = {
 const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     const nameParts = apiUser.userName.split(" ");
 
+    // FIXED: Handle potentially undefined contacts
+    const contacts = apiUser.contacts || {};
+    const telegramContacts = contacts.telegram || [];
+
     return {
-        id: apiUser.user_id,
+        id: apiUser.userId, // FIXED: user_id → userId
         firstName: nameParts[1] || "",
         lastName: nameParts[0] || "",
         middleName: nameParts[2] || "",
@@ -215,6 +219,6 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
         interests: apiUser.interests,
         birthDate: apiUser.bornDate,
         hireDate: apiUser.workExperience,
-        messengerLink: apiUser.contacts.telegram[0] || "",
+        messengerLink: telegramContacts[0] || "", // FIXED: safe access
     };
 };

@@ -115,10 +115,8 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = ({
         <div
             className={`w-full h-full relative ${className}`}
             style={{
-                minWidth: "5000px", // Увеличиваем минимальную ширину
+                minWidth: "10000px", // Увеличиваем минимальную ширину
                 minHeight: "4000px", // Увеличиваем минимальную высоту
-                width: "5000px", // Явно задаем ширину
-                height: "4000px", // Явно задаем высоту
             }}
         >
             {/* Общий контейнер для линий и карточек с трансформацией */}

@@ -91,9 +91,7 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = ({ nodes }) => {
             className="absolute top-0 left-0 pointer-events-none"
             style={{
                 zIndex: 0,
-                width: "5000px",
-                height: "4000px",
-                minWidth: "5000px",
+                minWidth: "10000px",
                 minHeight: "4000px",
             }}
         >

@@ -105,7 +105,7 @@ export const treeUtils = {
 
     calculateLayout(
         nodes: TreeNode[],
-        startX: number = 2000,
+        startX: number = 4000,
         startY: number = 0
     ): TreeNode[] {
         const HORIZONTAL_SPACING = 20;

@@ -11,11 +11,11 @@ const CustomCanvas: React.FC = () => {
     const dispatch = useAppDispatch();
     const { zoom, position } = useAppSelector((state) => state.map);
     const containerRef = useRef<HTMLDivElement>(null);
+    const transformContainerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [isAnimating, setIsAnimating] = useState(false);
 
-    // Используем ref для позиции чтобы избежать замыканий
     const positionRef = useRef(position);
     const zoomRef = useRef(zoom);
     const animationFrameRef = useRef<number>(0);
@@ -24,6 +24,13 @@ const CustomCanvas: React.FC = () => {
     useEffect(() => {
         positionRef.current = position;
         zoomRef.current = zoom;
+    }, [position, zoom]);
+
+    // Применяем трансформацию напрямую к DOM для избежания ререндеров
+    useEffect(() => {
+        if (transformContainerRef.current) {
+            transformContainerRef.current.style.transform = `translate(${position.x}px, ${position.y}px) scale(${zoom})`;
+        }
     }, [position, zoom]);
 
     // Используем хук горячих клавиш
@@ -64,7 +71,6 @@ const CustomCanvas: React.FC = () => {
             const target = e.currentTarget as HTMLDivElement;
             target.style.cursor = "grabbing";
 
-            // Отменяем предыдущий анимационный фрейм если есть
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
@@ -76,7 +82,6 @@ const CustomCanvas: React.FC = () => {
         (e: React.MouseEvent<HTMLDivElement>) => {
             if (!isDragging || isAnimating) return;
 
-            // Используем один requestAnimationFrame на кадр
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
@@ -95,7 +100,6 @@ const CustomCanvas: React.FC = () => {
         const target = e.currentTarget as HTMLDivElement;
         target.style.cursor = "grab";
 
-        // Отменяем анимационный фрейм при отпускании
         if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
         }
@@ -114,7 +118,6 @@ const CustomCanvas: React.FC = () => {
         []
     );
 
-    // Функция плавной анимации
     const animateTo = useCallback(
         (targetZoom: number, targetPosition: { x: number; y: number }) => {
             setIsAnimating(true);
@@ -122,19 +125,17 @@ const CustomCanvas: React.FC = () => {
             const startZoom = zoomRef.current;
             const startPosition = { ...positionRef.current };
             const startTime = performance.now();
-            const duration = MAP_CONSTANTS.ANIMATION_DURATION; // для плавной анимации
+            const duration = MAP_CONSTANTS.ANIMATION_DURATION;
 
             const animate = (currentTime: number) => {
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
 
-                // Кубическая easing функция для плавного ускорения и замедления
                 const easeProgress =
                     progress < 0.5
                         ? 4 * progress * progress * progress
                         : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-                // Интерполируем значения
                 const newZoom =
                     startZoom + (targetZoom - startZoom) * easeProgress;
                 const newX =
@@ -144,16 +145,13 @@ const CustomCanvas: React.FC = () => {
                     startPosition.y +
                     (targetPosition.y - startPosition.y) * easeProgress;
 
-                // Обновляем состояние
                 dispatch(setZoom(newZoom));
                 dispatch(setPosition({ x: newX, y: newY }));
 
                 if (progress < 1) {
                     animationFrameRef.current = requestAnimationFrame(animate);
                 } else {
-                    // Анимация завершена
                     setIsAnimating(false);
-                    // Убедимся, что финальные значения точные
                     dispatch(setZoom(targetZoom));
                     dispatch(setPosition(targetPosition));
                 }
@@ -165,12 +163,9 @@ const CustomCanvas: React.FC = () => {
     );
 
     const handleFitToView = useCallback(() => {
-        // Отменяем текущую анимацию если есть
         if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
         }
-
-        // Анимируем к исходному состоянию
         animateTo(MAP_CONSTANTS.INITIAL_ZOOM, MAP_CONSTANTS.INITIAL_POSITION);
     }, [animateTo]);
 
@@ -196,7 +191,6 @@ const CustomCanvas: React.FC = () => {
         }
     }, [zoom, dispatch, isAnimating]);
 
-    // Очистка при размонтировании
     useEffect(() => {
         return () => {
             if (animationFrameRef.current) {
@@ -207,7 +201,6 @@ const CustomCanvas: React.FC = () => {
 
     return (
         <div className="w-full h-full bg-primary relative overflow-hidden">
-            {/* Компонент управления zoom и Fit to View */}
             <div className="absolute bottom-4 right-4 z-10">
                 <ZoomControlsComponent
                     onZoomIn={handleZoomIn}
@@ -219,10 +212,9 @@ const CustomCanvas: React.FC = () => {
                 />
             </div>
 
-            {/* Canvas контейнер */}
             <div
                 ref={containerRef}
-                className="w-full h-full cursor-grab bg-primary"
+                className="w-full h-full cursor-grab bg-primary overflow-hidden"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
@@ -230,8 +222,6 @@ const CustomCanvas: React.FC = () => {
                 style={{
                     userSelect: "none",
                     touchAction: "none",
-                    transform: "translateZ(0)",
-                    willChange: "transform",
                     cursor: isAnimating
                         ? "wait"
                         : isDragging
@@ -241,11 +231,23 @@ const CustomCanvas: React.FC = () => {
                 role="application"
                 aria-label="Интерактивная карта организационной структуры"
             >
-                {/* Паттерн точек на фоне */}
                 <SvgDotPattern position={position} />
 
-                {/* Организационное дерево */}
-                <OrganizationTree />
+                {/* Контейнер для трансформации всего дерева */}
+                <div
+                    ref={transformContainerRef}
+                    className="absolute top-0 left-0"
+                    style={{
+                        transformOrigin: "0 0",
+                        width: "10000px",
+                        height: "4000px",
+                        transition: isAnimating
+                            ? `transform ${MAP_CONSTANTS.ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+                            : "none",
+                    }}
+                >
+                    <OrganizationTree />
+                </div>
             </div>
         </div>
     );

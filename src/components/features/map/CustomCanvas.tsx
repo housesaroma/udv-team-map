@@ -36,7 +36,7 @@ const CustomCanvas: React.FC = () => {
   // Используем хук горячих клавиш
   useKeyboardShortcuts();
 
-  // Нативный обработчик колесика с масштабированием относительно центра
+  // Нативный обработчик колесика с масштабированием относительно курсора
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -53,19 +53,15 @@ const CustomCanvas: React.FC = () => {
         );
 
         if (newZoom !== zoom) {
-          // Получаем размеры контейнера
+          // Получаем позицию курсора относительно контейнера
           const rect = container.getBoundingClientRect();
-          const containerCenterX = rect.width / 2;
-          const containerCenterY = rect.height / 2;
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
 
-          // Вычисляем точку в координатах контейнера (относительно центра)
-          const pointX = containerCenterX;
-          const pointY = containerCenterY;
-
-          // Вычисляем смещение для масштабирования относительно центра
+          // Вычисляем смещение для масштабирования относительно курсора
           const scale = newZoom / zoom;
-          const newX = position.x - (pointX - position.x) * (scale - 1);
-          const newY = position.y - (pointY - position.y) * (scale - 1);
+          const newX = position.x - (mouseX - position.x) * (scale - 1);
+          const newY = position.y - (mouseY - position.y) * (scale - 1);
 
           dispatch(setZoom(newZoom));
           dispatch(setPosition({ x: newX, y: newY }));
@@ -183,7 +179,7 @@ const CustomCanvas: React.FC = () => {
     animateTo(MAP_CONSTANTS.INITIAL_ZOOM, MAP_CONSTANTS.INITIAL_POSITION);
   }, [animateTo]);
 
-  // Функции масштабирования относительно центра
+  // Функции масштабирования относительно центра (для кнопок)
   const handleZoomIn = useCallback(() => {
     if (isAnimating || !containerRef.current) return;
 
@@ -193,12 +189,11 @@ const CustomCanvas: React.FC = () => {
     );
 
     if (newZoom !== zoom) {
-      // Получаем размеры контейнера для центральной точки
+      // Для кнопок используем масштабирование относительно центра
       const rect = containerRef.current.getBoundingClientRect();
       const containerCenterX = rect.width / 2;
       const containerCenterY = rect.height / 2;
 
-      // Вычисляем смещение для масштабирования относительно центра
       const scale = newZoom / zoom;
       const newX = position.x - (containerCenterX - position.x) * (scale - 1);
       const newY = position.y - (containerCenterY - position.y) * (scale - 1);
@@ -217,12 +212,11 @@ const CustomCanvas: React.FC = () => {
     );
 
     if (newZoom !== zoom) {
-      // Получаем размеры контейнера для центральной точки
+      // Для кнопок используем масштабирование относительно центра
       const rect = containerRef.current.getBoundingClientRect();
       const containerCenterX = rect.width / 2;
       const containerCenterY = rect.height / 2;
 
-      // Вычисляем смещение для масштабирования относительно центра
       const scale = newZoom / zoom;
       const newX = position.x - (containerCenterX - position.x) * (scale - 1);
       const newY = position.y - (containerCenterY - position.y) * (scale - 1);

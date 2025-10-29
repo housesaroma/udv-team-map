@@ -1,90 +1,90 @@
 /* Обнуление паддингов для карточек организационной структуры */
 .noPaddingCard :global(.p-card-content) {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .noPaddingCard :global(.p-card-body) {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .noPaddingCard :global(.p-card) {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .noPaddingCard :global(.p-card-footer) {
-    padding: 0 !important;
+  padding: 0 !important;
 }
 
 .noPaddingCard :global(h4) {
-    margin-top: 1rem !important;
-    margin-bottom: 0 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0 !important;
 }
 
 .text-left {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .position {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .noPaddingCard {
-    width: 280px;
-    min-height: 120px;
+  width: 280px;
+  min-height: 120px;
 }
 
 .noPaddingCard .p-card-header {
-    padding: 0;
+  padding: 0;
 }
 
 .noPaddingCard .p-card-body {
-    padding: 1rem;
+  padding: 1rem;
 }
 
 .noPaddingCard .p-card-footer {
-    padding: 0 1rem 1rem 1rem;
+  padding: 0 1rem 1rem 1rem;
 }
 
 .cardContainer {
-    transition: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    will-change: transform, opacity;
+  transition: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
 }
 
 /* Улучшенные анимации для появления/исчезновения */
 .cardContainer-enter {
-    opacity: 0;
-    transform: scale(0.8) translateY(20px);
+  opacity: 0;
+  transform: scale(0.8) translateY(20px);
 }
 
 .cardContainer-enter-active {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    transition: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .cardContainer-exit {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 .cardContainer-exit-active {
-    opacity: 0;
-    transform: scale(0.8) translateY(-20px);
-    transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
+  transform: scale(0.8) translateY(-20px);
+  transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 :global(.transition-all) {
-    transition: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  transition: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 /* Анимация для кнопок разворачивания/сворачивания */
 :global(.p-button) {
-    transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 :global(.p-button:hover) {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }

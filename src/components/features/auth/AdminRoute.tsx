@@ -5,21 +5,21 @@ import { Permission } from "../../../types/permissions";
 import { PageLoader } from "../../ui/PageLoader";
 
 interface AdminRouteProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-    const { hasPermission, isLoading } = usePermissions();
+  const { hasPermission, isLoading } = usePermissions();
 
-    if (isLoading) {
-        return <PageLoader />;
-    }
+  if (isLoading) {
+    return <PageLoader />;
+  }
 
-    if (!hasPermission(Permission.ACCESS_ADMIN_PANEL)) {
-        return <Navigate to="/" replace />;
-    }
+  if (!hasPermission(Permission.ACCESS_ADMIN_PANEL)) {
+    return <Navigate to="/" replace />;
+  }
 
-    return <>{children}</>;
+  return <>{children}</>;
 };
 
 export default AdminRoute;

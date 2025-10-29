@@ -1,10 +1,10 @@
 export interface MapPosition {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 export interface MapState {
-    zoom: number;
-    position: MapPosition;
-    isLoading: boolean;
+  zoom: number;
+  position: MapPosition;
+  isLoading: boolean;
 }

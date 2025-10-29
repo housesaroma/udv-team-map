@@ -3,110 +3,96 @@ import { Permission, RolePermissions } from "../types/permissions";
 import type { UserRole } from "../types";
 
 export const usePermissions = () => {
-    const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-    const getUserRole = (): UserRole => {
-        const storedRole = localStorage.getItem("userRole") as UserRole;
-        return storedRole || "employee";
-    };
+  const getUserRole = (): UserRole => {
+    const storedRole = localStorage.getItem("userRole") as UserRole;
+    return storedRole || "employee";
+  };
 
-    const hasPermission = (permission: Permission): boolean => {
-        const userRole = getUserRole();
-        return RolePermissions[userRole]?.includes(permission) || false;
-    };
+  const hasPermission = (permission: Permission): boolean => {
+    const userRole = getUserRole();
+    return RolePermissions[userRole]?.includes(permission) || false;
+  };
 
-    const hasAnyPermission = (permissions: Permission[]): boolean => {
-        return permissions.some(hasPermission);
-    };
+  const hasAnyPermission = (permissions: Permission[]): boolean => {
+    return permissions.some(hasPermission);
+  };
 
-    const hasAllPermissions = (permissions: Permission[]): boolean => {
-        return permissions.every(hasPermission);
-    };
+  const hasAllPermissions = (permissions: Permission[]): boolean => {
+    return permissions.every(hasPermission);
+  };
 
-    const canEditProfile = (profileUserId: string): boolean => {
-        if (!user) return false;
+  const canEditProfile = (profileUserId: string): boolean => {
+    if (!user) return false;
 
-        if (user.id === profileUserId) {
-            return hasPermission(Permission.EDIT_OWN_PROFILE);
-        }
+    if (user.id === profileUserId) {
+      return hasPermission(Permission.EDIT_OWN_PROFILE);
+    }
 
-        return hasPermission(Permission.EDIT_OTHER_PROFILES);
-    };
+    return hasPermission(Permission.EDIT_OTHER_PROFILES);
+  };
 
-    const canEditSensitiveData = (profileUserId: string): boolean => {
-        if (!user) return false;
+  const canEditSensitiveData = (profileUserId: string): boolean => {
+    if (!user) return false;
 
-        if (user.id === profileUserId) {
-            return false;
-        }
+    if (user.id === profileUserId) {
+      return false;
+    }
 
-        return hasPermission(Permission.EDIT_SENSITIVE_DATA);
-    };
+    return hasPermission(Permission.EDIT_SENSITIVE_DATA);
+  };
 
-    const getEditableFields = (profileUserId: string) => {
-        const canEdit = canEditProfile(profileUserId);
-        const canEditSensitive = canEditSensitiveData(profileUserId);
-
-        return {
-            basicInfo: canEdit
-                ? [
-                      "phone",
-                      "email",
-                      "city",
-                      "interests",
-                      "avatar",
-                      "messengerLink",
-                  ]
-                : [],
-
-            sensitiveInfo: canEditSensitive
-                ? [
-                      "firstName",
-                      "lastName",
-                      "middleName",
-                      "position",
-                      "department",
-                      "birthDate",
-                      "hireDate",
-                      "managerId",
-                  ]
-                : [],
-
-            allEditableFields: [
-                ...(canEdit
-                    ? [
-                          "phone",
-                          "email",
-                          "city",
-                          "interests",
-                          "avatar",
-                          "messengerLink",
-                      ]
-                    : []),
-                ...(canEditSensitive
-                    ? [
-                          "firstName",
-                          "lastName",
-                          "middleName",
-                          "position",
-                          "department",
-                          "birthDate",
-                          "hireDate",
-                          "managerId",
-                      ]
-                    : []),
-            ],
-        };
-    };
+  const getEditableFields = (profileUserId: string) => {
+    const canEdit = canEditProfile(profileUserId);
+    const canEditSensitive = canEditSensitiveData(profileUserId);
 
     return {
-        hasPermission,
-        hasAnyPermission,
-        hasAllPermissions,
-        canEditProfile,
-        canEditSensitiveData,
-        getEditableFields,
-        userRole: getUserRole(),
-        isLoading,
+      basicInfo: canEdit
+        ? ["phone", "email", "city", "interests", "avatar", "messengerLink"]
+        : [],
+
+      sensitiveInfo: canEditSensitive
+        ? [
+            "firstName",
+            "lastName",
+            "middleName",
+            "position",
+            "department",
+            "birthDate",
+            "hireDate",
+            "managerId",
+          ]
+        : [],
+
+      allEditableFields: [
+        ...(canEdit
+          ? ["phone", "email", "city", "interests", "avatar", "messengerLink"]
+          : []),
+        ...(canEditSensitive
+          ? [
+              "firstName",
+              "lastName",
+              "middleName",
+              "position",
+              "department",
+              "birthDate",
+              "hireDate",
+              "managerId",
+            ]
+          : []),
+      ],
     };
+  };
+
+  return {
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    canEditProfile,
+    canEditSensitiveData,
+    getEditableFields,
+    userRole: getUserRole(),
+    isLoading,
+  };
 };

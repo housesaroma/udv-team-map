@@ -13,39 +13,42 @@ import AdminRoute from "./components/features/auth/AdminRoute";
 import NotFound from "./pages/NotFound";
 
 function App() {
-    return (
-        <Provider store={store}>
-            <AuthProvider>
-                <BrowserRouter>
-                    <Routes>
-                        {/* Публичные маршруты */}
-                        <Route path="/login" element={<LoginPage />} />
-                        
-                        {/* Защищенные маршруты */}
-                        <Route path="/" element={
-                            <ProtectedRoute>
-                                <Layout />
-                            </ProtectedRoute>
-                        }>
-                            <Route index element={<HomePage />} />
-                            <Route path="profile/:userId?" element={<ProfilePage />} />
-                            <Route 
-                                path="admin" 
-                                element={
-                                    <AdminRoute>
-                                        <AdminPanel />
-                                    </AdminRoute>
-                                } 
-                            />
-                        </Route>
+  return (
+    <Provider store={store}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Публичные маршруты */}
+            <Route path="/login" element={<LoginPage />} />
 
-                        {/* Обработка несуществующих маршрутов */}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </BrowserRouter>
-            </AuthProvider>
-        </Provider>
-    );
+            {/* Защищенные маршруты */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<HomePage />} />
+              <Route path="profile/:userId?" element={<ProfilePage />} />
+              <Route
+                path="admin"
+                element={
+                  <AdminRoute>
+                    <AdminPanel />
+                  </AdminRoute>
+                }
+              />
+            </Route>
+
+            {/* Обработка несуществующих маршрутов */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </Provider>
+  );
 }
 
 export default App;

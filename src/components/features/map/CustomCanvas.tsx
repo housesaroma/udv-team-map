@@ -36,7 +36,7 @@ const CustomCanvas: React.FC = () => {
   // Используем хук горячих клавиш
   useKeyboardShortcuts();
 
-  // Нативный обработчик колесика
+  // Нативный обработчик колесика с масштабированием относительно центра
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -51,13 +51,31 @@ const CustomCanvas: React.FC = () => {
           Math.max(zoom + delta, MAP_CONSTANTS.MIN_ZOOM),
           MAP_CONSTANTS.MAX_ZOOM
         );
-        dispatch(setZoom(newZoom));
+
+        if (newZoom !== zoom) {
+          // Получаем размеры контейнера
+          const rect = container.getBoundingClientRect();
+          const containerCenterX = rect.width / 2;
+          const containerCenterY = rect.height / 2;
+
+          // Вычисляем точку в координатах контейнера (относительно центра)
+          const pointX = containerCenterX;
+          const pointY = containerCenterY;
+
+          // Вычисляем смещение для масштабирования относительно центра
+          const scale = newZoom / zoom;
+          const newX = position.x - (pointX - position.x) * (scale - 1);
+          const newY = position.y - (pointY - position.y) * (scale - 1);
+
+          dispatch(setZoom(newZoom));
+          dispatch(setPosition({ x: newX, y: newY }));
+        }
       }
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
     return () => container.removeEventListener("wheel", handleWheel);
-  }, [zoom, dispatch]);
+  }, [zoom, position, dispatch]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -165,27 +183,54 @@ const CustomCanvas: React.FC = () => {
     animateTo(MAP_CONSTANTS.INITIAL_ZOOM, MAP_CONSTANTS.INITIAL_POSITION);
   }, [animateTo]);
 
+  // Функции масштабирования относительно центра
   const handleZoomIn = useCallback(() => {
-    if (isAnimating) return;
+    if (isAnimating || !containerRef.current) return;
+
     const newZoom = Math.min(
       zoom + MAP_CONSTANTS.BUTTON_ZOOM_STEP,
       MAP_CONSTANTS.MAX_ZOOM
     );
+
     if (newZoom !== zoom) {
+      // Получаем размеры контейнера для центральной точки
+      const rect = containerRef.current.getBoundingClientRect();
+      const containerCenterX = rect.width / 2;
+      const containerCenterY = rect.height / 2;
+
+      // Вычисляем смещение для масштабирования относительно центра
+      const scale = newZoom / zoom;
+      const newX = position.x - (containerCenterX - position.x) * (scale - 1);
+      const newY = position.y - (containerCenterY - position.y) * (scale - 1);
+
       dispatch(setZoom(newZoom));
+      dispatch(setPosition({ x: newX, y: newY }));
     }
-  }, [zoom, dispatch, isAnimating]);
+  }, [zoom, position, dispatch, isAnimating]);
 
   const handleZoomOut = useCallback(() => {
-    if (isAnimating) return;
+    if (isAnimating || !containerRef.current) return;
+
     const newZoom = Math.max(
       zoom - MAP_CONSTANTS.BUTTON_ZOOM_STEP,
       MAP_CONSTANTS.MIN_ZOOM
     );
+
     if (newZoom !== zoom) {
+      // Получаем размеры контейнера для центральной точки
+      const rect = containerRef.current.getBoundingClientRect();
+      const containerCenterX = rect.width / 2;
+      const containerCenterY = rect.height / 2;
+
+      // Вычисляем смещение для масштабирования относительно центра
+      const scale = newZoom / zoom;
+      const newX = position.x - (containerCenterX - position.x) * (scale - 1);
+      const newY = position.y - (containerCenterY - position.y) * (scale - 1);
+
       dispatch(setZoom(newZoom));
+      dispatch(setPosition({ x: newX, y: newY }));
     }
-  }, [zoom, dispatch, isAnimating]);
+  }, [zoom, position, dispatch, isAnimating]);
 
   useEffect(() => {
     return () => {

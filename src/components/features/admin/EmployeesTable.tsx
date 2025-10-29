@@ -9,7 +9,7 @@ import {
 import { InputText } from "primereact/inputtext";
 import { MultiSelect } from "primereact/multiselect";
 import { OverlayPanel } from "primereact/overlaypanel";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   adminService,
@@ -60,11 +60,7 @@ export const EmployeesTable: React.FC = () => {
   const departmentOp = useRef<OverlayPanel>(null);
   const positionOp = useRef<OverlayPanel>(null);
 
-  useEffect(() => {
-    loadUsers();
-  }, [tableState]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -105,7 +101,11 @@ export const EmployeesTable: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tableState]); // Добавляем tableState как зависимость
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]); // Теперь loadUsers стабилен благодаря useCallback
 
   // Обработчик пагинации с правильным типом
   const onPageChange = (event: DataTablePageEvent) => {

@@ -1,5 +1,5 @@
 import React from "react";
-import CustomCanvas from "../components/features/map/CustomInfiniteCanvas";
+import CustomCanvas from "../components/features/map/CustomCanvas";
 
 const HomePage: React.FC = () => {
     return (

@@ -133,22 +133,6 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = memo(
                         onToggleExpand={handleToggleExpand}
                     />
                 ))}
-
-                {/* Информация о количестве сотрудников */}
-                <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg p-3 shadow-md z-20">
-                    <div className="flex items-center space-x-2">
-                        <i className="pi pi-users text-primary"></i>
-                        <span className="font-golos text-sm font-medium">
-                            Всего сотрудников: {hierarchy.totalEmployees}
-                        </span>
-                    </div>
-                    <div className="flex items-center space-x-2 mt-1">
-                        <i className="pi pi-sitemap text-primary"></i>
-                        <span className="font-golos text-xs text-gray-600">
-                            Отображено: {visibleNodes.length} сотрудников
-                        </span>
-                    </div>
-                </div>
             </div>
         );
     }

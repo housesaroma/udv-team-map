@@ -1,8 +1,8 @@
 export const MAP_CONSTANTS = {
     INITIAL_ZOOM: 0.5,
     INITIAL_POSITION: {
-        x: -1350,
-        y: -850,
+        x: -1200,
+        y: 0,
     },
     MIN_ZOOM: 0.25,
     MAX_ZOOM: 2,

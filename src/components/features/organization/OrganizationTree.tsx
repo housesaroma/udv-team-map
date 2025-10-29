@@ -20,6 +20,7 @@ interface OrganizationTreeProps {
 export const OrganizationTree: React.FC<OrganizationTreeProps> = memo(
     ({ className = "" }) => {
         const dispatch = useAppDispatch();
+        const [isInitialized, setIsInitialized] = useState(false);
 
         const [hierarchy, setHierarchy] =
             useState<OrganizationHierarchy | null>(null);
@@ -76,13 +77,13 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = memo(
             });
         }, []);
 
-        // Сброс масштаба и позиции при загрузке
         useEffect(() => {
-            if (!loading && !error && nodesWithLayout.length > 0) {
+            if (!isInitialized && !loading && !error) {
                 dispatch(setZoom(MAP_CONSTANTS.INITIAL_ZOOM));
                 dispatch(setPosition(MAP_CONSTANTS.INITIAL_POSITION));
+                setIsInitialized(true);
             }
-        }, [loading, error, nodesWithLayout, dispatch]);
+        }, [loading, error, isInitialized, dispatch]);
 
         if (loading) {
             return <PageLoader />;

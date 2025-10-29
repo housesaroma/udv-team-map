@@ -118,6 +118,7 @@ const CustomCanvas: React.FC = () => {
         []
     );
 
+    // Улучшенная анимация сброса масштаба с пружинным эффектом
     const animateTo = useCallback(
         (targetZoom: number, targetPosition: { x: number; y: number }) => {
             setIsAnimating(true);
@@ -131,10 +132,8 @@ const CustomCanvas: React.FC = () => {
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
 
-                const easeProgress =
-                    progress < 0.5
-                        ? 4 * progress * progress * progress
-                        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                // Пружинный easing с overshoot
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
 
                 const newZoom =
                     startZoom + (targetZoom - startZoom) * easeProgress;
@@ -151,9 +150,10 @@ const CustomCanvas: React.FC = () => {
                 if (progress < 1) {
                     animationFrameRef.current = requestAnimationFrame(animate);
                 } else {
-                    setIsAnimating(false);
+                    // Убеждаемся, что достигли точных целевых значений
                     dispatch(setZoom(targetZoom));
                     dispatch(setPosition(targetPosition));
+                    setIsAnimating(false);
                 }
             };
 
@@ -241,9 +241,7 @@ const CustomCanvas: React.FC = () => {
                         transformOrigin: "0 0",
                         width: "10000px",
                         height: "4000px",
-                        transition: isAnimating
-                            ? `transform ${MAP_CONSTANTS.ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
-                            : "none",
+                        // Убрал CSS transition - все перемещения будут резкими кроме анимации сброса
                     }}
                 >
                     <OrganizationTree />

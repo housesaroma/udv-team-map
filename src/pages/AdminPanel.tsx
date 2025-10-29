@@ -12,7 +12,7 @@ const AdminPanel: React.FC = () => {
             <div className="bg-secondary rounded-lg shadow-md p-8">
                 {/* Переключатель видов */}
                 <div className="flex mb-8">
-                    <div className="bg-gray-100 rounded-lg p-1 flex">
+                    <div className="rounded-lg p-1 flex">
                         <button
                             onClick={() => setActiveView("employees")}
                             className={`px-6 py-3 rounded-md transition-colors font-inter mr-4 ${

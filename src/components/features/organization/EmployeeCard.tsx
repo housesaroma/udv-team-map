@@ -82,7 +82,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
                         icon={`pi pi-chevron-${
                             node.isExpanded ? "down" : "up"
                         }`}
-                        className="p-button-text p-button-sm"
+                        className="p-button-text p-button-sm transition-all"
                         onClick={handleExpandClick}
                         tooltip={node.isExpanded ? "Свернуть" : "Развернуть"}
                         tooltipOptions={{ position: "top" }}
@@ -100,14 +100,14 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
                     width: `${node.width}px`,
                     height: `${node.height}px`,
                     zIndex: node.level + 1,
-                    transition:
-                        "all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                    transition: "all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    transformOrigin: "center center",
                 }}
             >
                 <Card
                     header={header}
                     footer={footer}
-                    className={`cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg ${styles.noPaddingCard}`}
+                    className={`cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg ${styles.noPaddingCard} transition-all`}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onClick={handleCardClick}

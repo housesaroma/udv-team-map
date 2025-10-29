@@ -72,7 +72,7 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = memo(
                     className="connection-line"
                     style={{
                         transition:
-                            "all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                            "all 500ms cubic-bezier(0.34, 1.56, 0.64, 1)",
                     }}
                 />
             );

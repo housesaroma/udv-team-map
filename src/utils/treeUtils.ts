@@ -1,3 +1,4 @@
+import { MAP_CONSTANTS } from "../constants/mapConstants";
 import type {
   EmployeeNode,
   TreeNode,
@@ -100,7 +101,7 @@ export const treeUtils = {
 
   calculateLayout(
     nodes: TreeNode[],
-    startX: number = 4000,
+    startX: number = MAP_CONSTANTS.MAP_GAP,
     startY: number = 0
   ): TreeNode[] {
     const HORIZONTAL_SPACING = 20;

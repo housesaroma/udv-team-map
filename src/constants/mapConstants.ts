@@ -1,9 +1,12 @@
 export const MAP_CONSTANTS = {
   INITIAL_ZOOM: 0.5,
   INITIAL_POSITION: {
-    x: -1200,
+    x: -10000,
     y: 0,
   },
+  MAP_GAP: 16000,
+  MAP_WIDTH: 32000,
+  MAP_HEIGHT: 4000,
   MIN_ZOOM: 0.25,
   MAX_ZOOM: 2,
   ANIMATION_DURATION: 500,

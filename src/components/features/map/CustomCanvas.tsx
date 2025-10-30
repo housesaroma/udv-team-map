@@ -270,8 +270,8 @@ const CustomCanvas: React.FC = () => {
           className="absolute top-0 left-0"
           style={{
             transformOrigin: "0 0",
-            width: "10000px",
-            height: "4000px",
+            width: `${MAP_CONSTANTS.MAP_WIDTH}px`,
+            height: `${MAP_CONSTANTS.MAP_HEIGHT}px`,
             // Убрал CSS transition - все перемещения будут резкими кроме анимации сброса
           }}
         >

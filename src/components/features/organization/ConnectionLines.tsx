@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from "react";
 import type { TreeNode } from "../../../types/organization";
+import { MAP_CONSTANTS } from "../../../constants/mapConstants";
 
 interface ConnectionLinesProps {
   nodes: TreeNode[];
@@ -82,8 +83,8 @@ export const ConnectionLines: React.FC<ConnectionLinesProps> = memo(
         className="absolute top-0 left-0 pointer-events-none"
         style={{
           zIndex: 0,
-          width: "10000px",
-          height: "4000px",
+          width: `${MAP_CONSTANTS.MAP_WIDTH}px`,
+          height: `${MAP_CONSTANTS.MAP_HEIGHT}px`,
         }}
       >
         {connections.map(connection =>

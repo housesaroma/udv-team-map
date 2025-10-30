@@ -107,10 +107,10 @@ export const OrganizationTree: React.FC<OrganizationTreeProps> = memo(
       <div
         className={`w-full h-full relative ${className}`}
         style={{
-          width: "10000px",
-          height: "4000px",
-          minWidth: "10000px",
-          minHeight: "4000px",
+          width:  `${MAP_CONSTANTS.MAP_WIDTH}px`,
+          height:  `${MAP_CONSTANTS.MAP_HEIGHT}px`,
+          minWidth:  `${MAP_CONSTANTS.MAP_WIDTH}px`,
+          minHeight:  `${MAP_CONSTANTS.MAP_HEIGHT}px`,
         }}
       >
         {/* Соединительные линии */}

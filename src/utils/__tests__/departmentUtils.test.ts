@@ -1,0 +1,118 @@
+import { describe, it, expect } from "vitest";
+import {
+  getDepartmentColor,
+  generateDepartmentId,
+  getDepartmentInfo,
+} from "../departmentUtils";
+
+describe("departmentUtils", () => {
+  describe("getDepartmentColor", () => {
+    it("должен возвращать цвет для IT отдела", () => {
+      expect(getDepartmentColor("it")).toBe("#3697FF");
+      expect(getDepartmentColor("IT")).toBe("#3697FF");
+      expect(getDepartmentColor("Айти")).toBe("#3697FF");
+      expect(getDepartmentColor("Информационные технологии")).toBe("#3697FF");
+    });
+
+    it("должен возвращать цвет для HR отдела", () => {
+      expect(getDepartmentColor("hr")).toBe("#24D07A");
+      expect(getDepartmentColor("HR")).toBe("#24D07A");
+      expect(getDepartmentColor("Эйчар")).toBe("#24D07A");
+      expect(getDepartmentColor("Кадры")).toBe("#24D07A");
+    });
+
+    it("должен возвращать цвет для Finance отдела", () => {
+      expect(getDepartmentColor("finance")).toBe("#F59E0B");
+      expect(getDepartmentColor("Финансы")).toBe("#F59E0B");
+      expect(getDepartmentColor("Финансовый")).toBe("#F59E0B");
+    });
+
+    it("должен возвращать цвет для Marketing отдела", () => {
+      expect(getDepartmentColor("marketing")).toBe("#FF4671");
+      expect(getDepartmentColor("Маркетинг")).toBe("#FF4671");
+    });
+
+    it("должен возвращать цвет для Sales отдела", () => {
+      expect(getDepartmentColor("sales")).toBe("#7D5EFA");
+      expect(getDepartmentColor("Продажи")).toBe("#7D5EFA");
+    });
+
+    it("должен возвращать цвет для Operations отдела", () => {
+      expect(getDepartmentColor("operations")).toBe("#2DD6C0");
+      expect(getDepartmentColor("Операционный")).toBe("#2DD6C0");
+      expect(getDepartmentColor("Операции")).toBe("#2DD6C0");
+    });
+
+    it("должен возвращать дефолтный цвет для неизвестного отдела", () => {
+      expect(getDepartmentColor("unknown")).toBe("#6B7280");
+      expect(getDepartmentColor("Неизвестный отдел")).toBe("#6B7280");
+    });
+
+    it("должен возвращать дефолтный цвет для пустой строки", () => {
+      expect(getDepartmentColor("")).toBe("#6B7280");
+    });
+
+    it("должен игнорировать пробелы", () => {
+      expect(getDepartmentColor("  it  ")).toBe("#3697FF");
+      expect(getDepartmentColor("  HR  ")).toBe("#24D07A");
+    });
+  });
+
+  describe("generateDepartmentId", () => {
+    it("должен генерировать ID из названия отдела", () => {
+      expect(generateDepartmentId("IT Department")).toBe("it-department");
+      expect(generateDepartmentId("Human Resources")).toBe("human-resources");
+    });
+
+    it("должен приводить к нижнему регистру", () => {
+      expect(generateDepartmentId("IT")).toBe("it");
+      expect(generateDepartmentId("HR")).toBe("hr");
+    });
+
+    it("должен заменять множественные пробелы на дефис", () => {
+      expect(generateDepartmentId("IT   Department")).toBe("it-department");
+    });
+
+    it("должен возвращать 'unknown' для пустой строки", () => {
+      expect(generateDepartmentId("")).toBe("unknown");
+    });
+
+    it("должен обрабатывать специальные символы", () => {
+      expect(generateDepartmentId("IT & Development")).toBe("it-&-development");
+    });
+  });
+
+  describe("getDepartmentInfo", () => {
+    it("должен возвращать полную информацию об отделе", () => {
+      const result = getDepartmentInfo("IT Department");
+
+      // "IT Department" не совпадает с ключами в departmentNameToKey, поэтому используется дефолтный цвет
+      expect(result).toEqual({
+        id: "it-department",
+        name: "IT Department",
+        color: "#6B7280", // Дефолтный цвет для неизвестного отдела
+      });
+    });
+
+    it("должен корректно обрабатывать HR отдел", () => {
+      const result = getDepartmentInfo("HR");
+
+      expect(result).toEqual({
+        id: "hr",
+        name: "HR",
+        color: "#24D07A",
+      });
+    });
+
+    it("должен использовать дефолтный цвет для неизвестного отдела", () => {
+      const result = getDepartmentInfo("Unknown Department");
+
+      expect(result).toEqual({
+        id: "unknown-department",
+        name: "Unknown Department",
+        color: "#6B7280",
+      });
+    });
+  });
+});
+

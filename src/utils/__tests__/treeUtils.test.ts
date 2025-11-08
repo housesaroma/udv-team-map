@@ -114,6 +114,38 @@ describe("treeUtils", () => {
       const result = treeUtils.convertToTreeNode(mockEmployee1, 1, false);
       expect(result.isExpanded).toBe(false);
     });
+
+    it("должен использовать department из node, если он определен", () => {
+      // Создаем employee с определенным department
+      const employeeWithDept = {
+        ...mockEmployee1,
+        department: "it",
+      };
+
+      const result = treeUtils.convertToTreeNode(employeeWithDept, 1);
+
+      // Проверяем, что departmentColor установлен на основе department
+      expect(result.departmentColor).toBeDefined();
+      // departmentColor должен быть цветом для "it" отдела
+      expect(result.departmentColor).not.toBe("#6B7280"); // не дефолтный цвет
+    });
+
+    it("должен использовать пустую строку, если department undefined", () => {
+      // Создаем employee без department (undefined)
+      const employeeWithoutDept: EmployeeNode = {
+        userId: "emp-3",
+        userName: "Тест Тестов",
+        position: "Developer",
+        avatarUrl: "/avatar3.jpg",
+        subordinates: [],
+        // department не указан (undefined)
+      };
+
+      const result = treeUtils.convertToTreeNode(employeeWithoutDept, 1);
+
+      // Проверяем, что используется дефолтный цвет для пустого department
+      expect(result.departmentColor).toBe("#6B7280"); // дефолтный цвет
+    });
   });
 
   describe("toggleNodeExpansion", () => {
@@ -442,6 +474,71 @@ describe("treeUtils", () => {
       // Когда узел свернут, дети не позиционируются, но остаются в массиве children
       // Проверяем, что узел свернут
       expect(result[0].isExpanded).toBe(false);
+    });
+
+    it("должен обрабатывать несколько отделов (departmentNodes)", () => {
+      // Создаем иерархию с CEO и несколькими отделами
+      const dept1Node: TreeNode = {
+        ...mockEmployee1,
+        id: "dept-1",
+        isExpanded: true,
+        level: 1,
+        x: 0,
+        y: 0,
+        width: 280,
+        height: 140,
+        children: [],
+        departmentColor: "#3697FF",
+      };
+
+      const dept2Node: TreeNode = {
+        ...mockEmployee2,
+        id: "dept-2",
+        isExpanded: true,
+        level: 1,
+        x: 0,
+        y: 0,
+        width: 280,
+        height: 140,
+        children: [],
+        departmentColor: "#24D07A",
+      };
+
+      const nodes: TreeNode[] = [
+        {
+          ...mockCEO,
+          id: "ceo-1",
+          isExpanded: true,
+          level: 0,
+          x: 0,
+          y: 0,
+          width: 280,
+          height: 140,
+          children: [],
+          departmentColor: "#6B7280",
+        },
+        dept1Node,
+        dept2Node,
+      ];
+
+      const result = treeUtils.calculateLayout(nodes, 500, 0);
+
+      // Должен вернуть CEO и оба отдела
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe("ceo-1");
+      expect(result[1].id).toBe("dept-1");
+      expect(result[2].id).toBe("dept-2");
+
+      // CEO должен быть на стартовой позиции
+      expect(result[0].x).toBe(500);
+      expect(result[0].y).toBe(0);
+
+      // Отделы должны быть позиционированы под CEO
+      expect(result[1].y).toBe(300); // VERTICAL_SPACING = 300
+      expect(result[2].y).toBe(300);
+
+      // Отделы должны быть распределены горизонтально
+      expect(result[1].x).not.toBe(result[2].x);
     });
   });
 });

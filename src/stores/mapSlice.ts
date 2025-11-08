@@ -1,7 +1,7 @@
 // В mapSlice.ts добавьте
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-interface MapState {
+export interface MapState {
   zoom: number;
   position: { x: number; y: number };
   isLoading: boolean;

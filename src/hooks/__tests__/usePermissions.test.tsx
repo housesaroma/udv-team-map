@@ -276,6 +276,18 @@ describe("usePermissions", () => {
 
       expect(result.current.canEditSensitiveData("other-user")).toBe(false);
     });
+
+    it("должен возвращать false, если пользователь не авторизован", () => {
+      localStorage.setItem("userRole", "admin");
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => usePermissions());
+
+      expect(result.current.canEditSensitiveData("other-user")).toBe(false);
+    });
   });
 
   describe("getEditableFields", () => {
@@ -309,6 +321,39 @@ describe("usePermissions", () => {
       expect(fields.sensitiveInfo).toContain("firstName");
       expect(fields.sensitiveInfo).toContain("lastName");
       expect(fields.sensitiveInfo).toContain("position");
+    });
+
+    it("должен возвращать пустые массивы, когда нет прав на редактирование", () => {
+      localStorage.setItem("userRole", "employee");
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => usePermissions());
+
+      // Для чужого профиля employee не может редактировать
+      const fields = result.current.getEditableFields("other-user");
+
+      expect(fields.basicInfo).toHaveLength(0);
+      expect(fields.sensitiveInfo).toHaveLength(0);
+      expect(fields.allEditableFields).toHaveLength(0);
+    });
+
+    it("должен возвращать пустые массивы, когда пользователь не авторизован", () => {
+      localStorage.setItem("userRole", "employee");
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => usePermissions());
+
+      const fields = result.current.getEditableFields("user-1");
+
+      expect(fields.basicInfo).toHaveLength(0);
+      expect(fields.sensitiveInfo).toHaveLength(0);
+      expect(fields.allEditableFields).toHaveLength(0);
     });
   });
 });

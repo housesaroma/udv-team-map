@@ -45,6 +45,7 @@
     "@unocss/preset-web-fonts": "^66.5.4",
     "@unocss/reset": "^66.5.4",
     "@vitejs/plugin-react": "^5.0.4",
+    "@vitest/coverage-v8": "^4.0.8",
     "@vitest/ui": "^4.0.8",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",

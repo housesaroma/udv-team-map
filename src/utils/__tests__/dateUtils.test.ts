@@ -45,6 +45,23 @@ describe("dateUtils", () => {
       expect(formatDate("2024-12-31")).toBe("31.12.2024");
       expect(formatDate("2023-06-01")).toBe("01.06.2023");
     });
+
+    it("должен обрабатывать исключения в formatDate", () => {
+      // Создаем объект Date, который выбросит исключение при вызове toLocaleDateString
+      const mockDate = new Date("2024-01-15");
+      const originalToLocaleDateString = Date.prototype.toLocaleDateString;
+      
+      // Мокаем toLocaleDateString, чтобы он выбрасывал исключение
+      Date.prototype.toLocaleDateString = function() {
+        throw new Error("toLocaleDateString error");
+      };
+
+      const result = formatDate("2024-01-15");
+      expect(result).toBe("Не указано");
+
+      // Восстанавливаем оригинальный метод
+      Date.prototype.toLocaleDateString = originalToLocaleDateString;
+    });
   });
 
   describe("calculateExperience", () => {
@@ -82,6 +99,20 @@ describe("dateUtils", () => {
       expect(result).toBe("9 лет");
     });
 
+    it("должен корректно склонять 'лет' для чисел 12-14, 112-114 и т.д.", () => {
+      // Тестируем случай, когда years % 10 >= 2 && years % 10 <= 4,
+      // но years % 100 находится в диапазоне 10-19 (непокрытая ветка)
+      // Для этого нужно получить стаж 12, 13, 14 лет
+      const result12 = calculateExperience("2012-01-15");
+      expect(result12).toBe("12 лет");
+
+      const result13 = calculateExperience("2011-01-15");
+      expect(result13).toBe("13 лет");
+
+      const result14 = calculateExperience("2010-01-15");
+      expect(result14).toBe("14 лет");
+    });
+
     it("должен возвращать 'Не указано' для undefined", () => {
       const result = calculateExperience(undefined);
       expect(result).toBe("Не указано");
@@ -102,6 +133,25 @@ describe("dateUtils", () => {
       // То стаж должен быть меньше на месяц
       const result = calculateExperience("2023-01-20");
       expect(result).toBe("11 мес.");
+    });
+
+    it("должен обрабатывать исключения в calculateExperience", () => {
+      // Мокаем Date, чтобы вызвать исключение
+      const originalDate = global.Date;
+      global.Date = class extends originalDate {
+        constructor(...args: any[]) {
+          super(...args);
+          if (args.length > 0) {
+            throw new Error("Date construction error");
+          }
+        }
+      } as any;
+
+      const result = calculateExperience("2023-01-15");
+      expect(result).toBe("Не указано");
+
+      // Восстанавливаем оригинальный Date
+      global.Date = originalDate;
     });
   });
 

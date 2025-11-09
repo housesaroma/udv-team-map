@@ -63,4 +63,3 @@ describe("Loader", () => {
     expect(circles.length).toBeGreaterThan(0);
   });
 });
-

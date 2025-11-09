@@ -1,5 +1,7 @@
-import React, { ReactElement } from "react";
-import { render, RenderOptions } from "@testing-library/react";
+import React from "react";
+import { render } from "@testing-library/react";
+import type { ReactElement } from "react";
+import type { RenderOptions } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import { PrimeReactProvider } from "primereact/api";
@@ -22,7 +24,7 @@ interface AllTheProvidersProps {
   authContextValue?: AuthContextType;
 }
 
-const AllTheProviders = ({
+const allTheProviders = ({
   children,
   authContextValue = defaultAuthContextValue,
 }: AllTheProvidersProps) => {
@@ -41,22 +43,26 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   authContextValue?: AuthContextType;
 }
 
-const customRender = (
-  ui: ReactElement,
-  options?: CustomRenderOptions
-) => {
+const customRender = (ui: ReactElement, options?: CustomRenderOptions) => {
   const { authContextValue, ...renderOptions } = options || {};
   return render(ui, {
-    wrapper: ({ children }) => (
-      <AllTheProviders authContextValue={authContextValue}>
-        {children}
-      </AllTheProviders>
-    ),
+    wrapper: ({ children }) =>
+      allTheProviders({
+        children,
+        authContextValue,
+      }),
     ...renderOptions,
   });
 };
 
-// Реэкспорт всех функций из @testing-library/react
-export * from "@testing-library/react";
+// Реэкспорт всех функций из @testing-library/react (кроме render)
+export {
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+  within,
+  fireEvent,
+  act,
+  cleanup,
+} from "@testing-library/react";
 export { customRender as render };
-

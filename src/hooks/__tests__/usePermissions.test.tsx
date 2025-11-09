@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { usePermissions } from "../usePermissions";
-import { Permission } from "../../types/permissions";
-import { AuthContext } from "../../contexts/AuthContextInstance";
-import type { AuthContextType } from "../../contexts/AuthContext";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { User } from "../../types";
+import { Permission } from "../../types/permissions";
+import { usePermissions } from "../usePermissions";
 
 // Мокаем useAuth
 const mockUseAuth = vi.fn();
@@ -63,9 +61,7 @@ describe("usePermissions", () => {
     expect(result.current.hasPermission(Permission.ACCESS_ADMIN_PANEL)).toBe(
       true
     );
-    expect(result.current.hasPermission(Permission.MODERATE_PHOTOS)).toBe(
-      true
-    );
+    expect(result.current.hasPermission(Permission.MODERATE_PHOTOS)).toBe(true);
     expect(result.current.hasPermission(Permission.MANAGE_USERS)).toBe(false);
     expect(result.current.userRole).toBe("hr");
   });
@@ -83,9 +79,7 @@ describe("usePermissions", () => {
       true
     );
     expect(result.current.hasPermission(Permission.MANAGE_USERS)).toBe(true);
-    expect(result.current.hasPermission(Permission.MODERATE_PHOTOS)).toBe(
-      true
-    );
+    expect(result.current.hasPermission(Permission.MODERATE_PHOTOS)).toBe(true);
     expect(result.current.userRole).toBe("admin");
   });
 
@@ -357,4 +351,3 @@ describe("usePermissions", () => {
     });
   });
 });
-

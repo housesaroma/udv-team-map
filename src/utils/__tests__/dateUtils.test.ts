@@ -47,12 +47,10 @@ describe("dateUtils", () => {
     });
 
     it("должен обрабатывать исключения в formatDate", () => {
-      // Создаем объект Date, который выбросит исключение при вызове toLocaleDateString
-      const mockDate = new Date("2024-01-15");
       const originalToLocaleDateString = Date.prototype.toLocaleDateString;
-      
+
       // Мокаем toLocaleDateString, чтобы он выбрасывал исключение
-      Date.prototype.toLocaleDateString = function() {
+      Date.prototype.toLocaleDateString = function () {
         throw new Error("toLocaleDateString error");
       };
 
@@ -137,21 +135,21 @@ describe("dateUtils", () => {
 
     it("должен обрабатывать исключения в calculateExperience", () => {
       // Мокаем Date, чтобы вызвать исключение
-      const originalDate = global.Date;
-      global.Date = class extends originalDate {
-        constructor(...args: any[]) {
-          super(...args);
+      const originalDate = globalThis.Date;
+      globalThis.Date = class extends originalDate {
+        constructor(...args: (string | number | Date)[]) {
           if (args.length > 0) {
             throw new Error("Date construction error");
           }
+          super();
         }
-      } as any;
+      } as typeof Date;
 
       const result = calculateExperience("2023-01-15");
       expect(result).toBe("Не указано");
 
       // Восстанавливаем оригинальный Date
-      global.Date = originalDate;
+      globalThis.Date = originalDate;
     });
   });
 
@@ -197,4 +195,3 @@ describe("dateUtils", () => {
     });
   });
 });
-

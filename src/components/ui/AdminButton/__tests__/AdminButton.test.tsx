@@ -95,4 +95,3 @@ describe("AdminButton", () => {
     expect(button).toHaveClass("p-2");
   });
 });
-

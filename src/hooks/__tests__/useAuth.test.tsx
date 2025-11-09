@@ -122,33 +122,17 @@ describe("useAuth", () => {
 
   it("должен выбрасывать ошибку, если используется вне AuthProvider", () => {
     // Используем контекст без провайдера
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    
-    // renderHook может перехватывать ошибки, поэтому используем try-catch
-    let errorThrown = false;
-    try {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    // Проверяем, что хук выбрасывает ошибку при использовании вне провайдера
+    expect(() => {
       renderHook(() => useAuth(), {
         wrapper: ({ children }) => <>{children}</>, // Без AuthProvider
       });
-    } catch (error) {
-      errorThrown = true;
-      expect((error as Error).message).toBe(
-        "useAuth must be used within an AuthProvider"
-      );
-    }
-    
-    // Если ошибка не была выброшена, проверяем через result.error
-    if (!errorThrown) {
-      const { result } = renderHook(() => useAuth(), {
-        wrapper: ({ children }) => <>{children}</>,
-      });
-      expect(result.error).toBeDefined();
-      expect(result.error?.message).toBe(
-        "useAuth must be used within an AuthProvider"
-      );
-    }
-    
+    }).toThrow("useAuth must be used within an AuthProvider");
+
     consoleError.mockRestore();
   });
 });
-

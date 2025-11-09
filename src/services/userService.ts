@@ -3,6 +3,7 @@ import { getDepartmentInfo } from "../utils/departmentUtils";
 import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
+import { fetchWithAuth } from "../utils/apiClient";
 
 export const userService = {
   async getUserProfile(userId: string): Promise<User> {
@@ -29,7 +30,7 @@ export const userService = {
     }
 
     try {
-      const response = await fetch(`${API_USERS}/${userId}`);
+      const response = await fetchWithAuth(`${API_USERS}/${userId}`);
 
       // Проверка статуса ответа
       if (response.status === 404) {

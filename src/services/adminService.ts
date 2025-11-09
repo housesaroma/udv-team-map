@@ -2,6 +2,7 @@ import { API_USERS, USE_MOCK_DATA } from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
 import { departmentColors } from "../utils/departmentUtils";
+import { fetchWithAuth } from "../utils/apiClient";
 
 // Типы для ответа API
 export interface UsersResponse {
@@ -86,7 +87,7 @@ export const adminService = {
 
       console.log("🌐 Загрузка данных пользователей с url:", url);
 
-      const response = await fetch(url);
+      const response = await fetchWithAuth(url);
 
       if (!response.ok) {
         throw new Error(`Ошибка загрузки пользователей: ${response.status}`);

@@ -336,7 +336,7 @@ describe("treeUtils", () => {
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe("ceo-1");
       expect(result[1].id).toBe("emp-1");
-      expect(result.find((n) => n.id === "emp-2")).toBeUndefined();
+      expect(result.find(n => n.id === "emp-2")).toBeUndefined();
     });
 
     it("должен возвращать только корневые узлы, если все свернуты", () => {
@@ -542,4 +542,3 @@ describe("treeUtils", () => {
     });
   });
 });
-

@@ -4,6 +4,7 @@ import type {
 } from "../types/organization";
 import { API_HIERARCHY, USE_MOCK_DATA } from "../constants/apiConstants";
 import { MOCK_HIERARCHY } from "../constants/mockUsersHierarchy";
+import { fetchWithAuth } from "../utils/apiClient";
 
 export const organizationService = {
   async getOrganizationHierarchy(): Promise<OrganizationHierarchy> {
@@ -16,7 +17,7 @@ export const organizationService = {
     // Иначе загружаем с бэкенда
     console.log("🌐 Загрузка данных с бэкенда...");
     try {
-      const response = await fetch(API_HIERARCHY);
+      const response = await fetchWithAuth(API_HIERARCHY);
 
       if (!response.ok) {
         throw new Error(`Ошибка загрузки иерархии: ${response.status}`);

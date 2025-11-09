@@ -4,9 +4,10 @@ import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
 import { useAuth } from "../hooks/useAuth";
+import { USE_MOCK_DATA } from "../constants/apiConstants";
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -20,10 +21,11 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(username, password);
       navigate("/");
     } catch (e) {
-      setError(`Неверный email или пароль: ${e}`);
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      setError(`Ошибка авторизации: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -39,17 +41,23 @@ const LoginPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-primary font-golos"
             >
-              Email
+              {USE_MOCK_DATA
+                ? "Email или имя пользователя"
+                : "Имя пользователя"}
             </label>
             <InputText
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="Введите ваш email"
+              id="username"
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder={
+                USE_MOCK_DATA
+                  ? "Введите email или имя пользователя"
+                  : "Введите имя пользователя"
+              }
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -94,21 +102,26 @@ const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-          <p className="text-blue-700 text-sm font-golos mb-2">
-            <strong>Тестовые данные:</strong>
-          </p>
-          <p className="text-blue-600 text-xs font-golos">
-            • employee@udv.group (сотрудник)
-          </p>
-          <p className="text-blue-600 text-xs font-golos">
-            • hr@udv.group (HR)
-          </p>
-          <p className="text-blue-600 text-xs font-golos">
-            • admin@udv.group (администратор)
-          </p>
-          <p className="text-blue-600 text-xs font-golos mt-1">
-            Пароль для всех: password123
-          </p>
+          <p className="text-blue-700 text-sm font-golos mb-2"></p>
+          {USE_MOCK_DATA ? (
+            <>
+              <strong>Тестовые данные:</strong>
+              <p className="text-blue-600 text-xs font-golos">
+                • employee@udv.group (сотрудник)
+              </p>
+              <p className="text-blue-600 text-xs font-golos">
+                • hr@udv.group (HR)
+              </p>
+              <p className="text-blue-600 text-xs font-golos">
+                • admin@udv.group (администратор)
+              </p>
+              <p className="text-blue-600 text-xs font-golos mt-1">
+                Пароль для всех: password123
+              </p>
+            </>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
     </div>

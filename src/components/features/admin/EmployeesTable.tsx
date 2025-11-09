@@ -396,14 +396,6 @@ export const EmployeesTable: React.FC = () => {
         />
       </DataTable>
 
-      {/* Информация о кэшировании */}
-      {isCached && (
-        <div className="mt-2 text-sm text-gray-500 flex items-center gap-1">
-          <i className="pi pi-database" />
-          <span>Данные загружены из кэша</span>
-        </div>
-      )}
-
       {/* Оверлей для фильтра подразделений */}
       <OverlayPanel ref={departmentOp} className="w-80">
         <div className="space-y-4">

@@ -9,7 +9,6 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./pages/AdminPanel";
 import ProtectedRoute from "./components/features/auth/ProtectedRoute";
-import AdminRoute from "./components/features/auth/AdminRoute";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -32,14 +31,7 @@ function App() {
             >
               <Route index element={<HomePage />} />
               <Route path="profile/:userId?" element={<ProfilePage />} />
-              <Route
-                path="admin"
-                element={
-                  <AdminRoute>
-                    <AdminPanel />
-                  </AdminRoute>
-                }
-              />
+              <Route path="admin" element={<AdminPanel />} />
             </Route>
 
             {/* Обработка несуществующих маршрутов */}

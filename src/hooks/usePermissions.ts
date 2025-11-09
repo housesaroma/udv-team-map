@@ -12,7 +12,19 @@ export const usePermissions = () => {
 
   const hasPermission = (permission: Permission): boolean => {
     const userRole = getUserRole();
-    return RolePermissions[userRole]?.includes(permission) || false;
+    const hasAccess = RolePermissions[userRole]?.includes(permission) || false;
+    
+    // Логирование для диагностики (можно убрать позже)
+    if (permission === Permission.ACCESS_ADMIN_PANEL) {
+      console.log("Проверка доступа к админ панели:", {
+        userRole,
+        permission,
+        hasAccess,
+        availablePermissions: RolePermissions[userRole],
+      });
+    }
+    
+    return hasAccess;
   };
 
   const hasAnyPermission = (permissions: Permission[]): boolean => {

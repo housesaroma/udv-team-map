@@ -4,10 +4,7 @@ import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import { fetchWithAuth } from "../utils/apiClient";
-import {
-  extractFullNameFromToken,
-  extractEmailFromToken,
-} from "../utils/jwtUtils";
+import { extractFullNameFromToken } from "../utils/jwtUtils";
 
 export const userService = {
   async getUserProfile(userId: string): Promise<User> {
@@ -102,7 +99,10 @@ export const userService = {
       let apiData: unknown;
       try {
         apiData = JSON.parse(responseText);
-        console.log("Полученные данные от API:", JSON.stringify(apiData, null, 2));
+        console.log(
+          "Полученные данные от API:",
+          JSON.stringify(apiData, null, 2)
+        );
       } catch (parseError) {
         console.error("Ошибка парсинга JSON ответа:", parseError);
         console.error("Ответ сервера (текст):", responseText);
@@ -117,23 +117,39 @@ export const userService = {
           console.log("Пользователь найден в мок-данных:", userId);
           return fallbackUser;
         }
-        throw new Error("Некорректные данные профиля: ответ не является объектом");
+        throw new Error(
+          "Некорректные данные профиля: ответ не является объектом"
+        );
       }
 
       // Нормализуем данные - проверяем разные варианты названий полей
       const data = apiData as Record<string, unknown>;
       const normalizedData: ApiUserProfile = {
         userId: (data.userId || data.user_id || data.id || userId) as string,
-        userName: (data.userName || data.user_name || data.name || data.fullName || "") as string,
+        userName: (data.userName ||
+          data.user_name ||
+          data.name ||
+          data.fullName ||
+          "") as string,
         position: (data.position || "") as string,
         department: (data.department || "") as string,
         avatar: data.avatar as string | undefined,
-        phoneNumber: (data.phoneNumber || data.phone_number || data.phone) as string | undefined,
+        phoneNumber: (data.phoneNumber || data.phone_number || data.phone) as
+          | string
+          | undefined,
         city: data.city as string | undefined,
         interests: data.interests as string | undefined,
-        bornDate: (data.bornDate || data.born_date || data.birthDate || data.birth_date) as string | undefined,
-        workExperience: (data.workExperience || data.work_experience || data.hireDate || data.hire_date) as string | undefined,
-        contacts: data.contacts as { telegram?: string[]; skype?: string[] } | undefined,
+        bornDate: (data.bornDate ||
+          data.born_date ||
+          data.birthDate ||
+          data.birth_date) as string | undefined,
+        workExperience: (data.workExperience ||
+          data.work_experience ||
+          data.hireDate ||
+          data.hire_date) as string | undefined,
+        contacts: data.contacts as
+          | { telegram?: string[]; skype?: string[] }
+          | undefined,
       };
 
       console.log("Нормализованные данные профиля:", normalizedData);
@@ -144,7 +160,10 @@ export const userService = {
         if (token) {
           const fullName = extractFullNameFromToken(token);
           if (fullName) {
-            console.log("Используем FullName из токена для userName:", fullName);
+            console.log(
+              "Используем FullName из токена для userName:",
+              fullName
+            );
             normalizedData.userName = fullName;
           }
         }
@@ -162,7 +181,9 @@ export const userService = {
           console.log("Пользователь найден в мок-данных:", userId);
           return fallbackUser;
         }
-        throw new Error("Некорректные данные профиля: отсутствуют обязательные поля");
+        throw new Error(
+          "Некорректные данные профиля: отсутствуют обязательные поля"
+        );
       }
 
       return transformApiUserToUser(normalizedData);
@@ -202,7 +223,9 @@ export const userService = {
       // Более информативное сообщение об ошибке
       const errorMessage =
         error instanceof Error ? error.message : "Неизвестная ошибка";
-      throw new Error(`Неизвестная ошибка при загрузке профиля: ${errorMessage}`);
+      throw new Error(
+        `Неизвестная ошибка при загрузке профиля: ${errorMessage}`
+      );
     }
   },
 

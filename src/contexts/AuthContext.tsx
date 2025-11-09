@@ -8,6 +8,7 @@ import {
   extractRoleFromToken,
   extractUserIdFromToken,
   isTokenExpired,
+  decodeJwt,
 } from "../utils/jwtUtils";
 import { USE_MOCK_DATA } from "../constants/apiConstants";
 import { MOCK_USERS } from "../constants/mockUsers";
@@ -115,9 +116,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Сохраняем токен
       localStorage.setItem("authToken", token);
 
+      // Декодируем токен для диагностики
+      const tokenPayload = decodeJwt(token);
+      console.log("Полный payload токена:", tokenPayload);
+
       // Извлекаем роль из токена
       const userRole = extractRoleFromToken(token);
+      console.log("Роль пользователя из токена:", userRole);
       localStorage.setItem("userRole", userRole);
+      console.log("Сохраненная роль в localStorage:", userRole);
 
       // Извлекаем ID пользователя из токена и загружаем профиль
       const userId = extractUserIdFromToken(token);

@@ -94,6 +94,14 @@ export function extractUserIdFromToken(token: string): string | null {
 }
 
 /**
+ * Извлекает полное имя пользователя из JWT токена
+ */
+export function extractFullNameFromToken(token: string): string | null {
+  const payload = decodeJwt(token);
+  return payload?.FullName || null;
+}
+
+/**
  * Проверяет, не истек ли токен
  */
 export function isTokenExpired(token: string): boolean {

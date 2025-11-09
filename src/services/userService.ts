@@ -4,6 +4,10 @@ import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import { fetchWithAuth } from "../utils/apiClient";
+import {
+  extractFullNameFromToken,
+  extractEmailFromToken,
+} from "../utils/jwtUtils";
 
 export const userService = {
   async getUserProfile(userId: string): Promise<User> {
@@ -33,6 +37,11 @@ export const userService = {
       const response = await fetchWithAuth(`${API_USERS}/${userId}`);
 
       // Проверка статуса ответа
+      if (response.status === 401) {
+        console.error("Ошибка авторизации при загрузке профиля (401)");
+        throw new Error("Ошибка авторизации. Требуется повторный вход");
+      }
+
       if (response.status === 404) {
         console.warn(
           "Пользователь не найден на сервере, пробуем загрузить из мок-данных..."
@@ -46,6 +55,8 @@ export const userService = {
       }
 
       if (response.status === 400) {
+        const errorText = await response.text().catch(() => "");
+        console.error("Ошибка 400 при загрузке профиля:", errorText);
         throw new Error("Неверный запрос");
       }
 
@@ -60,6 +71,11 @@ export const userService = {
       }
 
       if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        console.error(
+          `Ошибка загрузки профиля: ${response.status}`,
+          errorText || "Нет деталей ошибки"
+        );
         console.warn(
           `Ошибка загрузки профиля: ${response.status}, пробуем мок-данные...`
         );
@@ -83,34 +99,91 @@ export const userService = {
         throw new Error("Пустой ответ от сервера");
       }
 
-      const apiData: ApiUserProfile = JSON.parse(responseText);
+      let apiData: unknown;
+      try {
+        apiData = JSON.parse(responseText);
+        console.log("Полученные данные от API:", JSON.stringify(apiData, null, 2));
+      } catch (parseError) {
+        console.error("Ошибка парсинга JSON ответа:", parseError);
+        console.error("Ответ сервера (текст):", responseText);
+        throw new Error("Некорректный ответ от сервера");
+      }
 
-      // Проверяем, что основные поля присутствуют - FIXED: user_id → userId
-      if (!apiData.userId || !apiData.userName) {
-        console.warn(
-          "Некорректные данные профиля от сервера, пробуем мок-данные..."
-        );
+      // Проверяем, что данные в правильном формате
+      if (!apiData || typeof apiData !== "object") {
+        console.error("Ответ от API не является объектом:", apiData);
         const fallbackUser = this.getFallbackUser(userId);
         if (fallbackUser) {
           console.log("Пользователь найден в мок-данных:", userId);
           return fallbackUser;
         }
-        throw new Error("Некорректные данные профиля");
+        throw new Error("Некорректные данные профиля: ответ не является объектом");
       }
 
-      return transformApiUserToUser(apiData);
+      // Нормализуем данные - проверяем разные варианты названий полей
+      const data = apiData as Record<string, unknown>;
+      const normalizedData: ApiUserProfile = {
+        userId: (data.userId || data.user_id || data.id || userId) as string,
+        userName: (data.userName || data.user_name || data.name || data.fullName || "") as string,
+        position: (data.position || "") as string,
+        department: (data.department || "") as string,
+        avatar: data.avatar as string | undefined,
+        phoneNumber: (data.phoneNumber || data.phone_number || data.phone) as string | undefined,
+        city: data.city as string | undefined,
+        interests: data.interests as string | undefined,
+        bornDate: (data.bornDate || data.born_date || data.birthDate || data.birth_date) as string | undefined,
+        workExperience: (data.workExperience || data.work_experience || data.hireDate || data.hire_date) as string | undefined,
+        contacts: data.contacts as { telegram?: string[]; skype?: string[] } | undefined,
+      };
+
+      console.log("Нормализованные данные профиля:", normalizedData);
+
+      // Если userName отсутствует, пытаемся использовать данные из токена
+      if (!normalizedData.userName) {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          const fullName = extractFullNameFromToken(token);
+          if (fullName) {
+            console.log("Используем FullName из токена для userName:", fullName);
+            normalizedData.userName = fullName;
+          }
+        }
+      }
+
+      // Проверяем, что основные поля присутствуют
+      if (!normalizedData.userId || !normalizedData.userName) {
+        console.warn(
+          "Некорректные данные профиля от сервера, пробуем мок-данные..."
+        );
+        console.warn("Оригинальные данные:", data);
+        console.warn("Нормализованные данные:", normalizedData);
+        const fallbackUser = this.getFallbackUser(userId);
+        if (fallbackUser) {
+          console.log("Пользователь найден в мок-данных:", userId);
+          return fallbackUser;
+        }
+        throw new Error("Некорректные данные профиля: отсутствуют обязательные поля");
+      }
+
+      return transformApiUserToUser(normalizedData);
     } catch (error) {
       // Перебрасываем наши кастомные ошибки, если пользователь не найден и в моках
       if (
         error instanceof Error &&
         (error.message.includes("не найден") ||
-          error.message.includes("Неверный формат"))
+          error.message.includes("Неверный формат") ||
+          error.message.includes("Ошибка авторизации"))
       ) {
         throw error;
       }
 
       // Для других ошибок пробуем найти пользователя в мок-данных
       console.warn("Ошибка при загрузке профиля, пробуем мок-данные...", error);
+      console.warn("ID пользователя:", userId);
+      if (error instanceof Error) {
+        console.warn("Сообщение об ошибке:", error.message);
+        console.warn("Стек ошибки:", error.stack);
+      }
       const fallbackUser = this.getFallbackUser(userId);
       if (fallbackUser) {
         console.log("Пользователь найден в мок-данных после ошибки:", userId);
@@ -126,7 +199,10 @@ export const userService = {
         throw new Error("Проблема с подключением к серверу");
       }
 
-      throw new Error("Неизвестная ошибка при загрузке профиля");
+      // Более информативное сообщение об ошибке
+      const errorMessage =
+        error instanceof Error ? error.message : "Неизвестная ошибка";
+      throw new Error(`Неизвестная ошибка при загрузке профиля: ${errorMessage}`);
     }
   },
 

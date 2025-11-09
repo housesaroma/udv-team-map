@@ -12,6 +12,9 @@ export async function fetchWithAuth(
   // Добавляем токен в заголовки, если он есть
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
+    console.log("Добавлен токен в заголовок Authorization для запроса:", url);
+  } else {
+    console.warn("Токен не найден в localStorage для запроса:", url);
   }
 
   // Устанавливаем Content-Type по умолчанию, если не указан
@@ -19,8 +22,12 @@ export async function fetchWithAuth(
     headers.set("Content-Type", "application/json");
   }
 
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  console.log(`Ответ от ${url}:`, response.status, response.statusText);
+
+  return response;
 }

@@ -121,12 +121,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Извлекаем ID пользователя из токена и загружаем профиль
       const userId = extractUserIdFromToken(token);
+      console.log("Извлеченный ID пользователя из токена:", userId);
       if (!userId) {
         throw new Error("Не удалось получить ID пользователя из токена");
       }
 
       // Загружаем профиль пользователя
+      console.log("Загрузка профиля пользователя с ID:", userId);
       const userProfile = await userService.getUserProfile(userId);
+      console.log("Профиль пользователя успешно загружен:", userProfile);
       setUser(userProfile);
     } catch (error) {
       console.error("Login error:", error);

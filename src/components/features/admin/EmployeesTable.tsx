@@ -1,5 +1,6 @@
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
+import { ContextMenu } from "primereact/contextmenu";
 import {
   DataTable,
   type DataTablePageEvent,
@@ -7,18 +8,22 @@ import {
   type DataTableSortEvent,
 } from "primereact/datatable";
 import { InputText } from "primereact/inputtext";
+import type { MenuItem } from "primereact/menuitem";
 import { MultiSelect } from "primereact/multiselect";
 import { OverlayPanel } from "primereact/overlaypanel";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   adminService,
+  type UpdateUserRequest,
   type UsersQueryParams,
 } from "../../../services/adminService";
 import type { User } from "../../../types";
 
 interface TableUser extends User {
   fullName: string;
+  isEditing?: boolean;
+  originalData?: User;
 }
 
 interface TableState {
@@ -39,7 +44,9 @@ export const EmployeesTable: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
-  const [isCached, setIsCached] = useState(false);
+  const [, setIsCached] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<TableUser | null>(null);
 
   const [tableState, setTableState] = useState<TableState>({
     page: 0,
@@ -59,12 +66,22 @@ export const EmployeesTable: React.FC = () => {
   const dt = useRef<DataTable<TableUser[]>>(null);
   const departmentOp = useRef<OverlayPanel>(null);
   const positionOp = useRef<OverlayPanel>(null);
+  const contextMenu = useRef<ContextMenu>(null);
+
+    // Проверка прав на редактирование
+    const canEditUsers = (() => {
+      // В среде без window (SSR / тесты) редактирование запрещено
+      if (globalThis.window === undefined) {
+        return false;
+      }
+      const role = globalThis.window.localStorage.getItem("userRole");
+      return role === "admin" || role === "hr";
+    })();
 
   const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Преобразуем массивы фильтров в строки (подготовка для множественного выбора)
       const positionFilterStr =
         tableState.positionFilter.length > 0
           ? tableState.positionFilter.join(",")
@@ -75,7 +92,7 @@ export const EmployeesTable: React.FC = () => {
           : "";
 
       const params: UsersQueryParams = {
-        page: tableState.page + 1, // Сервер использует 1-based индексацию
+        page: tableState.page + 1,
         limit: tableState.limit,
         sort: tableState.sort,
         positionFilter: positionFilterStr,
@@ -85,12 +102,12 @@ export const EmployeesTable: React.FC = () => {
 
       const response = await adminService.getUsersTransformed(params);
 
-      // Преобразуем User[] в TableUser[]
       const tableUsers: TableUser[] = response.users.map(user => ({
         ...user,
         fullName: `${user.lastName} ${user.firstName} ${
           user.middleName || ""
         }`.trim(),
+        isEditing: false,
       }));
 
       setUsers(tableUsers);
@@ -101,13 +118,133 @@ export const EmployeesTable: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [tableState]); // Добавляем tableState как зависимость
+  }, [tableState]);
 
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]); // Теперь loadUsers стабилен благодаря useCallback
+  }, [loadUsers]);
 
-  // Обработчик пагинации с правильным типом
+  // Обработчик контекстного меню
+  const onContextMenu = (event: React.MouseEvent, user: TableUser) => {
+    if (!canEditUsers || user.isEditing) return;
+
+    event.preventDefault();
+    setSelectedUser(user);
+    contextMenu.current?.show(event);
+  };
+
+  // Элементы контекстного меню
+  const contextMenuItems: MenuItem[] = [
+    {
+      label: "Редактировать",
+      icon: "pi pi-pencil",
+      command: () => {
+        if (selectedUser) {
+          startEditing(selectedUser);
+        }
+      },
+      disabled: !!editingUserId, // Блокируем если уже идет редактирование
+    },
+  ];
+
+  // Функция начала редактирования
+  const startEditing = (user: TableUser) => {
+    if (!canEditUsers) return;
+
+    setUsers(prevUsers =>
+      prevUsers.map(u => ({
+        ...u,
+        isEditing: u.id === user.id,
+        originalData: u.id === user.id ? { ...u } : u.originalData,
+      }))
+    );
+    setEditingUserId(user.id);
+    setSelectedUser(null);
+  };
+
+  // Функция отмены редактирования
+  const cancelEditing = (userId: string) => {
+    setUsers(prevUsers =>
+      prevUsers.map(u =>
+        u.id === userId && u.originalData
+          ? {
+              ...u.originalData,
+              fullName:
+                `${u.originalData.lastName} ${u.originalData.firstName} ${u.originalData.middleName || ""}`.trim(),
+              isEditing: false,
+            }
+          : { ...u, isEditing: false }
+      )
+    );
+    setEditingUserId(null);
+  };
+
+  // Функция сохранения изменений
+  const saveEditing = async (user: TableUser) => {
+    if (!canEditUsers) return;
+
+    try {
+      const updateData: UpdateUserRequest = {
+        department: user.department.name,
+        position: user.position,
+      };
+
+      await adminService.updateUser(user.id, updateData);
+
+      // Обновляем локальное состояние
+      setUsers(prevUsers =>
+        prevUsers.map(u =>
+          u.id === user.id
+            ? { ...u, isEditing: false, originalData: undefined }
+            : u
+        )
+      );
+      setEditingUserId(null);
+
+      // Показываем уведомление об успехе
+      console.log("Пользователь успешно обновлен");
+    } catch (error) {
+      console.error("Ошибка при обновлении пользователя:", error);
+      // Откатываем изменения в случае ошибки
+      cancelEditing(user.id);
+    }
+  };
+
+  // Обработчик изменения полей при редактировании
+  const handleFieldChange = (userId: string, field: string, value: string) => {
+    setUsers(prevUsers =>
+      prevUsers.map(u => {
+        if (u.id !== userId) return u;
+
+        if (field === "department") {
+          return {
+            ...u,
+            department: {
+              ...u.department,
+              name: value,
+            },
+          };
+        } else if (field === "position") {
+          return {
+            ...u,
+            position: value,
+          };
+        }
+        return u;
+      })
+    );
+  };
+
+  // Обработчик нажатия клавиш при редактировании
+  const handleKeyPress = (event: React.KeyboardEvent, user: TableUser) => {
+    if (event.key === "Enter") {
+      saveEditing(user);
+    } else if (event.key === "Escape") {
+      cancelEditing(user.id);
+    }
+  };
+
+  // Обработчик пагинации
   const onPageChange = (event: DataTablePageEvent) => {
     setTableState(prev => ({
       ...prev,
@@ -119,21 +256,17 @@ export const EmployeesTable: React.FC = () => {
   // Обработчик сортировки
   const onSort = (event: DataTableSortEvent) => {
     if (!event.sortField) {
-      // Если сортировка отменена
       setTableState(prev => ({ ...prev, sort: "" }));
       setSortState({ sortField: undefined, sortOrder: null });
       return;
     }
 
-    // Преобразуем названия полей для сервера
     let serverFieldName = event.sortField;
-
     if (serverFieldName === "department.name") {
       serverFieldName = "department";
     } else if (serverFieldName === "fullName") {
       serverFieldName = "username";
     }
-    // position остается как есть
 
     const sortDirection = event.sortOrder === 1 ? "asc" : "desc";
     const sortString = `${serverFieldName}_${sortDirection}`;
@@ -147,13 +280,13 @@ export const EmployeesTable: React.FC = () => {
 
   // Обработчик клика по кнопке фильтра департаментов
   const handleDepartmentFilterClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Останавливаем всплытие события
+    e.stopPropagation();
     departmentOp.current?.toggle(e);
   };
 
   // Обработчик клика по кнопке фильтра должностей
   const handlePositionFilterClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Останавливаем всплытие события
+    e.stopPropagation();
     positionOp.current?.toggle(e);
   };
 
@@ -162,7 +295,7 @@ export const EmployeesTable: React.FC = () => {
     setTableState(prev => ({
       ...prev,
       departmentFilter: selectedDepartments,
-      page: 0, // Сбрасываем на первую страницу при изменении фильтра
+      page: 0,
     }));
     departmentOp.current?.hide();
   };
@@ -172,7 +305,7 @@ export const EmployeesTable: React.FC = () => {
     setTableState(prev => ({
       ...prev,
       positionFilter: selectedPositions,
-      page: 0, // Сбрасываем на первую страницу при изменении фильтра
+      page: 0,
     }));
     positionOp.current?.hide();
   };
@@ -187,17 +320,19 @@ export const EmployeesTable: React.FC = () => {
       departmentFilter: [],
       sort: "",
     }));
-    // Сбрасываем сортировку
     setSortState({ sortField: undefined, sortOrder: null });
   };
 
   // Обработчик клика по строке
   const onRowClick = (event: DataTableRowClickEvent) => {
     const user = event.data as TableUser;
-    navigate(`/profile/${user.id}`);
+    // Не переходим на страницу профиля если редактируем
+    if (!user.isEditing) {
+      navigate(`/profile/${user.id}`);
+    }
   };
 
-  // Получаем уникальные значения для фильтров (для MultiSelect)
+  // Получаем уникальные значения для фильтров
   const departments = Array.from(
     new Set(users.map(user => user.department.name))
   ).map(dept => ({
@@ -213,8 +348,16 @@ export const EmployeesTable: React.FC = () => {
   );
 
   // Функция для применения стилей к строкам
-  const rowClassName = () => {
-    return "border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer";
+  const rowClassName = (rowData: TableUser) => {
+    const baseClass =
+      "border-b border-gray-100 hover:bg-gray-50 transition-colors";
+    const cursorClass = rowData.isEditing ? "cursor-default" : "cursor-pointer";
+
+    if (rowData.isEditing) {
+      return `${baseClass} ${cursorClass} bg-blue-50 border-l-4 border-l-blue-500`;
+    }
+
+    return `${baseClass} ${cursorClass}`;
   };
 
   // Шаблон для ФИО с аватаром
@@ -241,8 +384,29 @@ export const EmployeesTable: React.FC = () => {
     );
   };
 
-  // Шаблон для департамента с цветом
+  // Шаблон для департамента с редактированием
   const departmentBodyTemplate = (rowData: TableUser) => {
+    if (rowData.isEditing) {
+      return (
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full flex-shrink-0"
+            style={{ backgroundColor: rowData.department.color }}
+          />
+          <InputText
+            value={rowData.department.name}
+            onChange={e =>
+              handleFieldChange(rowData.id, "department", e.target.value)
+            }
+            onKeyDown={e => handleKeyPress(e, rowData)}
+            className="w-full text-sm"
+            autoFocus={editingUserId === rowData.id}
+            placeholder="Введите название подразделения"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center gap-2">
         <div
@@ -256,8 +420,22 @@ export const EmployeesTable: React.FC = () => {
     );
   };
 
-  // Шаблон для должности
+  // Шаблон для должности с редактированием
   const positionBodyTemplate = (rowData: TableUser) => {
+    if (rowData.isEditing) {
+      return (
+        <InputText
+          value={rowData.position}
+          onChange={e =>
+            handleFieldChange(rowData.id, "position", e.target.value)
+          }
+          onKeyDown={e => handleKeyPress(e, rowData)}
+          className="w-full text-sm"
+          placeholder="Введите должность"
+        />
+      );
+    }
+
     return <span className="text-gray-700 font-inter">{rowData.position}</span>;
   };
 
@@ -301,7 +479,11 @@ export const EmployeesTable: React.FC = () => {
 
   // Header для ФИО
   const fullNameHeaderTemplate = () => {
-    return <span className="font-bold text-gray-900 font-golos">ФИО</span>;
+    return (
+      <div className="flex items-center gap-2">
+        <span className="font-bold text-gray-900 font-golos">ФИО</span>
+      </div>
+    );
   };
 
   return (
@@ -340,7 +522,8 @@ export const EmployeesTable: React.FC = () => {
             disabled={
               tableState.positionFilter.length === 0 &&
               tableState.departmentFilter.length === 0 &&
-              !tableState.sort
+              !tableState.sort &&
+              !globalFilter
             }
           />
         </div>
@@ -364,19 +547,28 @@ export const EmployeesTable: React.FC = () => {
         paginatorClassName="border-t border-gray-200 px-4 py-3"
         rowClassName={rowClassName}
         onRowClick={onRowClick}
+        onContextMenu={e =>
+          onContextMenu(
+            e.originalEvent as React.MouseEvent<HTMLTableRowElement>,
+            e.data as TableUser
+          )
+        }
         onPage={onPageChange}
         onSort={onSort}
         selectionMode="single"
         lazy
         sortField={sortState.sortField}
         sortOrder={sortState.sortOrder}
+        globalFilter={globalFilter}
+        // PrimeReact ожидает object | undefined, поэтому не передаем null
+        contextMenuSelection={selectedUser ?? undefined}
       >
         <Column
           field="fullName"
           header={fullNameHeaderTemplate}
           body={fullNameBodyTemplate}
           sortable
-          style={{ minWidth: "300px" }}
+          style={{ minWidth: "320px" }}
         />
 
         <Column
@@ -384,7 +576,7 @@ export const EmployeesTable: React.FC = () => {
           header={departmentHeaderTemplate}
           body={departmentBodyTemplate}
           sortable
-          style={{ minWidth: "220px" }}
+          style={{ minWidth: "240px" }}
         />
 
         <Column
@@ -395,6 +587,15 @@ export const EmployeesTable: React.FC = () => {
           style={{ minWidth: "250px" }}
         />
       </DataTable>
+
+      {/* Контекстное меню */}
+      {canEditUsers && (
+        <ContextMenu
+          ref={contextMenu}
+          model={contextMenuItems}
+          onHide={() => setSelectedUser(null)}
+        />
+      )}
 
       {/* Оверлей для фильтра подразделений */}
       <OverlayPanel ref={departmentOp} className="w-80">

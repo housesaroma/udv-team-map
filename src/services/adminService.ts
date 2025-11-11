@@ -24,6 +24,28 @@ export interface UsersQueryParams {
   isCached?: boolean;
 }
 
+export interface UpdateUserRequest {
+  department: string;
+  position: string;
+}
+
+export interface UpdateUserResponse {
+  userId: string;
+  userName: string;
+  bornDate: string;
+  department: string;
+  position: string;
+  workExperience: string;
+  phoneNumber: string;
+  city: string;
+  interests: string;
+  avatar: string;
+  contacts: {
+    skype: string[][];
+    telegram: string[][];
+  };
+}
+
 // Вспомогательная функция для преобразования ApiUserProfile в User
 const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
   const nameParts = apiUser.userName.split(" ");
@@ -121,6 +143,57 @@ export const adminService = {
       pageSize: response.pageSize,
       isCached: response.isCached,
     };
+  },
+
+  // Метод для обновления пользователя
+  async updateUser(
+    userId: string,
+    updateData: UpdateUserRequest
+  ): Promise<UpdateUserResponse> {
+    if (USE_MOCK_DATA) {
+      console.log("📁 Используются мок-данные для обновления пользователя");
+      // Имитируем успешное обновление
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve({
+            userId,
+            userName: "Обновленный пользователь",
+            bornDate: "2000-01-01T00:00:00Z",
+            department: updateData.department,
+            position: updateData.position,
+            workExperience: "2020-01-01T00:00:00Z",
+            phoneNumber: "+7-999-999-99-99",
+            city: "Город",
+            interests: "Интересы",
+            avatar: "",
+            contacts: {
+              skype: [[]],
+              telegram: [[]],
+            },
+          });
+        }, 500);
+      });
+    }
+
+    try {
+      const response = await fetchWithAuth(`${API_USERS}/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ошибка обновления пользователя: ${response.status}`);
+      }
+
+      const data: UpdateUserResponse = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Ошибка обновления пользователя:", error);
+      throw error;
+    }
   },
 
   // Метод для получения текущего режима

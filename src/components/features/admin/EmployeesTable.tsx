@@ -7,6 +7,7 @@ import {
   type DataTableRowClickEvent,
   type DataTableSortEvent,
 } from "primereact/datatable";
+import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import type { MenuItem } from "primereact/menuitem";
 import { MultiSelect } from "primereact/multiselect";
@@ -19,6 +20,7 @@ import {
   type UsersQueryParams,
 } from "../../../services/adminService";
 import type { User } from "../../../types";
+import { departmentNames, getDepartmentColor } from "../../../utils/departmentUtils";
 
 interface TableUser extends User {
   fullName: string;
@@ -387,21 +389,35 @@ export const EmployeesTable: React.FC = () => {
   // Шаблон для департамента с редактированием
   const departmentBodyTemplate = (rowData: TableUser) => {
     if (rowData.isEditing) {
+      const departmentOptions = Object.keys(departmentNames)
+        .map(key => ({
+          label: key,
+          value: key,
+        }));
+
       return (
         <div className="flex items-center gap-2">
           <div
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ backgroundColor: rowData.department.color }}
           />
-          <InputText
+          <Dropdown
             value={rowData.department.name}
+            options={departmentOptions}
             onChange={e =>
-              handleFieldChange(rowData.id, "department", e.target.value)
+              handleFieldChange(rowData.id, "department", e.value)
             }
-            onKeyDown={e => handleKeyPress(e, rowData)}
             className="w-full text-sm"
-            autoFocus={editingUserId === rowData.id}
-            placeholder="Введите название подразделения"
+            placeholder="Выберите подразделение"
+            itemTemplate={(option) => (
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: getDepartmentColor(option.value) }}
+                />
+                <span>{option.label}</span>
+              </div>
+            )}
           />
         </div>
       );
@@ -673,3 +689,4 @@ export const EmployeesTable: React.FC = () => {
     </div>
   );
 };
+

@@ -10,7 +10,6 @@ export const departmentColors: DepartmentColors = {
   operations: "#2DD6C0",
 };
 
-// Маппинг русских названий отделов на ключи
 const departmentNameToKey: Record<string, string> = {
   it: "it",
   айти: "it",
@@ -29,6 +28,16 @@ const departmentNameToKey: Record<string, string> = {
   operations: "operations",
   операционный: "operations",
   операции: "operations",
+};
+
+// Маппинг русских названий отделов на ключи
+export const departmentNames: Record<string, string> = {
+  IT: "it",
+  HR: "hr",
+  Финансы: "finance",
+  Маркетинг: "marketing",
+  Продажи: "sales",
+  Операционный: "operations",
 };
 
 export const getDepartmentColor = (departmentName: string): string => {

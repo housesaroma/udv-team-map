@@ -20,7 +20,10 @@ import {
   type UsersQueryParams,
 } from "../../../services/adminService";
 import type { User } from "../../../types";
-import { departmentNames, getDepartmentColor } from "../../../utils/departmentUtils";
+import {
+  departmentNames,
+  getDepartmentColor,
+} from "../../../utils/departmentUtils";
 
 interface TableUser extends User {
   fullName: string;
@@ -71,15 +74,15 @@ export const EmployeesTable: React.FC = () => {
   const positionOp = useRef<OverlayPanel>(null);
   const contextMenu = useRef<ContextMenu>(null);
 
-    // Проверка прав на редактирование
-    const canEditUsers = (() => {
-      // В среде без window (SSR / тесты) редактирование запрещено
-      if (globalThis.window === undefined) {
-        return false;
-      }
-      const role = globalThis.window.localStorage.getItem("userRole");
-      return role === "admin" || role === "hr";
-    })();
+  // Проверка прав на редактирование
+  const canEditUsers = (() => {
+    // В среде без window (SSR / тесты) редактирование запрещено
+    if (globalThis.window === undefined) {
+      return false;
+    }
+    const role = globalThis.window.localStorage.getItem("userRole");
+    return role === "admin" || role === "hr";
+  })();
 
   const loadUsers = useCallback(async () => {
     try {
@@ -403,11 +406,10 @@ export const EmployeesTable: React.FC = () => {
   // Шаблон для департамента с редактированием
   const departmentBodyTemplate = (rowData: TableUser) => {
     if (rowData.isEditing) {
-      const departmentOptions = Object.keys(departmentNames)
-        .map(key => ({
-          label: key,
-          value: key,
-        }));
+      const departmentOptions = Object.keys(departmentNames).map(key => ({
+        label: key,
+        value: key,
+      }));
 
       return (
         <div className="flex items-center gap-2">
@@ -421,12 +423,16 @@ export const EmployeesTable: React.FC = () => {
             onChange={e => {
               handleFieldChange(rowData.id, "department", e.value);
               // Обновляем цвет сразу после выбора
-              handleFieldChange(rowData.id, "departmentColor", getDepartmentColor(e.value));
+              handleFieldChange(
+                rowData.id,
+                "departmentColor",
+                getDepartmentColor(e.value)
+              );
             }}
             onKeyDown={e => handleKeyPress(e, rowData)}
             className="w-full text-sm"
             placeholder="Выберите подразделение"
-            itemTemplate={(option) => (
+            itemTemplate={option => (
               <div className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded-full"
@@ -721,4 +727,3 @@ export const EmployeesTable: React.FC = () => {
     </div>
   );
 };
-

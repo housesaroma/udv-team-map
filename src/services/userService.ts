@@ -308,3 +308,139 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     messengerLink: telegramContacts[0] || "", // FIXED: safe access
   };
 };
+
+// Метод для обновления профиля пользователя
+export const updateUserProfile = async (
+  userId: string,
+  userData: Partial<User>
+): Promise<User> => {
+  if (USE_MOCK_DATA) {
+    console.log("Обновление профиля отключено в режиме мок-данных");
+    // Возвращаем обновленный mock-пользователь для симуляции
+    const mockUser = userService.getFallbackUser(userId);
+    if (mockUser) {
+      return {
+        ...mockUser,
+        ...userData,
+      };
+    }
+    throw new Error("Пользователь не найден в mock данных");
+  }
+
+  // Валидация UUID
+  if (!userService.isValidUUID(userId)) {
+    throw new Error("Неверный формат ID пользователя");
+  }
+
+  try {
+    const requestBody = {
+      phone: userData.phone,
+      city: userData.city,
+      interests: userData.interests,
+      avatar: userData.avatar,
+      contacts: userData.messengerLink
+        ? { telegram: [userData.messengerLink] }
+        : {},
+      position: userData.position,
+      department: userData.department?.name || userData.department || "",
+    };
+
+    const response = await fetchWithAuth(`${API_USERS}/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (response.status === 401) {
+      console.error("Ошибка авторизации при обновлении профиля (401)");
+      throw new Error("Ошибка авторизации. Требуется повторный вход");
+    }
+
+    if (response.status === 404) {
+      throw new Error("Пользователь не найден");
+    }
+
+    if (response.status === 400) {
+      const errorText = await response.text().catch(() => "");
+      console.error("Ошибка 400 при обновлении профиля:", errorText);
+      throw new Error("Неверный запрос");
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      console.error(
+        `Ошибка обновления профиля: ${response.status}`,
+        errorText || "Нет деталей ошибки"
+      );
+      throw new Error(`Ошибка обновления профиля: ${response.status}`);
+    }
+
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error("Пустой ответ от сервера");
+    }
+
+    let apiData: unknown;
+    try {
+      apiData = JSON.parse(responseText);
+      console.log(
+        "Полученные данные обновленного профиля от API:",
+        JSON.stringify(apiData, null, 2)
+      );
+    } catch (parseError) {
+      console.error("Ошибка парсинга JSON ответа:", parseError);
+      console.error("Ответ сервера (текст):", responseText);
+      throw new Error("Некорректный ответ от сервера");
+    }
+
+    // Проверяем, что данные в правильном формате
+    if (!apiData || typeof apiData !== "object") {
+      throw new Error(
+        "Некорректные данные профиля: ответ не является объектом"
+      );
+    }
+
+    // Нормализуем данные - проверяем разные варианты названий полей
+    const data = apiData as Record<string, unknown>;
+    const normalizedData: ApiUserProfile = {
+      userId: (data.userId || data.user_id || data.id || userId) as string,
+      userName: (data.userName ||
+        data.user_name ||
+        data.name ||
+        data.fullName ||
+        "") as string,
+      position: (data.position || "") as string,
+      department: (data.department || "") as string,
+      avatar: data.avatar as string | undefined,
+      phoneNumber: (data.phoneNumber || data.phone_number || data.phone) as
+        | string
+        | undefined,
+      city: data.city as string | undefined,
+      interests: data.interests as string | undefined,
+      bornDate: (data.bornDate ||
+        data.born_date ||
+        data.birthDate ||
+        data.birth_date) as string | undefined,
+      workExperience: (data.workExperience ||
+        data.work_experience ||
+        data.hireDate ||
+        data.hire_date) as string | undefined,
+      contacts: data.contacts as
+        | { telegram?: string[]; skype?: string[] }
+        | undefined,
+    };
+
+    console.log("Нормализованные данные обновленного профиля:", normalizedData);
+
+    return transformApiUserToUser(normalizedData);
+  } catch (error) {
+    // Более информативное сообщение об ошибке
+    const errorMessage =
+      error instanceof Error ? error.message : "Неизвестная ошибка";
+    throw new Error(
+      `Неизвестная ошибка при обновлении профиля: ${errorMessage}`
+    );
+  }
+};

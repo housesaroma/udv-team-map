@@ -57,7 +57,7 @@ export const authService = {
       }
 
       const data: LoginResponse = await response.json();
-      
+
       // Проверяем, что токен действительно получен
       if (!data.token || !data.token.trim()) {
         throw new Error("Неверный логин или пароль");

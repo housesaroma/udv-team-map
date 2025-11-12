@@ -1,7 +1,7 @@
 import { API_USERS, USE_MOCK_DATA } from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
-import { departmentColors } from "../utils/departmentUtils";
+import { getDepartmentColor } from "../utils/departmentUtils";
 import { fetchWithAuth } from "../utils/apiClient";
 
 // Типы для ответа API
@@ -50,8 +50,8 @@ export interface UpdateUserResponse {
 const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
   const nameParts = apiUser.userName.split(" ");
 
-  const departmentName = apiUser.department.toLowerCase();
-  const departmentColor = departmentColors[departmentName] || "#6B7280";
+  const departmentName = apiUser.department;
+  const departmentColor = getDepartmentColor(departmentName);
 
   return {
     id: apiUser.userId,

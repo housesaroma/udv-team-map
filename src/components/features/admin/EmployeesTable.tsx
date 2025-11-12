@@ -99,7 +99,7 @@ export const EmployeesTable: React.FC = () => {
         sort: tableState.sort,
         positionFilter: positionFilterStr,
         departmentFilter: departmentFilterStr,
-        isCached: true,
+        isCached: false,
       };
 
       const response = await adminService.getUsersTransformed(params);
@@ -224,6 +224,14 @@ export const EmployeesTable: React.FC = () => {
             department: {
               ...u.department,
               name: value,
+            },
+          };
+        } else if (field === "departmentColor") {
+          return {
+            ...u,
+            department: {
+              ...u.department,
+              color: value,
             },
           };
         } else if (field === "position") {
@@ -404,9 +412,12 @@ export const EmployeesTable: React.FC = () => {
           <Dropdown
             value={rowData.department.name}
             options={departmentOptions}
-            onChange={e =>
-              handleFieldChange(rowData.id, "department", e.value)
-            }
+            onChange={e => {
+              handleFieldChange(rowData.id, "department", e.value);
+              // Обновляем цвет сразу после выбора
+              handleFieldChange(rowData.id, "departmentColor", getDepartmentColor(e.value));
+            }}
+            onKeyDown={e => handleKeyPress(e, rowData)}
             className="w-full text-sm"
             placeholder="Выберите подразделение"
             itemTemplate={(option) => (

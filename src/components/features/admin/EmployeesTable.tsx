@@ -45,6 +45,7 @@ export const EmployeesTable: React.FC = () => {
   const [users, setUsers] = useState<TableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
+  const debounceTimer = useRef<number | null>(null);
   const [totalRecords, setTotalRecords] = useState(0);
   const [, setIsCached] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -100,6 +101,7 @@ export const EmployeesTable: React.FC = () => {
         positionFilter: positionFilterStr,
         departmentFilter: departmentFilterStr,
         isCached: false,
+        SearchText: globalFilter.trim() || undefined,
       };
 
       const response = await adminService.getUsersTransformed(params);
@@ -323,6 +325,10 @@ export const EmployeesTable: React.FC = () => {
   // Сброс всех фильтров
   const resetAllFilters = () => {
     setGlobalFilter("");
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = null;
+    }
     setTableState(prev => ({
       ...prev,
       page: 0,
@@ -526,7 +532,22 @@ export const EmployeesTable: React.FC = () => {
             <i className="pi pi-search text-gray-400 ml-3" />
             <InputText
               value={globalFilter}
-              onChange={e => setGlobalFilter(e.target.value)}
+              onChange={e => {
+                const value = e.target.value;
+                setGlobalFilter(value);
+
+                // Debounce логика с задержкой 500 мс
+                if (debounceTimer.current) {
+                  clearTimeout(debounceTimer.current);
+                }
+
+                debounceTimer.current = window.setTimeout(() => {
+                  setTableState(prev => ({
+                    ...prev,
+                    page: 0,
+                  }));
+                }, 500);
+              }}
               placeholder="Поиск по всем столбцам..."
               className="border-gray-300 focus:border-accent pl-10"
             />

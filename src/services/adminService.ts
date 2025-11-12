@@ -22,6 +22,7 @@ export interface UsersQueryParams {
   positionFilter?: string;
   departmentFilter?: string;
   isCached?: boolean;
+  SearchText?: string;
 }
 
 export interface UpdateUserRequest {
@@ -87,6 +88,8 @@ const buildQueryString = (params: UsersQueryParams): string => {
     queryParams.append("positionFilter", params.positionFilter);
   if (params.departmentFilter)
     queryParams.append("departmentFilter", params.departmentFilter);
+  if (params.SearchText)
+    queryParams.append("SearchText", params.SearchText);
   if (params.isCached !== undefined)
     queryParams.append("isCached", params.isCached.toString());
 

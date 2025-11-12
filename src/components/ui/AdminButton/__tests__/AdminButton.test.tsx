@@ -43,18 +43,29 @@ describe("AdminButton", () => {
     expect(button).toBeInTheDocument();
   });
 
-  it("не должен отображать кнопку, если нет разрешения", () => {
+  it("не должен отображать кнопку 'Административная панель', если нет разрешения", () => {
     mockHasPermission.mockReturnValue(false);
 
     render(<AdminButton />);
 
-    const button = screen.queryByRole("button", {
+    const adminButton = screen.queryByRole("button", {
       name: /административная панель/i,
     });
-    expect(button).not.toBeInTheDocument();
+    expect(adminButton).not.toBeInTheDocument();
   });
 
-  it("должен вызывать navigate при клике", async () => {
+  it("должен отображать кнопку 'Таблица сотрудников', если нет разрешения", () => {
+    mockHasPermission.mockReturnValue(false);
+
+    render(<AdminButton />);
+
+    const employeeTableButton = screen.getByRole("button", {
+      name: /таблица сотрудников/i,
+    });
+    expect(employeeTableButton).toBeInTheDocument();
+  });
+
+  it("должен вызывать navigate при клике на кнопку с разрешением", async () => {
     mockHasPermission.mockReturnValue(true);
     const user = userEvent.setup();
 
@@ -62,6 +73,21 @@ describe("AdminButton", () => {
 
     const button = screen.getByRole("button", {
       name: /административная панель/i,
+    });
+    await user.click(button);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/admin");
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it("должен вызывать navigate при клике на кнопку без разрешения", async () => {
+    mockHasPermission.mockReturnValue(false);
+    const user = userEvent.setup();
+
+    render(<AdminButton />);
+
+    const button = screen.getByRole("button", {
+      name: /таблица сотрудников/i,
     });
     await user.click(button);
 

@@ -25,3 +25,4 @@ UDV Team Map решает ключевые бизнес-задачи:
 - **State Management**: Redux Toolkit
 - **Роутинг**: React Router DOM
 - **Сборка**: Vite
+

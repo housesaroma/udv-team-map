@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import type { User } from "../types";
-import { AuthContext } from "./AuthContextInstance";
+import { AuthContext, setAuthTokenGetter } from "./AuthContextInstance";
 import { PageLoader } from "../components/ui/PageLoader";
 import { authService } from "../services/authService";
 import { userService } from "../services/userService";
@@ -18,6 +18,7 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  getToken: () => string | null;
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -25,15 +26,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
+
+  const safeReadToken = useCallback(() => {
+    if (typeof window === "undefined" || !window.localStorage) {
+      return null;
+    }
+    return window.localStorage.getItem("authToken");
+  }, []);
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem("authToken");
+      const storedToken = safeReadToken();
+      setToken(storedToken);
       const userRole = localStorage.getItem("userRole") as
         | keyof typeof MOCK_USERS
         | null;
 
-      if (!token) {
+      if (!storedToken) {
         setIsLoading(false);
         return;
       }
@@ -48,20 +58,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Проверяем, не истек ли токен (только для реального API)
-      if (isTokenExpired(token)) {
+      if (isTokenExpired(storedToken)) {
         console.warn("Токен истек, требуется повторная авторизация");
         localStorage.removeItem("authToken");
         localStorage.removeItem("userRole");
+        setToken(null);
         setIsLoading(false);
         return;
       }
 
       // Извлекаем роль из токена
-      const extractedRole = extractRoleFromToken(token);
+      const extractedRole = extractRoleFromToken(storedToken);
       localStorage.setItem("userRole", extractedRole);
 
       // Извлекаем ID пользователя из токена и загружаем профиль
-      const userId = extractUserIdFromToken(token);
+      const userId = extractUserIdFromToken(storedToken);
       if (userId) {
         try {
           const userProfile = await userService.getUserProfile(userId);
@@ -71,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Если не удалось загрузить профиль, очищаем токен
           localStorage.removeItem("authToken");
           localStorage.removeItem("userRole");
+          setToken(null);
         }
       }
 
@@ -78,9 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initializeAuth();
-  }, []);
+  }, [safeReadToken]);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     try {
       // Если используем мок-данные, используем старую логику
       if (USE_MOCK_DATA) {
@@ -105,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         setUser(mockUser);
         localStorage.setItem("authToken", "mock-token");
+        setToken("mock-token");
         localStorage.setItem("userRole", userRole);
         return;
       }
@@ -115,6 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Сохраняем токен
       localStorage.setItem("authToken", token);
+      setToken(token);
 
       // Декодируем токен для диагностики
       const tokenPayload = decodeJwt(token);
@@ -143,15 +157,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Очищаем токен в случае ошибки
       localStorage.removeItem("authToken");
       localStorage.removeItem("userRole");
+      setToken(null);
       throw error;
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("authToken");
     localStorage.removeItem("userRole");
-  };
+    setToken(null);
+  }, []);
+
+  const getToken = useCallback(
+    () => token ?? safeReadToken(),
+    [token, safeReadToken]
+  );
+
+  useEffect(() => {
+    setAuthTokenGetter(getToken);
+    return () => {
+      setAuthTokenGetter(undefined);
+    };
+  }, [getToken]);
 
   const contextValue = useMemo(
     () => ({
@@ -159,8 +187,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isLoading,
       login,
       logout,
+      getToken,
     }),
-    [user, isLoading]
+    [user, isLoading, login, logout, getToken]
   );
 
   if (isLoading) {

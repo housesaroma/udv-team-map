@@ -1,3 +1,5 @@
+import { getAuthToken } from "../contexts/AuthContextInstance";
+
 /**
  * Создает fetch запрос с автоматическим добавлением токена авторизации
  */
@@ -5,7 +7,7 @@ export async function fetchWithAuth(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const token = localStorage.getItem("authToken");
+  const token = getAuthToken();
 
   const headers = new Headers(options.headers || {});
 

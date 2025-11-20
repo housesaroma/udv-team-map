@@ -16,6 +16,7 @@ const defaultAuthContextValue: AuthContextType = {
   isLoading: false,
   login: vi.fn(),
   logout: vi.fn(),
+  getToken: () => null,
 };
 
 // Вспомогательная функция для рендеринга с провайдерами

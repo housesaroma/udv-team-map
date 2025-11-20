@@ -36,6 +36,7 @@ describe("useAuth", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
+      getToken: () => "token",
     };
 
     const { result } = renderHook(() => useAuth(), {
@@ -54,6 +55,7 @@ describe("useAuth", () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
+      getToken: () => null,
     };
 
     const { result } = renderHook(() => useAuth(), {
@@ -70,6 +72,7 @@ describe("useAuth", () => {
       isLoading: true,
       login: vi.fn(),
       logout: vi.fn(),
+      getToken: () => null,
     };
 
     const { result } = renderHook(() => useAuth(), {
@@ -86,6 +89,7 @@ describe("useAuth", () => {
       isLoading: false,
       login: mockLogin,
       logout: vi.fn(),
+      getToken: () => null,
     };
 
     const { result } = renderHook(() => useAuth(), {
@@ -107,6 +111,7 @@ describe("useAuth", () => {
       isLoading: false,
       login: vi.fn(),
       logout: mockLogout,
+      getToken: () => "token",
     };
 
     const { result } = renderHook(() => useAuth(), {

@@ -515,7 +515,7 @@ const ProfilePage: React.FC = () => {
                       label="Отмена"
                       icon="pi pi-times"
                       onClick={handleCancel}
-                      className="font-inter bg-secondary border-secondary hover:bg-secondary-dark"
+                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
                       disabled={saving}
                     />
                     <Button
@@ -547,7 +547,7 @@ const ProfilePage: React.FC = () => {
                       label="Отмена"
                       icon="pi pi-times"
                       onClick={handleCancel}
-                      className="font-inter bg-secondary border-secondary hover:bg-secondary-dark"
+                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
                       disabled={saving}
                     />
                     <Button

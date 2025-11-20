@@ -20,10 +20,7 @@ import {
   type UsersQueryParams,
 } from "../../../services/adminService";
 import type { User } from "../../../types";
-import {
-  departmentNames,
-  getDepartmentColor,
-} from "../../../utils/departmentUtils";
+import { getDepartmentColor } from "../../../utils/departmentUtils";
 
 interface TableUser extends User {
   fullName: string;
@@ -66,6 +63,10 @@ export const EmployeesTable: React.FC = () => {
     sortField: undefined,
     sortOrder: null,
   });
+
+  // Состояния для хранения всех доступных опций фильтров
+  const [allDepartments, setAllDepartments] = useState<string[]>([]);
+  const [allPositions, setAllPositions] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
@@ -125,7 +126,25 @@ export const EmployeesTable: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [tableState]);
+  }, [tableState, globalFilter]);
+
+  // Загрузка всех доступных опций фильтров при монтировании компонента
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      try {
+        const [departments, positions] = await Promise.all([
+          adminService.getAllDepartments(),
+          adminService.getAllPositions(),
+        ]);
+        setAllDepartments(departments);
+        setAllPositions(positions);
+      } catch (error) {
+        console.error("Ошибка загрузки опций фильтров:", error);
+      }
+    };
+
+    loadFilterOptions();
+  }, []);
 
   useEffect(() => {
     loadUsers();
@@ -351,20 +370,16 @@ export const EmployeesTable: React.FC = () => {
     }
   };
 
-  // Получаем уникальные значения для фильтров
-  const departments = Array.from(
-    new Set(users.map(user => user.department.name))
-  ).map(dept => ({
+  // Используем все доступные опции для фильтров
+  const departments = allDepartments.map(dept => ({
     label: dept,
     value: dept,
   }));
 
-  const positions = Array.from(new Set(users.map(user => user.position))).map(
-    pos => ({
-      label: pos,
-      value: pos,
-    })
-  );
+  const positions = allPositions.map(pos => ({
+    label: pos,
+    value: pos,
+  }));
 
   // Функция для применения стилей к строкам
   const rowClassName = (rowData: TableUser) => {
@@ -406,9 +421,9 @@ export const EmployeesTable: React.FC = () => {
   // Шаблон для департамента с редактированием
   const departmentBodyTemplate = (rowData: TableUser) => {
     if (rowData.isEditing) {
-      const departmentOptions = Object.keys(departmentNames).map(key => ({
-        label: key,
-        value: key,
+      const departmentOptions = allDepartments.map(dept => ({
+        label: dept,
+        value: dept,
       }));
 
       return (

@@ -202,4 +202,60 @@ export const adminService = {
   isUsingMockData(): boolean {
     return USE_MOCK_DATA;
   },
+
+  // Метод для получения всех доступных подразделений
+  async getAllDepartments(): Promise<string[]> {
+    if (USE_MOCK_DATA) {
+      console.log(
+        "📁 Используются мок-данные для получения всех подразделений"
+      );
+      const departments = Array.from(
+        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.department))
+      );
+      return departments;
+    }
+
+    try {
+      console.log("🌐 Загрузка всех подразделений с бэкенда...");
+      const response = await fetchWithAuth(`${API_USERS}/departments`);
+
+      if (!response.ok) {
+        throw new Error(`Ошибка загрузки подразделений: ${response.status}`);
+      }
+
+      const data: string[] = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Ошибка загрузки подразделений:", error);
+      // Возвращаем пустой массив в случае ошибки
+      return [];
+    }
+  },
+
+  // Метод для получения всех доступных должностей
+  async getAllPositions(): Promise<string[]> {
+    if (USE_MOCK_DATA) {
+      console.log("📁 Используются мок-данные для получения всех должностей");
+      const positions = Array.from(
+        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.position))
+      );
+      return positions;
+    }
+
+    try {
+      console.log("🌐 Загрузка всех должностей с бэкенда...");
+      const response = await fetchWithAuth(`${API_USERS}/positions`);
+
+      if (!response.ok) {
+        throw new Error(`Ошибка загрузки должностей: ${response.status}`);
+      }
+
+      const data: string[] = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Ошибка загрузки должностей:", error);
+      // Возвращаем пустой массив в случае ошибки
+      return [];
+    }
+  },
 };

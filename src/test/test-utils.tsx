@@ -2,13 +2,17 @@ import React from "react";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import type { RenderOptions } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
-import { PrimeReactProvider } from "primereact/api";
 import { vi } from "vitest";
-import { store } from "../stores";
-import { AuthContext } from "../contexts/AuthContextInstance";
 import type { AuthContextType } from "../contexts/AuthContext";
+import { AppProviders } from "../providers/AppProviders";
+
+vi.mock("../contexts/AuthContext", () => {
+  return {
+    AuthProvider: ({ children }: { children: React.ReactNode }) => (
+      <>{children}</>
+    ),
+  };
+});
 
 // Мок для AuthContext по умолчанию
 const defaultAuthContextValue: AuthContextType = {
@@ -30,13 +34,7 @@ const allTheProviders = ({
   authContextValue = defaultAuthContextValue,
 }: AllTheProvidersProps) => {
   return (
-    <Provider store={store}>
-      <AuthContext.Provider value={authContextValue}>
-        <PrimeReactProvider>
-          <BrowserRouter>{children}</BrowserRouter>
-        </PrimeReactProvider>
-      </AuthContext.Provider>
-    </Provider>
+    <AppProviders authContextValue={authContextValue}>{children}</AppProviders>
   );
 };
 

@@ -1,6 +1,7 @@
 import { API_USERS, USE_MOCK_DATA } from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
+import type { SortToken } from "../types/ui";
 import { getDepartmentColor } from "../utils/departmentUtils";
 import { fetchWithAuth } from "../utils/apiClient";
 
@@ -18,7 +19,7 @@ export interface UsersResponse {
 export interface UsersQueryParams {
   page: number;
   limit: number;
-  sort?: string;
+  sort?: SortToken;
   positionFilter?: string;
   departmentFilter?: string;
   isCached?: boolean;

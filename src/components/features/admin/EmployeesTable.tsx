@@ -14,6 +14,7 @@ import {
   useEmployeesTable,
   type TableUser,
 } from "../../../hooks/useEmployeesTable";
+import type { SelectOption } from "../../../types/ui";
 
 export const EmployeesTable: React.FC = () => {
   const navigate = useNavigate();
@@ -91,6 +92,13 @@ export const EmployeesTable: React.FC = () => {
     positionOp.current?.hide();
   };
 
+  const toStringArray = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === "string");
+    }
+    return [];
+  };
+
   // Обработчик клика по строке
   const onRowClick = (event: DataTableRowClickEvent) => {
     const user = event.data as TableUser;
@@ -101,7 +109,7 @@ export const EmployeesTable: React.FC = () => {
   };
 
   // Используем все доступные опции для фильтров
-  const departments = useMemo(
+  const departments = useMemo<SelectOption[]>(
     () =>
       allDepartments.map(dept => ({
         label: dept,
@@ -110,7 +118,7 @@ export const EmployeesTable: React.FC = () => {
     [allDepartments]
   );
 
-  const positions = useMemo(
+  const positions = useMemo<SelectOption[]>(
     () =>
       allPositions.map(pos => ({
         label: pos,
@@ -159,11 +167,6 @@ export const EmployeesTable: React.FC = () => {
   // Шаблон для департамента с редактированием
   const departmentBodyTemplate = (rowData: TableUser) => {
     if (rowData.isEditing) {
-      const departmentOptions = allDepartments.map(dept => ({
-        label: dept,
-        value: dept,
-      }));
-
       return (
         <div className="flex items-center gap-2">
           <div
@@ -172,20 +175,22 @@ export const EmployeesTable: React.FC = () => {
           />
           <Dropdown
             value={rowData.department.name}
-            options={departmentOptions}
+            options={departments}
             onChange={e => {
-              handleFieldChange(rowData.id, "department", e.value);
+              const nextDepartment =
+                typeof e.value === "string" ? e.value : rowData.department.name;
+              handleFieldChange(rowData.id, "department", nextDepartment);
               // Обновляем цвет сразу после выбора
               handleFieldChange(
                 rowData.id,
                 "departmentColor",
-                getDepartmentColor(e.value)
+                getDepartmentColor(nextDepartment)
               );
             }}
             onKeyDown={e => handleKeyPress(e, rowData)}
             className="w-full text-sm"
             placeholder="Выберите подразделение"
-            itemTemplate={option => (
+            itemTemplate={(option: SelectOption) => (
               <div className="flex items-center gap-2">
                 <div
                   className="w-3 h-3 rounded-full"
@@ -400,7 +405,7 @@ export const EmployeesTable: React.FC = () => {
             <MultiSelect
               value={tableState.departmentFilter}
               options={departments}
-              onChange={e => applyDepartmentFilter(e.value)}
+              onChange={e => applyDepartmentFilter(toStringArray(e.value))}
               placeholder="Выберите подразделения"
               className="w-full"
               display="chip"
@@ -437,7 +442,7 @@ export const EmployeesTable: React.FC = () => {
             <MultiSelect
               value={tableState.positionFilter}
               options={positions}
-              onChange={e => applyPositionFilter(e.value)}
+              onChange={e => applyPositionFilter(toStringArray(e.value))}
               placeholder="Выберите должности"
               className="w-full"
               display="chip"

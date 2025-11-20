@@ -10,6 +10,7 @@ import {
   type UsersQueryParams,
 } from "../services/adminService";
 import type { User } from "../types";
+import type { SortDirection, SortToken, TableSortField } from "../types/ui";
 
 export interface TableUser extends User {
   fullName: string;
@@ -20,7 +21,7 @@ export interface TableUser extends User {
 export interface TableState {
   page: number;
   limit: number;
-  sort: string;
+  sort: SortToken;
   positionFilter: string[];
   departmentFilter: string[];
 }
@@ -33,6 +34,12 @@ export interface SortState {
 type EditableField = "department" | "departmentColor" | "position";
 
 const GLOBAL_SEARCH_DEBOUNCE = 500;
+const NO_SORT: SortToken = "";
+const CLIENT_TO_SERVER_SORT_FIELD: Record<string, TableSortField> = {
+  "department.name": "department",
+  fullName: "username",
+  position: "position",
+};
 
 export const useEmployeesTable = () => {
   const [users, setUsers] = useState<TableUser[]>([]);
@@ -47,7 +54,7 @@ export const useEmployeesTable = () => {
   const [tableState, setTableState] = useState<TableState>({
     page: 0,
     limit: 10,
-    sort: "",
+    sort: NO_SORT,
     positionFilter: [],
     departmentFilter: [],
   });
@@ -181,20 +188,24 @@ export const useEmployeesTable = () => {
 
   const onSort = (event: DataTableSortEvent) => {
     if (!event.sortField) {
-      setTableState(prev => ({ ...prev, sort: "" }));
+      setTableState(prev => ({ ...prev, sort: NO_SORT }));
       setSortState({ sortField: undefined, sortOrder: null });
       return;
     }
 
-    let serverFieldName = event.sortField;
-    if (serverFieldName === "department.name") {
-      serverFieldName = "department";
-    } else if (serverFieldName === "fullName") {
-      serverFieldName = "username";
+    const serverFieldName =
+      CLIENT_TO_SERVER_SORT_FIELD[
+        event.sortField as keyof typeof CLIENT_TO_SERVER_SORT_FIELD
+      ];
+
+    if (!serverFieldName) {
+      setTableState(prev => ({ ...prev, sort: NO_SORT }));
+      setSortState({ sortField: undefined, sortOrder: null });
+      return;
     }
 
-    const sortDirection = event.sortOrder === 1 ? "asc" : "desc";
-    const sortString = `${serverFieldName}_${sortDirection}`;
+    const sortDirection: SortDirection = event.sortOrder === 1 ? "asc" : "desc";
+    const sortString: SortToken = `${serverFieldName}_${sortDirection}`;
 
     setTableState(prev => ({ ...prev, sort: sortString }));
     setSortState({
@@ -317,7 +328,7 @@ export const useEmployeesTable = () => {
       page: 0,
       positionFilter: [],
       departmentFilter: [],
-      sort: "",
+      sort: NO_SORT,
     }));
     setSortState({ sortField: undefined, sortOrder: null });
   };

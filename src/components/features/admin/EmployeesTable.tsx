@@ -47,6 +47,7 @@ export const EmployeesTable: React.FC = () => {
     handleFieldChange,
     handleKeyPress,
     setSelectedUser,
+    rowValidationErrors,
   } = useEmployeesTable();
 
   // Обработчик контекстного меню
@@ -166,40 +167,56 @@ export const EmployeesTable: React.FC = () => {
 
   // Шаблон для департамента с редактированием
   const departmentBodyTemplate = (rowData: TableUser) => {
+    const rowErrors = rowValidationErrors[rowData.id];
+    const departmentError = rowErrors?.department;
+
     if (rowData.isEditing) {
       return (
-        <div className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: rowData.department.color }}
-          />
-          <Dropdown
-            value={rowData.department.name}
-            options={departments}
-            onChange={e => {
-              const nextDepartment =
-                typeof e.value === "string" ? e.value : rowData.department.name;
-              handleFieldChange(rowData.id, "department", nextDepartment);
-              // Обновляем цвет сразу после выбора
-              handleFieldChange(
-                rowData.id,
-                "departmentColor",
-                getDepartmentColor(nextDepartment)
-              );
-            }}
-            onKeyDown={e => handleKeyPress(e, rowData)}
-            className="w-full text-sm"
-            placeholder="Выберите подразделение"
-            itemTemplate={(option: SelectOption) => (
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: getDepartmentColor(option.value) }}
-                />
-                <span>{option.label}</span>
-              </div>
-            )}
-          />
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: rowData.department.color }}
+            />
+            <Dropdown
+              value={rowData.department.name}
+              options={departments}
+              onChange={e => {
+                const nextDepartment =
+                  typeof e.value === "string"
+                    ? e.value
+                    : rowData.department.name;
+                handleFieldChange(rowData.id, "department", nextDepartment);
+                handleFieldChange(
+                  rowData.id,
+                  "departmentColor",
+                  getDepartmentColor(nextDepartment)
+                );
+              }}
+              onKeyDown={e => handleKeyPress(e, rowData)}
+              className={`w-full text-sm ${
+                departmentError ? "p-invalid border-red-500" : ""
+              }`}
+              placeholder="Выберите подразделение"
+              aria-invalid={departmentError ? "true" : "false"}
+              itemTemplate={(option: SelectOption) => (
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{
+                      backgroundColor: getDepartmentColor(option.value),
+                    }}
+                  />
+                  <span>{option.label}</span>
+                </div>
+              )}
+            />
+          </div>
+          {departmentError && (
+            <small className="text-xs text-red-600 font-golos">
+              {departmentError}
+            </small>
+          )}
         </div>
       );
     }
@@ -219,17 +236,30 @@ export const EmployeesTable: React.FC = () => {
 
   // Шаблон для должности с редактированием
   const positionBodyTemplate = (rowData: TableUser) => {
+    const rowErrors = rowValidationErrors[rowData.id];
+    const positionError = rowErrors?.position;
+
     if (rowData.isEditing) {
       return (
-        <InputText
-          value={rowData.position}
-          onChange={e =>
-            handleFieldChange(rowData.id, "position", e.target.value)
-          }
-          onKeyDown={e => handleKeyPress(e, rowData)}
-          className="w-full text-sm"
-          placeholder="Введите должность"
-        />
+        <div className="flex flex-col gap-1">
+          <InputText
+            value={rowData.position}
+            onChange={e =>
+              handleFieldChange(rowData.id, "position", e.target.value)
+            }
+            onKeyDown={e => handleKeyPress(e, rowData)}
+            className={`w-full text-sm ${
+              positionError ? "p-invalid border-red-500" : ""
+            }`}
+            placeholder="Введите должность"
+            aria-invalid={positionError ? "true" : "false"}
+          />
+          {positionError && (
+            <small className="text-xs text-red-600 font-golos">
+              {positionError}
+            </small>
+          )}
+        </div>
       );
     }
 

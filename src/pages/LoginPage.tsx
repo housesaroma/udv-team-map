@@ -1,33 +1,51 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
 import { useAuth } from "../hooks/useAuth";
 import { USE_MOCK_DATA } from "../constants/apiConstants";
+import {
+  createLoginSchema,
+  type LoginFormValues,
+} from "../validation/loginSchema";
 
 const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(createLoginSchema(USE_MOCK_DATA)),
+    mode: "onChange",
+    reValidateMode: "onBlur",
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const usernameHint = USE_MOCK_DATA
+    ? "Используйте корпоративный email"
+    : "Минимум 3 символа";
+  const passwordHint = "Минимум 8 символов";
+
+  const onSubmit = async ({ username, password }: LoginFormValues) => {
+    setSubmitError("");
 
     try {
-      await login(username, password);
+      await login(username.trim(), password);
       navigate("/");
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      setError(`Ошибка авторизации: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
+      setSubmitError(`Ошибка авторизации: ${errorMessage}`);
     }
   };
 
@@ -38,7 +56,7 @@ const LoginPage: React.FC = () => {
           Авторизация
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label
               htmlFor="username"
@@ -48,19 +66,39 @@ const LoginPage: React.FC = () => {
                 ? "Email или имя пользователя"
                 : "Имя пользователя"}
             </label>
-            <InputText
-              id="username"
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder={
-                USE_MOCK_DATA
-                  ? "Введите email или имя пользователя"
-                  : "Введите имя пользователя"
-              }
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+            <Controller
+              name="username"
+              control={control}
+              render={({ field }) => (
+                <InputText
+                  id="username"
+                  type="text"
+                  {...field}
+                  value={field.value ?? ""}
+                  onChange={e => field.onChange(e.target.value)}
+                  placeholder={
+                    USE_MOCK_DATA
+                      ? "Введите email или имя пользователя"
+                      : "Введите имя пользователя"
+                  }
+                  className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.username
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300"
+                  }`}
+                  aria-invalid={errors.username ? "true" : "false"}
+                />
+              )}
             />
+            <div className="min-h-[1rem]">
+              <small
+                className={`text-xs font-golos ${
+                  errors.username ? "text-red-600" : "text-gray-500"
+                }`}
+              >
+                {errors.username?.message ?? usernameHint}
+              </small>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -70,34 +108,52 @@ const LoginPage: React.FC = () => {
             >
               Пароль
             </label>
-            <div className="w-full">
-              {" "}
-              {/* Добавляем обертку */}
-              <Password
-                id="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Введите пароль"
-                toggleMask
-                feedback={false}
-                className="w-full"
-                inputClassName="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ display: "block" }} // Переопределяем inline-flex
-              />
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <div className="w-full">
+                  <Password
+                    id="password"
+                    value={field.value ?? ""}
+                    onChange={e => field.onChange(e.target.value)}
+                    placeholder="Введите пароль"
+                    toggleMask
+                    feedback={false}
+                    className="w-full"
+                    inputClassName={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.password
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300"
+                    }`}
+                    style={{ display: "block" }}
+                  />
+                </div>
+              )}
+            />
+            <div className="min-h-[1rem]">
+              <small
+                className={`text-xs font-golos ${
+                  errors.password ? "text-red-600" : "text-gray-500"
+                }`}
+              >
+                {errors.password?.message ?? passwordHint}
+              </small>
             </div>
           </div>
 
-          {error && (
+          {submitError && (
             <div className="p-3 bg-red-100 border border-red-300 rounded-md">
-              <p className="text-red-700 text-sm font-golos">{error}</p>
+              <p className="text-red-700 text-sm font-golos">{submitError}</p>
             </div>
           )}
 
           <Button
             type="submit"
             label="Войти"
-            loading={isLoading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-md transition duration-200"
+            loading={isSubmitting}
+            disabled={!isValid || isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-md transition duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           />
         </form>
 

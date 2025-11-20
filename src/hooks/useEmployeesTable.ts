@@ -11,6 +11,7 @@ import {
 } from "../services/adminService";
 import type { User } from "../types";
 import type { SortDirection, SortToken, TableSortField } from "../types/ui";
+import { updateUserRequestSchema } from "../validation/adminSchemas";
 
 export interface TableUser extends User {
   fullName: string;
@@ -32,6 +33,9 @@ export interface SortState {
 }
 
 type EditableField = "department" | "departmentColor" | "position";
+type RowValidationErrors = Partial<
+  Record<Extract<EditableField, "department" | "position">, string>
+>;
 
 const GLOBAL_SEARCH_DEBOUNCE = 500;
 const NO_SORT: SortToken = "";
@@ -50,6 +54,54 @@ export const useEmployeesTable = () => {
   const [, setIsCached] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<TableUser | null>(null);
+  const [rowValidationErrors, setRowValidationErrors] = useState<
+    Record<string, RowValidationErrors>
+  >({});
+
+  const clearRowValidation = useCallback((userId: string) => {
+    setRowValidationErrors(prevErrors => {
+      if (!prevErrors[userId]) {
+        return prevErrors;
+      }
+      const nextErrors = { ...prevErrors };
+      delete nextErrors[userId];
+      return nextErrors;
+    });
+  }, []);
+
+  const applyRowValidationErrors = useCallback(
+    (userId: string, errors: RowValidationErrors) => {
+      setRowValidationErrors(prev => ({
+        ...prev,
+        [userId]: errors,
+      }));
+    },
+    []
+  );
+
+  const clearFieldError = useCallback(
+    (userId: string, field: keyof RowValidationErrors) => {
+      setRowValidationErrors(prevErrors => {
+        const rowErrors = prevErrors[userId];
+        if (!rowErrors || !rowErrors[field]) {
+          return prevErrors;
+        }
+
+        const nextRowErrors: RowValidationErrors = { ...rowErrors };
+        delete nextRowErrors[field];
+
+        const nextErrors = { ...prevErrors };
+        if (Object.keys(nextRowErrors).length === 0) {
+          delete nextErrors[userId];
+        } else {
+          nextErrors[userId] = nextRowErrors;
+        }
+
+        return nextErrors;
+      });
+    },
+    []
+  );
 
   const [tableState, setTableState] = useState<TableState>({
     page: 0,
@@ -226,6 +278,7 @@ export const useEmployeesTable = () => {
     );
     setEditingUserId(user.id);
     setSelectedUser(null);
+    clearRowValidation(user.id);
   };
 
   const cancelEditing = (userId: string) => {
@@ -244,16 +297,36 @@ export const useEmployeesTable = () => {
       )
     );
     setEditingUserId(null);
+    clearRowValidation(userId);
   };
 
   const saveEditing = async (user: TableUser) => {
     if (!canEditUsers) return;
 
+    const normalizedData = {
+      department: user.department.name.trim(),
+      position: user.position.trim(),
+    };
+
+    const validationResult = updateUserRequestSchema.safeParse(normalizedData);
+
+    if (!validationResult.success) {
+      const fieldErrors = validationResult.error.flatten().fieldErrors;
+      const nextErrors: RowValidationErrors = {};
+
+      if (fieldErrors.department?.[0]) {
+        nextErrors.department = fieldErrors.department[0];
+      }
+      if (fieldErrors.position?.[0]) {
+        nextErrors.position = fieldErrors.position[0];
+      }
+
+      applyRowValidationErrors(user.id, nextErrors);
+      return;
+    }
+
     try {
-      const updateData: UpdateUserRequest = {
-        department: user.department.name,
-        position: user.position,
-      };
+      const updateData: UpdateUserRequest = validationResult.data;
 
       await adminService.updateUser(user.id, updateData);
 
@@ -265,6 +338,7 @@ export const useEmployeesTable = () => {
         )
       );
       setEditingUserId(null);
+      clearRowValidation(user.id);
       console.log("Пользователь успешно обновлен");
     } catch (error) {
       console.error("Ошибка при обновлении пользователя:", error);
@@ -277,6 +351,10 @@ export const useEmployeesTable = () => {
     field: EditableField,
     value: string
   ) => {
+    if (field === "department" || field === "position") {
+      clearFieldError(userId, field);
+    }
+
     setUsers(prevUsers =>
       prevUsers.map(u => {
         if (u.id !== userId) return u;
@@ -358,5 +436,6 @@ export const useEmployeesTable = () => {
     handleFieldChange,
     handleKeyPress,
     setSelectedUser,
+    rowValidationErrors,
   };
 };

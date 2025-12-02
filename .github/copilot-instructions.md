@@ -1,0 +1,33 @@
+# UDV Team Map – AI Guide
+
+- **Stack & entry**: React 18 + TypeScript app bootstrapped via Vite; `src/main.tsx` mounts `App` under `PrimeReactProvider` and pulls UnoCSS styles through `virtual:uno.css`.
+- **Routing layout**: `src/App.tsx` nests routes inside `ProtectedRoute` so most new screens should live under `Layout` with an `<Outlet>`; keep public-only screens (e.g., `/login`) outside the protected branch.
+- **State split**: Global Redux (`src/stores`) currently holds only map interactions; other state (auth, permissions) lives in React Context/Hooks to keep map updates performant.
+- **Auth flow**: `AuthProvider` in `src/contexts/AuthContext.tsx` bootstraps from `localStorage`, respects `USE_MOCK_DATA`, validates JWT expiry, and fetches profiles through `userService`; always go through `useAuth` to read or mutate auth state.
+- **Permission model**: `usePermissions` + `PermissionGuard` consult `types/permissions.ts` and persisted `userRole`; ensure any privileged UI relies on these helpers rather than custom role checks.
+- **Mock vs API toggle**: `src/constants/apiConstants.ts` controls `USE_MOCK_DATA` and `BASE_URL`; new services must read from these constants so the mock switch keeps working.
+- **Common mocks**: `constants/mockUsers*` provide deterministic data for auth, profiles, and hierarchy; prefer extending those files when adding offline scenarios.
+- **HTTP helper**: `fetchWithAuth` auto-injects `Authorization` headers and default `Content-Type`; reuse it for every authenticated call to keep logging + token handling consistent.
+- **JWT utils**: `utils/jwtUtils.ts` centralizes role/id extraction; do not parse tokens ad hoc.
+- **Organization map**: `components/features/map/CustomCanvas.tsx` coordinates panning/zooming via Redux (`mapSlice`) and hooks like `useKeyboardShortcuts`; DOM transforms happen imperatively for performance, so avoid React state for transient gesture data.
+- **Tree rendering**: `components/features/organization/OrganizationTree.tsx` pulls data from `organizationService`, normalizes it with `treeUtils`, and renders `EmployeeCard` nodes plus `ConnectionLines`; when shaping hierarchy data, make sure fields align with `types/organization.ts`.
+- **Department styling**: `utils/departmentUtils.ts` + Uno theme (`uno.config.ts`) own color assignments; fetch colors via helpers instead of hardcoding hex values to keep branding consistent.
+- **Admin workflows**: `pages/AdminPanel.tsx` swaps between `EmployeesTable` and `PhotoModeration` based on permissions; extend this file when adding new HR-only views.
+- **EmployeesTable specifics**: `components/features/admin/EmployeesTable.tsx` queries the backend through `adminService.getUsersTransformed`, keeps client filters in `tableState`, and only permits edits for `admin/hr` roles (checked via `globalThis.window.localStorage` safeguards).
+- **Admin service contract**: `services/adminService.ts` maps API query params (`page`, `limit`, `sort`, `positionFilter`, `departmentFilter`, `SearchText`) and normalizes payloads into `User`; mirror that schema when adding new endpoints or filters so caching and mock fallbacks still work.
+- **Profile updates**: `services/userService.ts` validates UUIDs, falls back to mocks when endpoints fail, and exposes `updateUserProfile`; reuse these guards to avoid inconsistent error handling.
+- **Organization service**: `services/organizationService.ts` enriches backend data with department tags via `structuredClone`; when backend changes structure, update `enrichWithDepartments` + `treeUtils` together.
+- **Layout/Header**: `components/layout/Header.tsx` contains the Menubar, logo, and `AdminButton`; navigation uses React Router, so prefer `useNavigate` for header actions.
+- **UI toolkit**: PrimeReact components live alongside Uno utility classes; remember to import PrimeReact styles and rely on CSS modules only where Uno tokens fall short (`components/ui/AdminButton`).
+- **Testing**: Vitest is configured via `package.json` + `src/test/setup.ts`; use `src/test/test-utils.tsx`’s custom `render` to wrap components with Redux, Router, PrimeReact, and mocked Auth context.
+- **Key scripts**: `npm run dev` (Vite dev server), `npm run build` (tsc + vite), `npm run test` / `test:coverage`, `npm run lint`, and `npm run fix:all`; run these before pushing feature work.
+- **Required checks after code changes**: Always execute `npm run fix:all`, `npm run build`, and `npx vitest run` once edits are done; stop and resolve any failures before continuing.
+- **Coverage gate**: Run `npx vitest run --coverage` whenever functionality changes. Coverage must remain at 100%; add or update tests immediately if the report drops below that threshold.
+- **Linting/formatting**: ESLint config lives in `.eslintrc.js` + `eslint.config.js`, Prettier in `.prettierrc`; prefer `npm run fix:all` to keep TS types, lint, and formatting in sync.
+- **Hotkeys/UX**: `useKeyboardShortcuts` binds Ctrl/Cmd + `+/-/0` to Redux zoom actions; keep new shortcuts centralized there to avoid conflicts.
+- **Routing guards**: `ProtectedRoute` and `PermissionGuard` already gate views; wrap new pages/components instead of duplicating redirect logic.
+- **Deployment**: Docker + Nginx (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) serve the built `dist` as static assets with SPA-friendly `try_files`; avoid assumptions about server-side rendering.
+- **Static assets**: Place branding under `src/assets`; import via ES modules to leverage Vite asset hashing.
+- **Accessibility/perf**: The map uses imperative refs and `requestAnimationFrame`; when updating gesture logic, cancel animation frames in cleanups as `CustomCanvas` does to prevent leaks.
+- **Logging**: Services log API issues verbosely (e.g., `userService`); follow the same tone (useful console context, avoid sensitive payloads) for easier remote debugging.
+- **Future admin tabs**: `PhotoModeration` is a placeholder; pattern for new admin panes is to add a tab in `AdminPanel` and back it with a dedicated service module.

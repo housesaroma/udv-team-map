@@ -17,6 +17,7 @@
 - **EmployeesTable specifics**: `components/features/admin/EmployeesTable.tsx` queries the backend through `adminService.getUsersTransformed`, keeps client filters in `tableState`, and only permits edits for `admin/hr` roles (checked via `globalThis.window.localStorage` safeguards).
 - **Admin service contract**: `services/adminService.ts` maps API query params (`page`, `limit`, `sort`, `positionFilter`, `departmentFilter`, `SearchText`) and normalizes payloads into `User`; mirror that schema when adding new endpoints or filters so caching and mock fallbacks still work.
 - **Profile updates**: `services/userService.ts` validates UUIDs, falls back to mocks when endpoints fail, and exposes `updateUserProfile`; reuse these guards to avoid inconsistent error handling.
+- **Zod schemas**: All API payloads must be described in `src/validation` Zod schemas; reuse `z.infer` types everywhere (services, hooks, components) and always `safeParse` server responses before consuming them.
 - **Organization service**: `services/organizationService.ts` enriches backend data with department tags via `structuredClone`; when backend changes structure, update `enrichWithDepartments` + `treeUtils` together.
 - **Layout/Header**: `components/layout/Header.tsx` contains the Menubar, logo, and `AdminButton`; navigation uses React Router, so prefer `useNavigate` for header actions.
 - **UI toolkit**: PrimeReact components live alongside Uno utility classes; remember to import PrimeReact styles and rely on CSS modules only where Uno tokens fall short (`components/ui/AdminButton`).
@@ -29,6 +30,7 @@
 - **Routing guards**: `ProtectedRoute` and `PermissionGuard` already gate views; wrap new pages/components instead of duplicating redirect logic.
 - **Deployment**: Docker + Nginx (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) serve the built `dist` as static assets with SPA-friendly `try_files`; avoid assumptions about server-side rendering.
 - **Static assets**: Place branding under `src/assets`; import via ES modules to leverage Vite asset hashing.
+- **HTTP client**: Use the centralized Axios instance from `src/utils/apiClient.ts` for every network call so interceptors, auth headers, logging, and cancellation stay consistent; do not call `fetch` directly.
 - **Accessibility/perf**: The map uses imperative refs and `requestAnimationFrame`; when updating gesture logic, cancel animation frames in cleanups as `CustomCanvas` does to prevent leaks.
 - **Logging**: Services log API issues verbosely (e.g., `userService`); follow the same tone (useful console context, avoid sensitive payloads) for easier remote debugging.
 - **Future admin tabs**: `PhotoModeration` is a placeholder; pattern for new admin panes is to add a tab in `AdminPanel` and back it with a dedicated service module.

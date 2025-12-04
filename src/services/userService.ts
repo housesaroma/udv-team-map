@@ -5,6 +5,7 @@ import { MOCK_USERS } from "../constants/mockUsers";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import { fetchWithAuth } from "../utils/apiClient";
 import { extractFullNameFromToken } from "../utils/jwtUtils";
+import { apiUserProfileSchema } from "../validation/apiSchemas";
 
 export const userService = {
   async getUserProfile(userId: string): Promise<User> {
@@ -124,7 +125,7 @@ export const userService = {
 
       // Нормализуем данные - проверяем разные варианты названий полей
       const data = apiData as Record<string, unknown>;
-      const normalizedData: ApiUserProfile = {
+      const normalizedData = {
         userId: (data.userId || data.user_id || data.id || userId) as string,
         userName: (data.userName ||
           data.user_name ||
@@ -169,24 +170,23 @@ export const userService = {
         }
       }
 
-      // Проверяем, что основные поля присутствуют
-      if (!normalizedData.userId || !normalizedData.userName) {
+      const validationResult = apiUserProfileSchema.safeParse(normalizedData);
+
+      if (!validationResult.success) {
         console.warn(
           "Некорректные данные профиля от сервера, пробуем мок-данные..."
         );
-        console.warn("Оригинальные данные:", data);
+        console.warn("Ошибки валидации:", validationResult.error.flatten());
         console.warn("Нормализованные данные:", normalizedData);
         const fallbackUser = this.getFallbackUser(userId);
         if (fallbackUser) {
           console.log("Пользователь найден в мок-данных:", userId);
           return fallbackUser;
         }
-        throw new Error(
-          "Некорректные данные профиля: отсутствуют обязательные поля"
-        );
+        throw new Error("Некорректные данные профиля");
       }
 
-      return transformApiUserToUser(normalizedData);
+      return transformApiUserToUser(validationResult.data);
     } catch (error) {
       // Перебрасываем наши кастомные ошибки, если пользователь не найден и в моках
       if (
@@ -404,7 +404,7 @@ export const updateUserProfile = async (
 
     // Нормализуем данные - проверяем разные варианты названий полей
     const data = apiData as Record<string, unknown>;
-    const normalizedData: ApiUserProfile = {
+    const normalizedData = {
       userId: (data.userId || data.user_id || data.id || userId) as string,
       userName: (data.userName ||
         data.user_name ||
@@ -433,8 +433,16 @@ export const updateUserProfile = async (
     };
 
     console.log("Нормализованные данные обновленного профиля:", normalizedData);
+    const validationResult = apiUserProfileSchema.safeParse(normalizedData);
 
-    return transformApiUserToUser(normalizedData);
+    if (!validationResult.success) {
+      console.error("Некорректные данные обновленного профиля:", {
+        issues: validationResult.error.flatten(),
+      });
+      throw new Error("Некорректные данные обновленного профиля");
+    }
+
+    return transformApiUserToUser(validationResult.data);
   } catch (error) {
     // Более информативное сообщение об ошибке
     const errorMessage =

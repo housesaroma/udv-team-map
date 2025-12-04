@@ -1,4 +1,4 @@
-import type { UsersResponse } from "../services/adminService";
+import type { UsersResponse } from "../validation/apiSchemas";
 
 // Мок-данные для админ панели в формате ApiUserProfile
 export const MOCK_USERS_RESPONSE: UsersResponse = {

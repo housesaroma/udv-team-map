@@ -1,12 +1,12 @@
 import { API_AUTH_LOGIN } from "../constants/apiConstants";
+import {
+  loginResponseSchema,
+  type LoginResponse,
+} from "../validation/apiSchemas";
 
 export interface LoginRequest {
   username: string;
   password: string;
-}
-
-export interface LoginResponse {
-  token: string;
 }
 
 export const authService = {
@@ -56,14 +56,14 @@ export const authService = {
         throw new Error(errorMessage);
       }
 
-      const data: LoginResponse = await response.json();
+      const rawData = await response.json();
+      const parsed = loginResponseSchema.safeParse(rawData);
 
-      // Проверяем, что токен действительно получен
-      if (!data.token || !data.token.trim()) {
+      if (!parsed.success || !parsed.data.token.trim()) {
         throw new Error("Неверный логин или пароль");
       }
 
-      return data;
+      return parsed.data;
     } catch (error) {
       if (error instanceof Error) {
         throw error;

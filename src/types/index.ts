@@ -33,23 +33,6 @@ export interface ModerationItem {
 
 export type UserRole = "employee" | "hr" | "admin";
 
-export interface ApiUserProfile {
-  userName: string;
-  position: string;
-  department: string;
-  userId: string;
-  avatar?: string;
-  phoneNumber?: string;
-  city?: string;
-  interests?: string;
-  bornDate?: string;
-  workExperience?: string;
-  contacts?: {
-    telegram?: string[];
-    skype?: string[];
-  };
-}
-
 export interface DepartmentColors {
   it: string;
   hr: string;
@@ -59,3 +42,5 @@ export interface DepartmentColors {
   operations: string;
   [key: string]: string;
 }
+
+export type { ApiUserProfile } from "../validation/apiSchemas";

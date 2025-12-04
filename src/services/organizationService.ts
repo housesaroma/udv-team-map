@@ -5,6 +5,7 @@ import type {
 import { API_HIERARCHY, USE_MOCK_DATA } from "../constants/apiConstants";
 import { MOCK_HIERARCHY } from "../constants/mockUsersHierarchy";
 import { fetchWithAuth } from "../utils/apiClient";
+import { organizationHierarchySchema } from "../validation/apiSchemas";
 
 export const organizationService = {
   async getOrganizationHierarchy(): Promise<OrganizationHierarchy> {
@@ -23,8 +24,17 @@ export const organizationService = {
         throw new Error(`Ошибка загрузки иерархии: ${response.status}`);
       }
 
-      const data: OrganizationHierarchy = await response.json();
-      return this.enrichWithDepartments(data);
+      const rawData = await response.json();
+      const parsed = organizationHierarchySchema.safeParse(rawData);
+
+      if (!parsed.success) {
+        console.error("Некорректная иерархия от сервера:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return this.enrichWithDepartments(parsed.data);
     } catch (error) {
       console.error("Ошибка загрузки с бэкенда, используем мок-данные:", error);
       return this.enrichWithDepartments(MOCK_HIERARCHY);

@@ -10,16 +10,13 @@ import type { ApiUserProfile, User } from "../types";
 import type { SortToken } from "../types/ui";
 import { getDepartmentColor } from "../utils/departmentUtils";
 import { fetchWithAuth } from "../utils/apiClient";
-
-// Типы для ответа API
-export interface UsersResponse {
-  amountOfUsers: number;
-  usersTable: ApiUserProfile[];
-  isCached: boolean;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-}
+import {
+  stringArraySchema,
+  updateUserResponseSchema,
+  usersResponseSchema,
+  type UpdateUserResponse,
+  type UsersResponse,
+} from "../validation/apiSchemas";
 
 // Типы для параметров запроса
 export interface UsersQueryParams {
@@ -35,23 +32,6 @@ export interface UsersQueryParams {
 export interface UpdateUserRequest {
   department: string;
   position: string;
-}
-
-export interface UpdateUserResponse {
-  userId: string;
-  userName: string;
-  bornDate: string;
-  department: string;
-  position: string;
-  workExperience: string;
-  phoneNumber: string;
-  city: string;
-  interests: string;
-  avatar: string;
-  contacts: {
-    skype: string[][];
-    telegram: string[][];
-  };
 }
 
 // Вспомогательная функция для преобразования ApiUserProfile в User
@@ -124,8 +104,17 @@ export const adminService = {
         throw new Error(`Ошибка загрузки пользователей: ${response.status}`);
       }
 
-      const data: UsersResponse = await response.json();
-      return data;
+      const rawData = await response.json();
+      const parsed = usersResponseSchema.safeParse(rawData);
+
+      if (!parsed.success) {
+        console.error("Некорректный ответ при загрузке пользователей:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
     } catch (error) {
       console.error("Ошибка загрузки с бэкенда, используем мок-данные:", error);
       return MOCK_USERS_RESPONSE;
@@ -176,8 +165,8 @@ export const adminService = {
             interests: "Интересы",
             avatar: "",
             contacts: {
-              skype: [[]],
-              telegram: [[]],
+              skype: [],
+              telegram: [],
             },
           });
         }, 500);
@@ -197,8 +186,17 @@ export const adminService = {
         throw new Error(`Ошибка обновления пользователя: ${response.status}`);
       }
 
-      const data: UpdateUserResponse = await response.json();
-      return data;
+      const rawData = await response.json();
+      const parsed = updateUserResponseSchema.safeParse(rawData);
+
+      if (!parsed.success) {
+        console.error("Некорректный ответ при обновлении пользователя:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
     } catch (error) {
       console.error("Ошибка обновления пользователя:", error);
       throw error;
@@ -230,8 +228,17 @@ export const adminService = {
         throw new Error(`Ошибка загрузки подразделений: ${response.status}`);
       }
 
-      const data: string[] = await response.json();
-      return data;
+      const rawData = await response.json();
+      const parsed = stringArraySchema.safeParse(rawData);
+
+      if (!parsed.success) {
+        console.error("Некорректный список подразделений:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
     } catch (error) {
       console.error("Ошибка загрузки подразделений:", error);
       // Возвращаем пустой массив в случае ошибки
@@ -257,8 +264,17 @@ export const adminService = {
         throw new Error(`Ошибка загрузки должностей: ${response.status}`);
       }
 
-      const data: string[] = await response.json();
-      return data;
+      const rawData = await response.json();
+      const parsed = stringArraySchema.safeParse(rawData);
+
+      if (!parsed.success) {
+        console.error("Некорректный список должностей:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
     } catch (error) {
       console.error("Ошибка загрузки должностей:", error);
       // Возвращаем пустой массив в случае ошибки

@@ -9,7 +9,7 @@ import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
 import type { SortToken } from "../types/ui";
 import { getDepartmentColor } from "../utils/departmentUtils";
-import { fetchWithAuth } from "../utils/apiClient";
+import { apiClient } from "../utils/apiClient";
 import {
   stringArraySchema,
   updateUserResponseSchema,
@@ -98,13 +98,15 @@ export const adminService = {
 
       console.log("🌐 Загрузка данных пользователей с url:", url);
 
-      const response = await fetchWithAuth(url);
+      const response = await apiClient.get<UsersResponse>(url, {
+        validateStatus: () => true,
+      });
 
-      if (!response.ok) {
+      if (response.status >= 400) {
         throw new Error(`Ошибка загрузки пользователей: ${response.status}`);
       }
 
-      const rawData = await response.json();
+      const rawData = response.data;
       const parsed = usersResponseSchema.safeParse(rawData);
 
       if (!parsed.success) {
@@ -174,19 +176,19 @@ export const adminService = {
     }
 
     try {
-      const response = await fetchWithAuth(API_USER_BY_ID(userId), {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await apiClient.put<UpdateUserResponse>(
+        API_USER_BY_ID(userId),
+        updateData,
+        {
+          validateStatus: () => true,
+        }
+      );
 
-      if (!response.ok) {
+      if (response.status >= 400) {
         throw new Error(`Ошибка обновления пользователя: ${response.status}`);
       }
 
-      const rawData = await response.json();
+      const rawData = response.data;
       const parsed = updateUserResponseSchema.safeParse(rawData);
 
       if (!parsed.success) {
@@ -222,13 +224,15 @@ export const adminService = {
 
     try {
       console.log("🌐 Загрузка всех подразделений с бэкенда...");
-      const response = await fetchWithAuth(API_USERS_DEPARTMENTS);
+      const response = await apiClient.get<string[]>(API_USERS_DEPARTMENTS, {
+        validateStatus: () => true,
+      });
 
-      if (!response.ok) {
+      if (response.status >= 400) {
         throw new Error(`Ошибка загрузки подразделений: ${response.status}`);
       }
 
-      const rawData = await response.json();
+      const rawData = response.data;
       const parsed = stringArraySchema.safeParse(rawData);
 
       if (!parsed.success) {
@@ -258,13 +262,15 @@ export const adminService = {
 
     try {
       console.log("🌐 Загрузка всех должностей с бэкенда...");
-      const response = await fetchWithAuth(API_USERS_POSITIONS);
+      const response = await apiClient.get<string[]>(API_USERS_POSITIONS, {
+        validateStatus: () => true,
+      });
 
-      if (!response.ok) {
+      if (response.status >= 400) {
         throw new Error(`Ошибка загрузки должностей: ${response.status}`);
       }
 
-      const rawData = await response.json();
+      const rawData = response.data;
       const parsed = stringArraySchema.safeParse(rawData);
 
       if (!parsed.success) {

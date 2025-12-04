@@ -1,4 +1,5 @@
 import { API_AUTH_LOGIN } from "../constants/apiConstants";
+import { apiClient } from "../utils/apiClient";
 import {
   loginResponseSchema,
   type LoginResponse,
@@ -30,33 +31,30 @@ export const authService = {
         passwordLength: requestBody.password.length,
       });
 
-      const response = await fetch(API_AUTH_LOGIN, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const response = await apiClient.post<unknown>(
+        API_AUTH_LOGIN,
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          validateStatus: () => true,
+        }
+      );
 
-      // Проверяем статус ответа
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          throw new Error("Неверный логин или пароль");
-        }
-        // Пытаемся получить сообщение об ошибке от сервера
-        let errorMessage = `Ошибка авторизации: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          }
-        } catch {
-          // Если не удалось распарсить JSON, используем стандартное сообщение
-        }
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("Неверный логин или пароль");
+      }
+
+      if (response.status >= 400) {
+        const errorPayload = response.data as { message?: string } | null;
+        const errorMessage = errorPayload?.message
+          ? errorPayload.message
+          : `Ошибка авторизации: ${response.status}`;
         throw new Error(errorMessage);
       }
 
-      const rawData = await response.json();
+      const rawData = response.data;
       const parsed = loginResponseSchema.safeParse(rawData);
 
       if (!parsed.success || !parsed.data.token.trim()) {

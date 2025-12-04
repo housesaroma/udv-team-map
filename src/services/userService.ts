@@ -3,7 +3,7 @@ import { getDepartmentInfo } from "../utils/departmentUtils";
 import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
-import { fetchWithAuth } from "../utils/apiClient";
+import { apiClient } from "../utils/apiClient";
 import { extractFullNameFromToken } from "../utils/jwtUtils";
 import { apiUserProfileSchema } from "../validation/apiSchemas";
 
@@ -32,15 +32,24 @@ export const userService = {
     }
 
     try {
-      const response = await fetchWithAuth(API_USER_BY_ID(userId));
+      const response = await apiClient.get<unknown>(API_USER_BY_ID(userId), {
+        validateStatus: () => true,
+      });
 
-      // Проверка статуса ответа
-      if (response.status === 401) {
+      const { status, data: rawData } = response;
+      const errorText =
+        typeof rawData === "string"
+          ? rawData
+          : rawData
+            ? JSON.stringify(rawData)
+            : "";
+
+      if (status === 401) {
         console.error("Ошибка авторизации при загрузке профиля (401)");
         throw new Error("Ошибка авторизации. Требуется повторный вход");
       }
 
-      if (response.status === 404) {
+      if (status === 404) {
         console.warn(
           "Пользователь не найден на сервере, пробуем загрузить из мок-данных..."
         );
@@ -52,13 +61,12 @@ export const userService = {
         throw new Error("Пользователь не найден");
       }
 
-      if (response.status === 400) {
-        const errorText = await response.text().catch(() => "");
+      if (status === 400) {
         console.error("Ошибка 400 при загрузке профиля:", errorText);
         throw new Error("Неверный запрос");
       }
 
-      if (response.status === 500) {
+      if (status === 500) {
         console.warn("Ошибка сервера, пробуем загрузить из мок-данных...");
         const fallbackUser = this.getFallbackUser(userId);
         if (fallbackUser) {
@@ -68,26 +76,27 @@ export const userService = {
         throw new Error("Ошибка сервера");
       }
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
+      if (status >= 400) {
         console.error(
-          `Ошибка загрузки профиля: ${response.status}`,
+          `Ошибка загрузки профиля: ${status}`,
           errorText || "Нет деталей ошибки"
         );
         console.warn(
-          `Ошибка загрузки профиля: ${response.status}, пробуем мок-данные...`
+          `Ошибка загрузки профиля: ${status}, пробуем мок-данные...`
         );
         const fallbackUser = this.getFallbackUser(userId);
         if (fallbackUser) {
           console.log("Пользователь найден в мок-данных:", userId);
           return fallbackUser;
         }
-        throw new Error(`Ошибка загрузки профиля: ${response.status}`);
+        throw new Error(`Ошибка загрузки профиля: ${status}`);
       }
 
-      // Проверяем, что ответ не пустой
-      const responseText = await response.text();
-      if (!responseText) {
+      if (
+        rawData === undefined ||
+        rawData === null ||
+        (typeof rawData === "string" && rawData.trim().length === 0)
+      ) {
         console.warn("Пустой ответ от сервера, пробуем мок-данные...");
         const fallbackUser = this.getFallbackUser(userId);
         if (fallbackUser) {
@@ -97,17 +106,24 @@ export const userService = {
         throw new Error("Пустой ответ от сервера");
       }
 
-      let apiData: unknown;
-      try {
-        apiData = JSON.parse(responseText);
+      let apiData: unknown = rawData;
+      if (typeof rawData === "string") {
+        try {
+          apiData = JSON.parse(rawData);
+        } catch (parseError) {
+          console.error("Ошибка парсинга JSON ответа:", parseError);
+          console.error("Ответ сервера (текст):", rawData);
+          throw new Error("Некорректный ответ от сервера");
+        }
+      }
+
+      if (apiData) {
         console.log(
           "Полученные данные от API:",
-          JSON.stringify(apiData, null, 2)
+          typeof apiData === "string"
+            ? apiData
+            : JSON.stringify(apiData, null, 2)
         );
-      } catch (parseError) {
-        console.error("Ошибка парсинга JSON ответа:", parseError);
-        console.error("Ответ сервера (текст):", responseText);
-        throw new Error("Некорректный ответ от сервера");
       }
 
       // Проверяем, что данные в правильном формате
@@ -345,55 +361,67 @@ export const updateUserProfile = async (
       department: userData.department?.name || userData.department || "",
     };
 
-    const response = await fetchWithAuth(API_USER_BY_ID(userId), {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    const response = await apiClient.put<unknown>(
+      API_USER_BY_ID(userId),
+      requestBody,
+      {
+        validateStatus: () => true,
+      }
+    );
 
-    if (response.status === 401) {
+    const { status, data: rawData } = response;
+    const errorText =
+      typeof rawData === "string"
+        ? rawData
+        : rawData
+          ? JSON.stringify(rawData)
+          : "";
+
+    if (status === 401) {
       console.error("Ошибка авторизации при обновлении профиля (401)");
       throw new Error("Ошибка авторизации. Требуется повторный вход");
     }
 
-    if (response.status === 404) {
+    if (status === 404) {
       throw new Error("Пользователь не найден");
     }
 
-    if (response.status === 400) {
-      const errorText = await response.text().catch(() => "");
+    if (status === 400) {
       console.error("Ошибка 400 при обновлении профиля:", errorText);
       throw new Error("Неверный запрос");
     }
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
+    if (status >= 400) {
       console.error(
-        `Ошибка обновления профиля: ${response.status}`,
+        `Ошибка обновления профиля: ${status}`,
         errorText || "Нет деталей ошибки"
       );
-      throw new Error(`Ошибка обновления профиля: ${response.status}`);
+      throw new Error(`Ошибка обновления профиля: ${status}`);
     }
 
-    const responseText = await response.text();
-    if (!responseText) {
+    if (
+      rawData === undefined ||
+      rawData === null ||
+      (typeof rawData === "string" && rawData.trim().length === 0)
+    ) {
       throw new Error("Пустой ответ от сервера");
     }
 
-    let apiData: unknown;
-    try {
-      apiData = JSON.parse(responseText);
-      console.log(
-        "Полученные данные обновленного профиля от API:",
-        JSON.stringify(apiData, null, 2)
-      );
-    } catch (parseError) {
-      console.error("Ошибка парсинга JSON ответа:", parseError);
-      console.error("Ответ сервера (текст):", responseText);
-      throw new Error("Некорректный ответ от сервера");
+    let apiData: unknown = rawData;
+    if (typeof rawData === "string") {
+      try {
+        apiData = JSON.parse(rawData);
+      } catch (parseError) {
+        console.error("Ошибка парсинга JSON ответа:", parseError);
+        console.error("Ответ сервера (текст):", rawData);
+        throw new Error("Некорректный ответ от сервера");
+      }
     }
+
+    console.log(
+      "Полученные данные обновленного профиля от API:",
+      typeof apiData === "string" ? apiData : JSON.stringify(apiData, null, 2)
+    );
 
     // Проверяем, что данные в правильном формате
     if (!apiData || typeof apiData !== "object") {

@@ -1,35 +1,91 @@
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from "axios";
+import { BASE_URL } from "../constants/apiConstants";
 import { getAuthToken } from "../contexts/AuthContextInstance";
 
-/**
- * Создает fetch запрос с автоматическим добавлением токена авторизации
- */
-export async function fetchWithAuth(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response> {
+const defaultTimeoutMs = 15000;
+
+const apiClient: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: defaultTimeoutMs,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+apiClient.interceptors.request.use(config => {
   const token = getAuthToken();
 
-  const headers = new Headers(options.headers || {});
-
-  // Добавляем токен в заголовки, если он есть
   if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-    console.log("Добавлен токен в заголовок Authorization для запроса:", url);
-  } else {
-    console.warn("Токен не найден в localStorage для запроса:", url);
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Устанавливаем Content-Type по умолчанию, если не указан
-  if (!headers.has("Content-Type") && options.body) {
-    headers.set("Content-Type", "application/json");
+  return config;
+});
+
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.code === "ERR_CANCELED") {
+      console.warn("Запрос отменен:", error.message);
+      return Promise.reject(error);
+    }
+
+    if (error.response) {
+      console.error("Ошибка ответа API", {
+        url: error.config?.url ?? error.config?.baseURL,
+        status: error.response.status,
+        statusText: error.response.statusText,
+      });
+    } else {
+      console.error("Ошибка сети при обращении к API", error);
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export type ApiRequestConfig<T = unknown> = AxiosRequestConfig<T>;
+
+export const createRequestController = () => new AbortController();
+
+export function withCancelSignal<T>(
+  config: ApiRequestConfig<T>,
+  controller?: AbortController
+): ApiRequestConfig<T> {
+  if (!controller) {
+    return config;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
+  return {
+    ...config,
+    signal: controller.signal,
+  };
+}
+
+export async function requestWithAuth<T = unknown>(
+  config: ApiRequestConfig<T>
+): Promise<AxiosResponse<T>> {
+  return apiClient.request<T>(config);
+}
+
+export function createCancelableRequest<T = unknown>(
+  config: ApiRequestConfig<T>
+): {
+  controller: AbortController;
+  promise: Promise<AxiosResponse<T>>;
+} {
+  const controller = createRequestController();
+  const promise = apiClient.request<T>({
+    ...config,
+    signal: controller.signal,
   });
 
-  console.log(`Ответ от ${url}:`, response.status, response.statusText);
-
-  return response;
+  return { controller, promise };
 }
+
+export { apiClient };

@@ -6,6 +6,7 @@
 - **Auth flow**: `AuthProvider` in `src/contexts/AuthContext.tsx` bootstraps from `localStorage`, respects `USE_MOCK_DATA`, validates JWT expiry, and fetches profiles through `userService`; always go through `useAuth` to read or mutate auth state.
 - **Permission model**: `usePermissions` + `PermissionGuard` consult `types/permissions.ts` and persisted `userRole`; ensure any privileged UI relies on these helpers rather than custom role checks.
 - **Mock vs API toggle**: `src/constants/apiConstants.ts` controls `USE_MOCK_DATA` and `BASE_URL`; new services must read from these constants so the mock switch keeps working.
+- **API endpoints**: Declare every backend path/helper inside `src/constants/apiConstants.ts` (use the existing `API_*` creators) and only import those constants in services/components instead of hardcoding URLs, so toggling hosts or versions stays centralized.
 - **Common mocks**: `constants/mockUsers*` provide deterministic data for auth, profiles, and hierarchy; prefer extending those files when adding offline scenarios.
 - **HTTP helper**: `fetchWithAuth` auto-injects `Authorization` headers and default `Content-Type`; reuse it for every authenticated call to keep logging + token handling consistent.
 - **JWT utils**: `utils/jwtUtils.ts` centralizes role/id extraction; do not parse tokens ad hoc.

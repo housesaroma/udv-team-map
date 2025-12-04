@@ -1,4 +1,10 @@
-import { API_USERS, USE_MOCK_DATA } from "../constants/apiConstants";
+import {
+  API_USER_BY_ID,
+  API_USERS,
+  API_USERS_DEPARTMENTS,
+  API_USERS_POSITIONS,
+  USE_MOCK_DATA,
+} from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
 import type { SortToken } from "../types/ui";
@@ -179,7 +185,7 @@ export const adminService = {
     }
 
     try {
-      const response = await fetchWithAuth(`${API_USERS}/${userId}`, {
+      const response = await fetchWithAuth(API_USER_BY_ID(userId), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -218,7 +224,7 @@ export const adminService = {
 
     try {
       console.log("🌐 Загрузка всех подразделений с бэкенда...");
-      const response = await fetchWithAuth(`${API_USERS}/departments`);
+      const response = await fetchWithAuth(API_USERS_DEPARTMENTS);
 
       if (!response.ok) {
         throw new Error(`Ошибка загрузки подразделений: ${response.status}`);
@@ -245,7 +251,7 @@ export const adminService = {
 
     try {
       console.log("🌐 Загрузка всех должностей с бэкенда...");
-      const response = await fetchWithAuth(`${API_USERS}/positions`);
+      const response = await fetchWithAuth(API_USERS_POSITIONS);
 
       if (!response.ok) {
         throw new Error(`Ошибка загрузки должностей: ${response.status}`);

@@ -1,4 +1,4 @@
-import { API_USERS, USE_MOCK_DATA } from "../constants/apiConstants";
+import { API_USER_BY_ID, USE_MOCK_DATA } from "../constants/apiConstants";
 import { getDepartmentInfo } from "../utils/departmentUtils";
 import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
@@ -31,7 +31,7 @@ export const userService = {
     }
 
     try {
-      const response = await fetchWithAuth(`${API_USERS}/${userId}`);
+      const response = await fetchWithAuth(API_USER_BY_ID(userId));
 
       // Проверка статуса ответа
       if (response.status === 401) {
@@ -345,7 +345,7 @@ export const updateUserProfile = async (
       department: userData.department?.name || userData.department || "",
     };
 
-    const response = await fetchWithAuth(`${API_USERS}/${userId}`, {
+    const response = await fetchWithAuth(API_USER_BY_ID(userId), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

@@ -9,6 +9,7 @@ import { usePermissions } from "../hooks/usePermissions";
 import { userService, updateUserProfile } from "../services/userService";
 import type { User } from "../types";
 import { calculateExperience, formatDate } from "../utils/dateUtils";
+import { ROUTES } from "../constants/routes";
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams();
@@ -158,19 +159,19 @@ const ProfilePage: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate(ROUTES.login);
   };
 
   const handleGoHome = () => {
-    navigate("/");
+    navigate(ROUTES.root);
   };
 
   const handleGoToMyProfile = () => {
-    navigate("/profile");
+    navigate(ROUTES.profile.root);
   };
 
   const handleManagerClick = (managerId: string) => {
-    navigate(`/profile/${managerId}`);
+    navigate(ROUTES.profile.byId(managerId));
   };
 
   const isOwnProfile = !userId || userId === currentUser?.id;

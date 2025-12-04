@@ -15,6 +15,7 @@ import {
   type TableUser,
 } from "../../../hooks/useEmployeesTable";
 import type { SelectOption } from "../../../types/ui";
+import { ROUTES } from "../../../constants/routes";
 
 export const EmployeesTable: React.FC = () => {
   const navigate = useNavigate();
@@ -105,7 +106,7 @@ export const EmployeesTable: React.FC = () => {
     const user = event.data as TableUser;
     // Не переходим на страницу профиля если редактируем
     if (!user.isEditing) {
-      navigate(`/profile/${user.id}`);
+      navigate(ROUTES.profile.byId(user.id));
     }
   };
 

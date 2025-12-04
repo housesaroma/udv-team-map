@@ -4,6 +4,7 @@ import { Button } from "primereact/button";
 import styles from "./AdminButton.module.css";
 import { Permission } from "../../../types/permissions";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { ROUTES } from "../../../constants/routes";
 
 export const AdminButton: React.FC = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export const AdminButton: React.FC = () => {
   if (!hasAdminAccess) {
     return (
       <Button
-        onClick={() => navigate("/admin")}
+        onClick={() => navigate(ROUTES.admin)}
         label="Таблица сотрудников"
         text
         style={{
@@ -31,7 +32,7 @@ export const AdminButton: React.FC = () => {
   // Для HR и админов показываем кнопку "Административная панель"
   return (
     <Button
-      onClick={() => navigate("/admin")}
+      onClick={() => navigate(ROUTES.admin)}
       label="Административная панель"
       text
       style={{

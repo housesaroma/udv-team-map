@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import type { TreeNode } from "../../../types/organization";
 import { getDepartmentInfo } from "../../../utils/departmentUtils";
 import styles from "./EmployeeCard.module.css";
+import { ROUTES } from "../../../constants/routes";
 
 interface EmployeeCardProps {
   node: TreeNode;
@@ -49,7 +50,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
           e.stopPropagation();
           return;
         }
-        navigate(`/profile/${node.userId}`);
+        navigate(ROUTES.profile.byId(node.userId));
       },
       [isDragging, navigate, node.userId]
     );

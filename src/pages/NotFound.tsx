@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "primereact/button";
+import { ROUTES } from "../constants/routes";
 
 export const NotFound: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export const NotFound: React.FC = () => {
         {/* Кнопки действий */}
         <div className="flex flex-col gap-3">
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate(ROUTES.root)}
             label="На главную"
             icon="pi pi-home"
             className="bg-accent hover:bg-accent/90 text-white font-inter"

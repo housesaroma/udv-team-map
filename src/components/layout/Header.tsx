@@ -5,13 +5,14 @@ import { Avatar } from "primereact/avatar";
 import { Button } from "primereact/button";
 import { AdminButton } from "../ui/AdminButton/AdminButton";
 import logo from "../../assets/logo.svg";
+import { ROUTES } from "../../constants/routes";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
 
   const startContent = (
     <Button
-      onClick={() => navigate("/")}
+      onClick={() => navigate(ROUTES.root)}
       text
       className="p-0 hover:bg-transparent focus:shadow-none"
     >
@@ -25,7 +26,7 @@ const Header: React.FC = () => {
     <div className="flex items-center gap-4">
       <AdminButton />
       <Button
-        onClick={() => navigate("/profile")}
+        onClick={() => navigate(ROUTES.profile.root)}
         text
         rounded
         className="p-0 hover:bg-transparent focus:shadow-none"

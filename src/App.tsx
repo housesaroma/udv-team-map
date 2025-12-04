@@ -7,16 +7,17 @@ import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./pages/AdminPanel";
 import ProtectedRoute from "./components/features/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import { ROUTES, toRelativePath } from "./constants/routes";
 
 function App() {
   return (
     <Routes>
       {/* Публичные маршруты */}
-      <Route path="/login" element={<LoginPage />} />
+      <Route path={ROUTES.login} element={<LoginPage />} />
 
       {/* Защищенные маршруты */}
       <Route
-        path="/"
+        path={ROUTES.root}
         element={
           <ProtectedRoute>
             <Layout />
@@ -24,12 +25,15 @@ function App() {
         }
       >
         <Route index element={<HomePage />} />
-        <Route path="profile/:userId?" element={<ProfilePage />} />
-        <Route path="admin" element={<AdminPanel />} />
+        <Route
+          path={toRelativePath(ROUTES.profile.param)}
+          element={<ProfilePage />}
+        />
+        <Route path={toRelativePath(ROUTES.admin)} element={<AdminPanel />} />
       </Route>
 
       {/* Обработка несуществующих маршрутов */}
-      <Route path="*" element={<NotFound />} />
+      <Route path={ROUTES.notFound} element={<NotFound />} />
     </Routes>
   );
 }

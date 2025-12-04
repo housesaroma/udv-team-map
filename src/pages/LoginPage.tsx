@@ -7,6 +7,7 @@ import { Password } from "primereact/password";
 import { Button } from "primereact/button";
 import { useAuth } from "../hooks/useAuth";
 import { USE_MOCK_DATA } from "../constants/apiConstants";
+import { ROUTES } from "../constants/routes";
 import {
   createLoginSchema,
   type LoginFormValues,
@@ -42,7 +43,7 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(username.trim(), password);
-      navigate("/");
+      navigate(ROUTES.root);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
       setSubmitError(`Ошибка авторизации: ${errorMessage}`);

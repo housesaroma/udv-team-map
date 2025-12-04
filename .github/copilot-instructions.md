@@ -1,7 +1,7 @@
 # UDV Team Map – AI Guide
 
 - **Stack & entry**: React 18 + TypeScript app bootstrapped via Vite; `src/main.tsx` mounts `App` under `PrimeReactProvider` and pulls UnoCSS styles through `virtual:uno.css`.
-- **Routing layout**: `src/App.tsx` nests routes inside `ProtectedRoute` so most new screens should live under `Layout` with an `<Outlet>`; keep public-only screens (e.g., `/login`) outside the protected branch.
+- **Routing layout**: `src/App.tsx` nests routes inside `ProtectedRoute` so most new screens should live under `Layout` with an `<Outlet>`; keep public-only screens (e.g., `/login`) outside the protected branch. Любые новые маршруты или навигационные переходы обязаны добавляться через `src/constants/routes.ts` (используйте `ROUTES`/`toRelativePath` вместо строковых литералов).
 - **State split**: Global Redux (`src/stores`) currently holds only map interactions; other state (auth, permissions) lives in React Context/Hooks to keep map updates performant.
 - **Auth flow**: `AuthProvider` in `src/contexts/AuthContext.tsx` bootstraps from `localStorage`, respects `USE_MOCK_DATA`, validates JWT expiry, and fetches profiles through `userService`; always go through `useAuth` to read or mutate auth state.
 - **Permission model**: `usePermissions` + `PermissionGuard` consult `types/permissions.ts` and persisted `userRole`; ensure any privileged UI relies on these helpers rather than custom role checks.

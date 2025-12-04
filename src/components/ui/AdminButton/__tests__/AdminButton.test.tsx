@@ -3,6 +3,7 @@ import { render, screen } from "../../../../test/test-utils";
 import userEvent from "@testing-library/user-event";
 import { AdminButton } from "../AdminButton";
 import { Permission } from "../../../../types/permissions";
+import { ROUTES } from "../../../../constants/routes";
 
 // Мокаем useNavigate
 const mockNavigate = vi.fn();
@@ -76,7 +77,7 @@ describe("AdminButton", () => {
     });
     await user.click(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/admin");
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.admin);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
@@ -91,7 +92,7 @@ describe("AdminButton", () => {
     });
     await user.click(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/admin");
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.admin);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 

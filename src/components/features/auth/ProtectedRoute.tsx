@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import { PageLoader } from "../../ui/PageLoader";
+import { ROUTES } from "../../../constants/routes";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={ROUTES.login} replace />;
   }
 
   const userRole = localStorage.getItem("userRole") as
@@ -29,11 +30,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     | null;
 
   if (requiredRole === "admin" && userRole !== "admin") {
-    return <Navigate to="/" replace />;
+    return <Navigate to={ROUTES.root} replace />;
   }
 
   if (requiredRole === "hr" && !["hr", "admin"].includes(userRole || "")) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={ROUTES.root} replace />;
   }
 
   return <>{children}</>;

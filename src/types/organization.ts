@@ -7,6 +7,28 @@ export interface EmployeeNode {
   department?: string;
 }
 
+export interface DepartmentTreeNode {
+  hierarchyId: number;
+  level: number;
+  title: string;
+  color: string;
+  children: DepartmentTreeNode[];
+}
+
+export interface DepartmentEmployeeSummary {
+  userId: string;
+  userName: string;
+  position: string;
+  avatarUrl: string;
+}
+
+export interface DepartmentUsersResponse {
+  hierarchyId: number;
+  title: string;
+  manager: EmployeeNode;
+  employees: DepartmentEmployeeSummary[];
+}
+
 export interface DepartmentHierarchy {
   department: string;
   employees: EmployeeNode[];
@@ -28,4 +50,6 @@ export interface TreeNode extends EmployeeNode {
   height: number;
   children: TreeNode[];
   departmentColor: string;
+  hierarchyId?: number;
+  nodeType?: "department" | "employee";
 }

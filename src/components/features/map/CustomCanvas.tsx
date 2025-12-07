@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
 import { useKeyboardShortcuts } from "../../../hooks/useKeyboardShortcuts";
 import { setPosition, setZoom } from "../../../stores/mapSlice";
-import { OrganizationTree } from "../organization/OrganizationTree";
+import { DepartmentTreeExplorer } from "../organization/DepartmentTreeExplorer";
 import { SvgDotPattern } from "./SvgDotPattern";
 import { ZoomControlsComponent } from "./ZoomControls";
 import { MAP_CONSTANTS } from "../../../constants/mapConstants";
@@ -275,7 +275,7 @@ const CustomCanvas: React.FC = () => {
             // Убрал CSS transition - все перемещения будут резкими кроме анимации сброса
           }}
         >
-          <OrganizationTree />
+          <DepartmentTreeExplorer />
         </div>
       </div>
     </div>

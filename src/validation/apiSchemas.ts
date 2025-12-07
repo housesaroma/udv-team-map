@@ -29,6 +29,21 @@ type EmployeeNodeShape = {
   department?: string;
 };
 
+type DepartmentTreeNodeShape = {
+  hierarchyId: number;
+  level: number;
+  title: string;
+  color: string;
+  children: DepartmentTreeNodeShape[];
+};
+
+type DepartmentEmployeeSummaryShape = {
+  userId: string;
+  userName: string;
+  position: string;
+  avatarUrl: string;
+};
+
 const employeeNodeSchema: z.ZodType<EmployeeNodeShape> = z.lazy(() =>
   z.object({
     userId: z.string().min(1),
@@ -39,6 +54,25 @@ const employeeNodeSchema: z.ZodType<EmployeeNodeShape> = z.lazy(() =>
     department: optionalString,
   })
 );
+
+const departmentTreeNodeSchema: z.ZodType<DepartmentTreeNodeShape> = z.lazy(
+  () =>
+    z.object({
+      hierarchyId: z.number().int().nonnegative(),
+      level: z.number().int().nonnegative(),
+      title: z.string().min(1),
+      color: z.string().min(1),
+      children: z.array(departmentTreeNodeSchema),
+    })
+);
+
+const departmentEmployeeSummarySchema: z.ZodType<DepartmentEmployeeSummaryShape> =
+  z.object({
+    userId: z.string().min(1),
+    userName: z.string().min(1),
+    position: z.string().min(1),
+    avatarUrl: z.string(),
+  });
 
 export const apiUserProfileSchema = z.object({
   userId: z.string().min(1),
@@ -90,6 +124,15 @@ export const organizationHierarchySchema = z.object({
   totalEmployees: z.number().int().nonnegative(),
 });
 
+export const departmentTreeSchema = departmentTreeNodeSchema;
+
+export const departmentUsersSchema = z.object({
+  hierarchyId: z.number().int().nonnegative(),
+  title: z.string().min(1),
+  manager: employeeNodeSchema,
+  employees: z.array(departmentEmployeeSummarySchema),
+});
+
 export type ApiUserProfile = z.infer<typeof apiUserProfileSchema>;
 export type UsersResponse = z.infer<typeof usersResponseSchema>;
 export type UpdateUserResponse = z.infer<typeof updateUserResponseSchema>;
@@ -98,3 +141,5 @@ export type OrganizationHierarchyResponse = z.infer<
   typeof organizationHierarchySchema
 >;
 export type EmployeeNodeResponse = z.infer<typeof employeeNodeSchema>;
+export type DepartmentTreeResponse = z.infer<typeof departmentTreeSchema>;
+export type DepartmentUsersApiResponse = z.infer<typeof departmentUsersSchema>;

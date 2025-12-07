@@ -1,11 +1,24 @@
 import type {
+  DepartmentTreeNode,
+  DepartmentUsersResponse,
   EmployeeNode,
   OrganizationHierarchy,
 } from "../types/organization";
-import { API_HIERARCHY, USE_MOCK_DATA } from "../constants/apiConstants";
+import {
+  API_DEPARTMENT_TREE,
+  API_DEPARTMENT_USERS,
+  API_HIERARCHY,
+  USE_MOCK_DATA,
+} from "../constants/apiConstants";
 import { MOCK_HIERARCHY } from "../constants/mockUsersHierarchy";
+import { MOCK_DEPARTMENT_TREE } from "../constants/mockDepartmentTree";
+import { getMockDepartmentUsers } from "../constants/mockDepartmentUsers";
 import { apiClient } from "../utils/apiClient";
-import { organizationHierarchySchema } from "../validation/apiSchemas";
+import {
+  departmentTreeSchema,
+  departmentUsersSchema,
+  organizationHierarchySchema,
+} from "../validation/apiSchemas";
 
 export const organizationService = {
   async getOrganizationHierarchy(): Promise<OrganizationHierarchy> {
@@ -43,6 +56,93 @@ export const organizationService = {
     } catch (error) {
       console.error("Ошибка загрузки с бэкенда, используем мок-данные:", error);
       return this.enrichWithDepartments(MOCK_HIERARCHY);
+    }
+  },
+
+  async getDepartmentTree(): Promise<DepartmentTreeNode> {
+    if (USE_MOCK_DATA) {
+      console.log("📁 Используются мок-данные дерева департаментов");
+      return MOCK_DEPARTMENT_TREE;
+    }
+
+    console.log("🌐 Загрузка дерева департаментов...");
+
+    try {
+      const response = await apiClient.get<DepartmentTreeNode>(
+        API_DEPARTMENT_TREE,
+        {
+          validateStatus: () => true,
+        }
+      );
+
+      if (response.status >= 400) {
+        throw new Error(
+          `Ошибка загрузки дерева департаментов: ${response.status}`
+        );
+      }
+
+      const parsed = departmentTreeSchema.safeParse(response.data);
+
+      if (!parsed.success) {
+        console.error("Некорректное дерево департаментов от сервера:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
+    } catch (error) {
+      console.error(
+        "Ошибка загрузки дерева департаментов, используем мок-данные:",
+        error
+      );
+      return MOCK_DEPARTMENT_TREE;
+    }
+  },
+
+  async getDepartmentUsers(
+    hierarchyId: number
+  ): Promise<DepartmentUsersResponse> {
+    if (USE_MOCK_DATA) {
+      console.log("📁 Используются мок-данные сотрудников департамента");
+      return getMockDepartmentUsers(hierarchyId);
+    }
+
+    console.log(`🌐 Загрузка сотрудников департамента ${hierarchyId}...`);
+
+    try {
+      const response = await apiClient.get<DepartmentUsersResponse>(
+        API_DEPARTMENT_USERS(hierarchyId),
+        {
+          validateStatus: () => true,
+        }
+      );
+
+      if (response.status >= 400) {
+        throw new Error(
+          `Ошибка загрузки сотрудников департамента: ${response.status}`
+        );
+      }
+
+      const parsed = departmentUsersSchema.safeParse(response.data);
+
+      if (!parsed.success) {
+        console.error(
+          "Некорректные данные сотрудников департамента от сервера:",
+          {
+            issues: parsed.error.flatten(),
+          }
+        );
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
+    } catch (error) {
+      console.error(
+        "Ошибка загрузки сотрудников департамента, используем мок-данные:",
+        error
+      );
+      return getMockDepartmentUsers(hierarchyId);
     }
   },
 

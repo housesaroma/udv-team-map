@@ -10,6 +10,14 @@ export const departmentColors: DepartmentColors = {
   operations: "#2DD6C0",
 };
 
+export const departmentHierarchyColors: Record<number, string> = {
+  1: "#24D07A",
+  2: "#7D5EFA",
+  3: "#FF4671",
+  4: "#FFAB00",
+  5: "#3697FF",
+};
+
 const departmentNameToKey: Record<string, string> = {
   it: "it",
   айти: "it",
@@ -61,4 +69,24 @@ export const getDepartmentInfo = (departmentName: string) => {
     name: departmentName,
     color: getDepartmentColor(departmentName),
   };
+};
+
+export const getDepartmentHierarchyColor = (level: number): string => {
+  if (level <= 1) {
+    return departmentHierarchyColors[1];
+  }
+
+  const color = departmentHierarchyColors[level];
+  if (color) {
+    return color;
+  }
+
+  const highestDefinedLevel = Math.max(
+    ...Object.keys(departmentHierarchyColors).map(Number)
+  );
+  return (
+    departmentHierarchyColors[highestDefinedLevel] ??
+    departmentHierarchyColors[1] ??
+    "#6B7280"
+  );
 };

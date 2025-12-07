@@ -52,4 +52,5 @@ export interface TreeNode extends EmployeeNode {
   departmentColor: string;
   hierarchyId?: number;
   nodeType?: "department" | "employee";
+  hierarchyPath?: number[];
 }

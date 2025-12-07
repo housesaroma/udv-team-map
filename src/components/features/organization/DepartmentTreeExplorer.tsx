@@ -5,11 +5,11 @@ import { MAP_CONSTANTS } from "../../../constants/mapConstants";
 import { useAppDispatch } from "../../../hooks/redux";
 import { organizationService } from "../../../services/organizationService";
 import { setPosition, setZoom } from "../../../stores/mapSlice";
-import type { TreeNode } from "../../../types/organization";
+import type { DepartmentTreeNode, TreeNode } from "../../../types/organization";
 import { departmentTreeUtils } from "../../../utils/departmentTreeUtils";
 import { treeUtils } from "../../../utils/treeUtils";
 import { ConnectionLines } from "./ConnectionLines";
-import { DepartmentNodeCard } from "./DepartmentNodeCard";
+import { DepartmentStructureCard } from "./DepartmentStructureCard";
 import { EmployeeCard } from "./EmployeeCard";
 import { PageLoader } from "../../ui/PageLoader";
 
@@ -24,8 +24,11 @@ type SelectedDepartment = {
 export const DepartmentTreeExplorer: React.FC = () => {
   const dispatch = useAppDispatch();
   const [viewMode, setViewMode] = useState<ViewMode>("structure");
+  const [departmentTreeData, setDepartmentTreeData] =
+    useState<DepartmentTreeNode | null>(null);
   const [structureNodes, setStructureNodes] = useState<TreeNode[]>([]);
   const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
+  const [expandedPath, setExpandedPath] = useState<number[]>([]);
   const [selectedDepartment, setSelectedDepartment] =
     useState<SelectedDepartment | null>(null);
   const [loadingStructure, setLoadingStructure] = useState(true);
@@ -52,9 +55,9 @@ export const DepartmentTreeExplorer: React.FC = () => {
         setLoadingStructure(true);
         setError(null);
         const tree = await organizationService.getDepartmentTree();
-        const nodes = departmentTreeUtils.buildStructureTree(tree);
-        setStructureNodes(nodes);
-        setTreeNodes(nodes);
+        setDepartmentTreeData(tree);
+        const initialPath = tree.hierarchyId ? [tree.hierarchyId] : [];
+        setExpandedPath(initialPath);
         setViewMode("structure");
         setSelectedDepartment(null);
       } catch (err) {
@@ -69,6 +72,27 @@ export const DepartmentTreeExplorer: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!departmentTreeData) {
+      return;
+    }
+
+    const nodes = departmentTreeUtils.buildStructureTree(
+      departmentTreeData,
+      expandedPath.length > 0
+        ? expandedPath
+        : departmentTreeData.hierarchyId
+          ? [departmentTreeData.hierarchyId]
+          : []
+    );
+
+    setStructureNodes(nodes);
+
+    if (viewMode === "structure") {
+      setTreeNodes(nodes);
+    }
+  }, [departmentTreeData, expandedPath, viewMode]);
+
+  useEffect(() => {
     if (!isInitialized && !isLoading && !error) {
       dispatch(setZoom(MAP_CONSTANTS.INITIAL_ZOOM));
       dispatch(setPosition(MAP_CONSTANTS.INITIAL_POSITION));
@@ -78,17 +102,23 @@ export const DepartmentTreeExplorer: React.FC = () => {
 
   const handleToggleExpand = useCallback(
     (nodeId: string) => {
+      if (viewMode !== "department") {
+        return;
+      }
+
       setTreeNodes(prevNodes =>
         treeUtils.toggleNodeExpansion(prevNodes, nodeId)
       );
-      if (viewMode === "structure") {
-        setStructureNodes(prevNodes =>
-          treeUtils.toggleNodeExpansion(prevNodes, nodeId)
-        );
-      }
     },
     [viewMode]
   );
+
+  const handleSelectBranch = useCallback((node: TreeNode) => {
+    if (!node.hierarchyPath) {
+      return;
+    }
+    setExpandedPath(node.hierarchyPath);
+  }, []);
 
   const handleOpenDepartment = useCallback(async (node: TreeNode) => {
     if (!node.hierarchyId) {
@@ -178,10 +208,10 @@ export const DepartmentTreeExplorer: React.FC = () => {
 
       {viewMode === "structure"
         ? visibleNodes.map(node => (
-            <DepartmentNodeCard
+            <DepartmentStructureCard
               key={node.id}
               node={node}
-              onToggleExpand={handleToggleExpand}
+              onSelectBranch={handleSelectBranch}
               onOpenDepartment={handleOpenDepartment}
             />
           ))

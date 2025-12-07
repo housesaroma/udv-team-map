@@ -4,7 +4,10 @@ import type {
   EmployeeNode,
   TreeNode,
 } from "../types/organization";
-import { getDepartmentColor } from "./departmentUtils";
+import {
+  getDepartmentColor,
+  getDepartmentHierarchyColor,
+} from "./departmentUtils";
 
 const DEFAULT_NODE_WIDTH = 280;
 const DEFAULT_NODE_HEIGHT = 140;
@@ -34,30 +37,39 @@ const createBaseTreeNode = (
   children: payload.children ?? [],
   hierarchyId: payload.hierarchyId,
   nodeType: payload.nodeType ?? "department",
+  hierarchyPath: payload.hierarchyPath,
 });
 
 const convertDepartmentNode = (
   node: DepartmentTreeNode,
-  level: number = 0
+  level: number = 0,
+  parentPath: number[] = [],
+  expandedPath: number[] = []
 ): TreeNode => {
+  const currentPath = node.hierarchyId
+    ? [...parentPath, node.hierarchyId]
+    : [...parentPath];
+
   const children = node.children.map(child =>
-    convertDepartmentNode(child, level + 1)
+    convertDepartmentNode(child, level + 1, currentPath, expandedPath)
   );
+
+  const shouldExpand =
+    level === 0 ||
+    (node.hierarchyId !== undefined && expandedPath.includes(node.hierarchyId));
 
   return createBaseTreeNode({
     userId: `department-${node.hierarchyId}`,
     userName: node.title,
-    position:
-      node.children.length > 0
-        ? `${node.children.length} подразделений`
-        : "Листовой отдел",
+    position: node.title,
     department: node.title,
-    departmentColor: node.color || "#6B7280",
+    departmentColor: getDepartmentHierarchyColor(level + 1),
     level,
-    isExpanded: level <= INITIAL_EXPANDED_LEVEL,
+    isExpanded: shouldExpand,
     children,
     hierarchyId: node.hierarchyId,
     nodeType: "department",
+    hierarchyPath: currentPath,
   });
 };
 
@@ -86,8 +98,18 @@ const convertEmployeeToTreeNode = (
 };
 
 export const departmentTreeUtils = {
-  buildStructureTree(root: DepartmentTreeNode): TreeNode[] {
-    return [convertDepartmentNode(root, 0)];
+  buildStructureTree(
+    root: DepartmentTreeNode,
+    expandedPath: number[] = []
+  ): TreeNode[] {
+    const normalizedPath =
+      expandedPath.length > 0
+        ? expandedPath
+        : root.hierarchyId
+          ? [root.hierarchyId]
+          : [];
+
+    return [convertDepartmentNode(root, 0, [], normalizedPath)];
   },
 
   buildDepartmentEmployeesTree(

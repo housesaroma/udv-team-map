@@ -50,7 +50,10 @@ describe("departmentTreeUtils", () => {
 
   describe("buildStructureTree", () => {
     it("возвращает корневой узел дерева департаментов", () => {
-      const result = departmentTreeUtils.buildStructureTree(mockDepartmentTree);
+      const result = departmentTreeUtils.buildStructureTree(
+        mockDepartmentTree,
+        [1]
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].userName).toBe("UDV");
@@ -58,6 +61,49 @@ describe("departmentTreeUtils", () => {
       expect(result[0].children[0].userName).toBe("Digital");
       expect(result[0].nodeType).toBe("department");
       expect(result[0].hierarchyId).toBe(1);
+      expect(result[0].hierarchyPath).toEqual([1]);
+    });
+
+    it("разворачивает только указанную ветку", () => {
+      const treeWithBranch: DepartmentTreeNode = {
+        ...mockDepartmentTree,
+        children: [
+          {
+            hierarchyId: 2,
+            level: 2,
+            title: "Digital",
+            color: "#FF0000",
+            children: [
+              {
+                hierarchyId: 5,
+                level: 3,
+                title: "Child A",
+                color: "#FF0000",
+                children: [],
+              },
+            ],
+          },
+          {
+            hierarchyId: 3,
+            level: 2,
+            title: "Security",
+            color: "#00FF00",
+            children: [],
+          },
+        ],
+      };
+
+      const result = departmentTreeUtils.buildStructureTree(
+        treeWithBranch,
+        [1, 2]
+      );
+
+      const digitalNode = result[0].children[0];
+      const securityNode = result[0].children[1];
+
+      expect(digitalNode.isExpanded).toBe(true);
+      expect(securityNode.isExpanded).toBe(false);
+      expect(digitalNode.children[0].hierarchyPath).toEqual([1, 2, 5]);
     });
   });
 

@@ -3,6 +3,7 @@ import {
   getDepartmentColor,
   generateDepartmentId,
   getDepartmentInfo,
+  getDepartmentHierarchyColor,
 } from "../departmentUtils";
 
 describe("departmentUtils", () => {
@@ -112,6 +113,26 @@ describe("departmentUtils", () => {
         name: "Unknown Department",
         color: "#6B7280",
       });
+    });
+  });
+
+  describe("getDepartmentHierarchyColor", () => {
+    it("должен возвращать корректные цвета для уровней 1-5", () => {
+      expect(getDepartmentHierarchyColor(1)).toBe("#24D07A");
+      expect(getDepartmentHierarchyColor(2)).toBe("#7D5EFA");
+      expect(getDepartmentHierarchyColor(3)).toBe("#FF4671");
+      expect(getDepartmentHierarchyColor(4)).toBe("#FFAB00");
+      expect(getDepartmentHierarchyColor(5)).toBe("#3697FF");
+    });
+
+    it("должен возвращать цвет первого уровня для невалидного уровня", () => {
+      expect(getDepartmentHierarchyColor(0)).toBe("#24D07A");
+      expect(getDepartmentHierarchyColor(-2)).toBe("#24D07A");
+    });
+
+    it("должен возвращать последний доступный цвет для уровней выше 5", () => {
+      expect(getDepartmentHierarchyColor(6)).toBe("#3697FF");
+      expect(getDepartmentHierarchyColor(10)).toBe("#3697FF");
     });
   });
 });

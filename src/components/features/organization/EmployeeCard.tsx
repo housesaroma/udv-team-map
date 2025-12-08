@@ -10,10 +10,31 @@ import { ROUTES } from "../../../constants/routes";
 interface EmployeeCardProps {
   node: TreeNode;
   onToggleExpand: (nodeId: string) => void;
+  onSwapToggle?: (node: TreeNode) => void;
+  isSwapCandidate?: boolean;
+  swapOrder?: number;
+  swapSelectionDisabled?: boolean;
+  onSwapAction?: () => void;
+  showSwapAction?: boolean;
+  swapActionDisabled?: boolean;
+  swapHighlight?: boolean;
+  swapEligible?: boolean;
 }
 
 export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
-  ({ node, onToggleExpand }) => {
+  ({
+    node,
+    onToggleExpand,
+    onSwapToggle,
+    isSwapCandidate = false,
+    swapOrder,
+    swapSelectionDisabled,
+    onSwapAction,
+    showSwapAction = false,
+    swapActionDisabled = false,
+    swapHighlight = false,
+    swapEligible = true,
+  }) => {
     const navigate = useNavigate();
     const [isDragging, setIsDragging] = useState(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
@@ -60,11 +81,30 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
       onToggleExpand(node.id);
     };
 
+    const handleSwapToggle = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onSwapToggle) {
+        onSwapToggle(node);
+      }
+    };
+
+    const handleSwapActionClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onSwapAction) {
+        onSwapAction();
+      }
+    };
+
     const header = (
       <div
         className="rounded-t-lg relative flex items-center justify-center"
         style={{ backgroundColor: node.departmentColor }}
       >
+        {isSwapCandidate && typeof swapOrder === "number" && (
+          <span className={styles.swapSelectionBadge}>{swapOrder}</span>
+        )}
         <span
           className={`${styles.departmentTitle} text-white font-semibold px-2 text-center line-clamp-1`}
         >
@@ -93,7 +133,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
 
     return (
       <div
-        className={styles.cardContainer}
+        className={`${styles.cardContainer} relative`}
         style={{
           position: "absolute",
           left: `${node.x}px`,
@@ -108,12 +148,37 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
         <Card
           header={header}
           footer={footer}
-          className={`cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg ${styles.noPaddingCard} transition-all`}
+          className={`cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg ${styles.noPaddingCard} transition-all ${isSwapCandidate ? styles.swapSelectedCard : ""} ${swapHighlight ? styles.swapEligibleCard : ""} ${!swapEligible ? styles.swapRestrictedCard : ""}`}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onClick={handleCardClick}
         >
           <div className="flex flex-col">
+            {onSwapToggle && (
+              <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  icon={isSwapCandidate ? "pi pi-check" : "pi pi-user-plus"}
+                  label={isSwapCandidate ? "Выбрано" : "Выбрать"}
+                  className={`p-button-sm $
+                    {isSwapCandidate ? "p-button-success" : "p-button-outlined"}
+                  }`}
+                  severity={isSwapCandidate ? "success" : "secondary"}
+                  onClick={handleSwapToggle}
+                  disabled={Boolean(swapSelectionDisabled && !isSwapCandidate)}
+                />
+                {onSwapAction && showSwapAction && (
+                  <Button
+                    icon="pi pi-exchange"
+                    label="Поменять"
+                    className="p-button-sm"
+                    severity="success"
+                    onClick={handleSwapActionClick}
+                    disabled={swapActionDisabled}
+                    loading={swapActionDisabled}
+                  />
+                )}
+              </div>
+            )}
             <h4 className="font-bold text-gray-800 line-clamp-2">
               {node.userName}
             </h4>

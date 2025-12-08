@@ -78,11 +78,24 @@ const convertEmployeeToTreeNode = (
   employee: EmployeeNode,
   departmentTitle: string,
   colorOverride?: string,
-  level: number = 0
+  level: number = 0,
+  hierarchyPath: number[] = []
 ): TreeNode => {
   const children = employee.subordinates.map(child =>
-    convertEmployeeToTreeNode(child, departmentTitle, colorOverride, level + 1)
+    convertEmployeeToTreeNode(
+      child,
+      departmentTitle,
+      colorOverride,
+      level + 1,
+      hierarchyPath
+    )
   );
+
+  const normalizedPath = hierarchyPath.length > 0 ? [...hierarchyPath] : [];
+  const effectiveHierarchyId =
+    normalizedPath.length > 0
+      ? normalizedPath[normalizedPath.length - 1]
+      : undefined;
 
   return createBaseTreeNode({
     userId: employee.userId,
@@ -95,6 +108,8 @@ const convertEmployeeToTreeNode = (
     level,
     children,
     nodeType: "employee",
+    hierarchyPath: normalizedPath.length > 0 ? normalizedPath : undefined,
+    hierarchyId: effectiveHierarchyId,
   });
 };
 
@@ -138,7 +153,8 @@ const convertFullHierarchyNode = (
       node.manager,
       node.title,
       departmentColor,
-      level + 1
+      level + 1,
+      currentPath
     );
     collectTreeNodeIds(managerNode, usedIds);
     employeeNodes.push(managerNode);
@@ -151,7 +167,8 @@ const convertFullHierarchyNode = (
           summary,
           node.title,
           departmentColor,
-          level + 1
+          level + 1,
+          currentPath
         )
       )
       .filter(employeeNode => {
@@ -205,7 +222,8 @@ export const departmentTreeUtils = {
             response.manager,
             response.title,
             departmentColor,
-            1
+            1,
+            [response.hierarchyId]
           ),
         ]
       : summariesToEmployees(response.employees).map(employee =>
@@ -213,7 +231,8 @@ export const departmentTreeUtils = {
             employee,
             response.title,
             departmentColor,
-            1
+            1,
+            [response.hierarchyId]
           )
         );
 

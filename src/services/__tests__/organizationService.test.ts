@@ -31,10 +31,7 @@ describe("organizationService", () => {
 
     const [, options] = mockedGet.mock.calls[
       mockedGet.mock.calls.length - 1
-    ] as [
-      unknown,
-      { validateStatus: () => boolean }
-    ];
+    ] as [unknown, { validateStatus: () => boolean }];
     expect(options.validateStatus()).toBe(true);
   });
 
@@ -63,10 +60,7 @@ describe("organizationService", () => {
 
     const [, options] = mockedGet.mock.calls[
       mockedGet.mock.calls.length - 1
-    ] as [
-      unknown,
-      { validateStatus: () => boolean }
-    ];
+    ] as [unknown, { validateStatus: () => boolean }];
     expect(options.validateStatus()).toBe(true);
   });
 
@@ -95,10 +89,7 @@ describe("organizationService", () => {
 
     const [, options] = mockedGet.mock.calls[
       mockedGet.mock.calls.length - 1
-    ] as [
-      unknown,
-      { validateStatus: () => boolean }
-    ];
+    ] as [unknown, { validateStatus: () => boolean }];
     expect(options.validateStatus()).toBe(true);
   });
 
@@ -128,10 +119,7 @@ describe("organizationService", () => {
 
     const [, options] = mockedGet.mock.calls[
       mockedGet.mock.calls.length - 1
-    ] as [
-      unknown,
-      { validateStatus: () => boolean }
-    ];
+    ] as [unknown, { validateStatus: () => boolean }];
     expect(options.validateStatus()).toBe(true);
   });
 

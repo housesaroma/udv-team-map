@@ -5,6 +5,7 @@ export const API_USERS = `${BASE_URL}/api/Users`;
 export const API_HIERARCHY = `${BASE_URL}/api/Users/hierarchy`;
 export const API_HIERARCHY_V2 = `${API_USERS}/hierarchyV2`;
 export const API_DEPARTMENT_TREE = `${API_USERS}/treeWithoutUsers`;
+export const API_USERS_MOVE = `${API_USERS}/move`;
 export const API_DEPARTMENT_USERS = (hierarchyId: number | string) =>
   `${API_USERS}/departmentUsers?hierarchyId=${hierarchyId}`;
 export const API_USER_BY_ID = (userId: string) => `${API_USERS}/${userId}`;

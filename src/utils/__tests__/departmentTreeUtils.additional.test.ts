@@ -41,6 +41,8 @@ describe("departmentTreeUtils", () => {
       expect(result[0].children).toHaveLength(2);
       expect(result[0].children[0].userName).toBe("Иванов Иван");
       expect(result[0].children[1].userName).toBe("Петров Петр");
+      expect(result[0].children[0].hierarchyId).toBe(100);
+      expect(result[0].children[0].hierarchyPath).toEqual([100]);
     });
 
     it("должен применить colorOverride когда передан", () => {
@@ -156,6 +158,27 @@ describe("departmentTreeUtils", () => {
       );
 
       expect(node.departmentColor).toBe("#24D07A");
+    });
+
+    it("сохраняет путь и hierarchyId когда он передан", () => {
+      const employee: EmployeeNode = {
+        userId: "emp-2",
+        userName: "Второй",
+        position: "QA",
+        avatarUrl: "",
+        subordinates: [],
+      };
+
+      const node = departmentTreeTestUtils.convertEmployeeToTreeNode(
+        employee,
+        "IT",
+        undefined,
+        1,
+        [42, 43]
+      );
+
+      expect(node.hierarchyId).toBe(43);
+      expect(node.hierarchyPath).toEqual([42, 43]);
     });
   });
 
@@ -284,6 +307,8 @@ describe("departmentTreeUtils", () => {
       );
 
       expect(employeeNodes.map(node => node.userId)).toEqual(["mgr", "uniq"]);
+      expect(employeeNodes[0].hierarchyId).toBe(20);
+      expect(employeeNodes[0].hierarchyPath).toEqual([20]);
     });
 
     it("не добавляет hierarchyId в путь когда он равен 0", () => {

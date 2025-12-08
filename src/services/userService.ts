@@ -1,4 +1,4 @@
-import { API_USER_BY_ID } from "../constants/apiConstants";
+import { API_USER_BY_ID, API_USERS_MOVE } from "../constants/apiConstants";
 import { getDepartmentInfo } from "../utils/departmentUtils";
 import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
@@ -6,6 +6,12 @@ import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import { apiClient } from "../utils/apiClient";
 import { extractFullNameFromToken } from "../utils/jwtUtils";
 import { apiUserProfileSchema } from "../validation/apiSchemas";
+
+export interface MoveUserPayload {
+  userId: string;
+  targetHierarchyId: number;
+  swapWithUserId: string;
+}
 
 export const userService = {
   async getUserProfile(userId: string): Promise<User> {
@@ -20,6 +26,23 @@ export const userService = {
     if (!this.isValidUUID(userId)) {
       throw new Error("Неверный формат ID пользователя");
     }
+
+    const tryLoadFallback = (): User | null => {
+      const fallbackUser = this.getFallbackUser(userId);
+      if (fallbackUser) {
+        console.log("Пользователь найден в мок-данных:", userId);
+        return fallbackUser;
+      }
+      return null;
+    };
+
+    const fallbackOrThrow = (message: string): User => {
+      const fallbackUser = tryLoadFallback();
+      if (fallbackUser) {
+        return fallbackUser;
+      }
+      throw new Error(message);
+    };
 
     try {
       const response = await apiClient.get<unknown>(API_USER_BY_ID(userId), {
@@ -43,12 +66,7 @@ export const userService = {
         console.warn(
           "Пользователь не найден на сервере, пробуем загрузить из мок-данных..."
         );
-        const fallbackUser = this.getFallbackUser(userId);
-        if (fallbackUser) {
-          console.log("Пользователь найден в мок-данных:", userId);
-          return fallbackUser;
-        }
-        throw new Error("Пользователь не найден");
+        return fallbackOrThrow("Пользователь не найден");
       }
 
       if (status === 400) {
@@ -58,12 +76,7 @@ export const userService = {
 
       if (status === 500) {
         console.warn("Ошибка сервера, пробуем загрузить из мок-данных...");
-        const fallbackUser = this.getFallbackUser(userId);
-        if (fallbackUser) {
-          console.log("Пользователь найден в мок-данных:", userId);
-          return fallbackUser;
-        }
-        throw new Error("Ошибка сервера");
+        return fallbackOrThrow("Ошибка сервера");
       }
 
       if (status >= 400) {
@@ -74,12 +87,7 @@ export const userService = {
         console.warn(
           `Ошибка загрузки профиля: ${status}, пробуем мок-данные...`
         );
-        const fallbackUser = this.getFallbackUser(userId);
-        if (fallbackUser) {
-          console.log("Пользователь найден в мок-данных:", userId);
-          return fallbackUser;
-        }
-        throw new Error(`Ошибка загрузки профиля: ${status}`);
+        return fallbackOrThrow(`Ошибка загрузки профиля: ${status}`);
       }
 
       if (
@@ -88,12 +96,7 @@ export const userService = {
         (typeof rawData === "string" && rawData.trim().length === 0)
       ) {
         console.warn("Пустой ответ от сервера, пробуем мок-данные...");
-        const fallbackUser = this.getFallbackUser(userId);
-        if (fallbackUser) {
-          console.log("Пользователь найден в мок-данных:", userId);
-          return fallbackUser;
-        }
-        throw new Error("Пустой ответ от сервера");
+        return fallbackOrThrow("Пустой ответ от сервера");
       }
 
       let apiData: unknown = rawData;
@@ -119,12 +122,7 @@ export const userService = {
       // Проверяем, что данные в правильном формате
       if (!apiData || typeof apiData !== "object") {
         console.error("Ответ от API не является объектом:", apiData);
-        const fallbackUser = this.getFallbackUser(userId);
-        if (fallbackUser) {
-          console.log("Пользователь найден в мок-данных:", userId);
-          return fallbackUser;
-        }
-        throw new Error(
+        return fallbackOrThrow(
           "Некорректные данные профиля: ответ не является объектом"
         );
       }
@@ -184,12 +182,7 @@ export const userService = {
         );
         console.warn("Ошибки валидации:", validationResult.error.flatten());
         console.warn("Нормализованные данные:", normalizedData);
-        const fallbackUser = this.getFallbackUser(userId);
-        if (fallbackUser) {
-          console.log("Пользователь найден в мок-данных:", userId);
-          return fallbackUser;
-        }
-        throw new Error("Некорректные данные профиля");
+        return fallbackOrThrow("Некорректные данные профиля");
       }
 
       return transformApiUserToUser(validationResult.data);
@@ -211,9 +204,8 @@ export const userService = {
         console.warn("Сообщение об ошибке:", error.message);
         console.warn("Стек ошибки:", error.stack);
       }
-      const fallbackUser = this.getFallbackUser(userId);
+      const fallbackUser = tryLoadFallback();
       if (fallbackUser) {
-        console.log("Пользователь найден в мок-данных после ошибки:", userId);
         return fallbackUser;
       }
 
@@ -284,6 +276,75 @@ export const userService = {
       (user, index, array) => array.findIndex(u => u.id === user.id) === index
     );
     return uniqueUsers;
+  },
+
+  async moveUser(payload: MoveUserPayload): Promise<void> {
+    const { userId, targetHierarchyId, swapWithUserId } = payload;
+
+    if (!this.isValidUUID(userId)) {
+      throw new Error("Неверный формат ID пользователя");
+    }
+
+    if (
+      typeof targetHierarchyId !== "number" ||
+      Number.isNaN(targetHierarchyId)
+    ) {
+      throw new Error("Не указан targetHierarchyId для перемещения");
+    }
+
+    if (!Number.isInteger(targetHierarchyId)) {
+      throw new Error("targetHierarchyId должен быть целым числом");
+    }
+
+    if (!swapWithUserId) {
+      throw new Error("Не указан swapWithUserId для операции обмена");
+    }
+
+    if (!this.isValidUUID(swapWithUserId)) {
+      throw new Error("Неверный формат swapWithUserId");
+    }
+
+    console.log("🔁 Свап сотрудников", {
+      userId,
+      targetHierarchyId,
+      swapWithUserId,
+    });
+
+    try {
+      const response = await apiClient.post(
+        API_USERS_MOVE,
+        {
+          userId,
+          targetHierarchyId,
+          swapWithUserId,
+        },
+        {
+          validateStatus: () => true,
+        }
+      );
+
+      if (response.status >= 400) {
+        const errorText =
+          typeof response.data === "string"
+            ? response.data
+            : response.data && typeof response.data === "object"
+              ? JSON.stringify(response.data)
+              : "";
+
+        throw new Error(
+          errorText
+            ? `Не удалось переместить сотрудника: ${errorText}`
+            : `Не удалось переместить сотрудника: ${response.status}`
+        );
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Не удалось переместить сотрудника";
+      console.error("Ошибка перемещения сотрудника", message, error);
+      throw new Error(message);
+    }
   },
 };
 

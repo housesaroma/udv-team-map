@@ -1,0 +1,159 @@
+import { describe, it, expect } from "vitest";
+import {
+  departmentTreeTestUtils,
+  departmentTreeUtils,
+} from "../departmentTreeUtils";
+import type {
+  DepartmentTreeNode,
+  DepartmentUsersResponse,
+  EmployeeNode,
+} from "../../types/organization";
+
+describe("departmentTreeUtils", () => {
+  describe("buildDepartmentEmployeesTree edge cases", () => {
+    it("должен обработать отдел без менеджера и с employees", () => {
+      const response: DepartmentUsersResponse = {
+        hierarchyId: 100,
+        title: "Тестовый отдел",
+        manager: null,
+        employees: [
+          {
+            userId: "user-1",
+            userName: "Иванов Иван",
+            position: "Developer",
+            avatarUrl: "",
+          },
+          {
+            userId: "user-2",
+            userName: "Петров Петр",
+            position: "Analyst",
+            avatarUrl: "",
+          },
+        ],
+      };
+
+      const result = departmentTreeUtils.buildDepartmentEmployeesTree(response);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].userName).toBe("Тестовый отдел");
+      expect(result[0].children).toHaveLength(2);
+      expect(result[0].children[0].userName).toBe("Иванов Иван");
+      expect(result[0].children[1].userName).toBe("Петров Петр");
+    });
+
+    it("должен применить colorOverride когда передан", () => {
+      const response: DepartmentUsersResponse = {
+        hierarchyId: 101,
+        title: "Тестовый отдел",
+        manager: null,
+        employees: [
+          {
+            userId: "user-1",
+            userName: "Иванов Иван",
+            position: "Developer",
+            avatarUrl: "",
+          },
+        ],
+      };
+
+      const customColor = "#FF5733";
+      const result = departmentTreeUtils.buildDepartmentEmployeesTree(
+        response,
+        customColor
+      );
+
+      expect(result[0].departmentColor).toBe(customColor);
+      expect(result[0].children[0].departmentColor).toBe(customColor);
+    });
+  });
+
+  describe("buildStructureTree edge cases", () => {
+    it("должен обработать root без hierarchyId", () => {
+      const root: DepartmentTreeNode = {
+        hierarchyId: 0,
+        level: 0,
+        title: "Root",
+        color: "#000000",
+        children: [],
+      };
+
+      const result = departmentTreeUtils.buildStructureTree(root);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].userName).toBe("Root");
+    });
+
+    it("должен использовать expandedPath когда передан", () => {
+      const root: DepartmentTreeNode = {
+        hierarchyId: 1,
+        level: 0,
+        title: "Root",
+        color: "#000000",
+        children: [
+          {
+            hierarchyId: 2,
+            level: 1,
+            title: "Child",
+            color: "#111111",
+            children: [],
+          },
+        ],
+      };
+
+      const result = departmentTreeUtils.buildStructureTree(root, [1, 2]);
+
+      expect(result[0].isExpanded).toBe(true);
+      expect(result[0].children[0].isExpanded).toBe(true);
+    });
+
+    it("должен добавлять hierarchyId в путь когда expandedPath не задан", () => {
+      const root: DepartmentTreeNode = {
+        hierarchyId: 7,
+        level: 0,
+        title: "Root",
+        color: "#ffffff",
+        children: [],
+      };
+
+      const result = departmentTreeUtils.buildStructureTree(root);
+
+      expect(result[0].hierarchyPath).toEqual([7]);
+    });
+  });
+
+  describe("createBaseTreeNode defaults", () => {
+    it("должен применять значения по умолчанию", () => {
+      const node = departmentTreeTestUtils.createBaseTreeNode({
+        userId: "node-1",
+        userName: "Node",
+        position: "Lead",
+        department: "QA",
+        departmentColor: "#000000",
+      });
+
+      expect(node.isExpanded).toBe(true);
+      expect(node.level).toBe(0);
+      expect(node.children).toEqual([]);
+      expect(node.nodeType).toBe("department");
+    });
+  });
+
+  describe("convertEmployeeToTreeNode", () => {
+    it("должен использовать цвет отдела когда override не передан", () => {
+      const employee: EmployeeNode = {
+        userId: "emp-1",
+        userName: "Сотрудник",
+        position: "Developer",
+        avatarUrl: "",
+        subordinates: [],
+      };
+
+      const node = departmentTreeTestUtils.convertEmployeeToTreeNode(
+        employee,
+        "HR"
+      );
+
+      expect(node.departmentColor).toBe("#24D07A");
+    });
+  });
+});

@@ -24,7 +24,7 @@
 - **Testing**: Vitest is configured via `package.json` + `src/test/setup.ts`; use `src/test/test-utils.tsx`’s custom `render` to wrap components with Redux, Router, PrimeReact, and mocked Auth context.
 - **Key scripts**: `npm run dev` (Vite dev server), `npm run build` (tsc + vite), `npm run test` / `test:coverage`, `npm run lint`, and `npm run fix:all`; run these before pushing feature work.
 - **Required checks after code changes**: Always execute `npm run fix:all`, `npm run build`, and `npx vitest run` once edits are done; stop and resolve any failures before continuing.
-- **Coverage gate**: Run `npx vitest run --coverage` whenever functionality changes. Coverage must remain at 100%; add or update tests immediately if the report drops below that threshold.
+- **Coverage gate**: Run `npx vitest run --coverage` after EVERY code change. Coverage must remain at 100%; if any new code is not covered, immediately write sufficient tests to restore full coverage before proceeding. Never commit code with less than 100% test coverage.
 - **Linting/formatting**: ESLint config lives in `.eslintrc.js` + `eslint.config.js`, Prettier in `.prettierrc`; prefer `npm run fix:all` to keep TS types, lint, and formatting in sync.
 - **Hotkeys/UX**: `useKeyboardShortcuts` binds Ctrl/Cmd + `+/-/0` to Redux zoom actions; keep new shortcuts centralized there to avoid conflicts.
 - **Routing guards**: `ProtectedRoute` and `PermissionGuard` already gate views; wrap new pages/components instead of duplicating redirect logic.

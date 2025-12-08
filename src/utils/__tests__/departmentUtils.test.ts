@@ -125,6 +125,14 @@ describe("departmentUtils", () => {
       expect(getDepartmentHierarchyColor(5)).toBe("#3697FF");
     });
 
+    it("должен возвращать дефолтный цвет для первого уровня, если карта не содержит level 1", () => {
+      const customColors: Record<number, string> = {
+        2: "#123456",
+      };
+
+      expect(getDepartmentHierarchyColor(1, customColors)).toBe("#6B7280");
+    });
+
     it("должен возвращать цвет первого уровня для невалидного уровня", () => {
       expect(getDepartmentHierarchyColor(0)).toBe("#24D07A");
       expect(getDepartmentHierarchyColor(-2)).toBe("#24D07A");
@@ -133,6 +141,29 @@ describe("departmentUtils", () => {
     it("должен возвращать последний доступный цвет для уровней выше 5", () => {
       expect(getDepartmentHierarchyColor(6)).toBe("#3697FF");
       expect(getDepartmentHierarchyColor(10)).toBe("#3697FF");
+    });
+
+    it("должен возвращать цвет первого уровня из кастомной карты, если нет прямого совпадения", () => {
+      const customColors: Record<number, string> = {
+        1: "#111111",
+        3: "",
+      };
+
+      expect(getDepartmentHierarchyColor(8, customColors)).toBe("#111111");
+    });
+
+    it("должен возвращать дефолтный цвет когда карта пустая", () => {
+      const emptyColors: Record<number, string> = {};
+
+      expect(getDepartmentHierarchyColor(2, emptyColors)).toBe("#6B7280");
+    });
+
+    it("должен возвращать дефолтный цвет когда нет валидных уровней", () => {
+      const invalidColors: Record<number, string> = {
+        2: "",
+      };
+
+      expect(getDepartmentHierarchyColor(4, invalidColors)).toBe("#6B7280");
     });
   });
 });

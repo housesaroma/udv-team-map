@@ -59,25 +59,30 @@ type BufferLike = {
 };
 
 const toBase64Url = (value: string): string => {
-  if (typeof window !== "undefined" && typeof window.btoa === "function") {
-    return window
-      .btoa(value)
-      .replace(/=/g, "")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_");
+  let base64: string;
+
+  // Try Buffer first (Node.js environment) - handles UTF-8 correctly
+  if (typeof (globalThis as { Buffer?: BufferLike }).Buffer !== "undefined") {
+    const bufferCtor = (globalThis as { Buffer?: BufferLike })
+      .Buffer as BufferLike;
+    base64 = bufferCtor.from(value, "utf-8").toString("base64");
+  }
+  // Try window.btoa (browser/jsdom environment) - requires UTF-8 encoding
+  else if (typeof window !== "undefined" && typeof window.btoa === "function") {
+    // Encode UTF-8 string to percent-encoding, then to binary string
+    const utf8Bytes = new TextEncoder().encode(value);
+    const binaryString = Array.from(utf8Bytes, byte =>
+      String.fromCharCode(byte)
+    ).join("");
+    base64 = window.btoa(binaryString);
+  }
+  // Fallback error
+  else {
+    throw new Error("Base64 encoding is not supported in this environment");
   }
 
-  const bufferCtor = (globalThis as { Buffer?: BufferLike }).Buffer;
-  if (bufferCtor) {
-    return bufferCtor
-      .from(value, "utf-8")
-      .toString("base64")
-      .replace(/=/g, "")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_");
-  }
-
-  throw new Error("Base64 encoding is not supported in this environment");
+  // Convert to URL-safe base64
+  return base64.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 };
 
 const createMockToken = (account: LoginAccount): string => {
@@ -213,6 +218,22 @@ export const handlers = [
     return HttpResponse.json(data);
   }),
 
+  // More specific routes must come before generic parameterized routes
+  http.get(API_USERS, () => HttpResponse.json(MOCK_USERS_RESPONSE)),
+
+  http.get(API_USERS_DEPARTMENTS, () => {
+    const departments = Array.from(
+      new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.department))
+    );
+    return HttpResponse.json(departments);
+  }),
+
+  http.get(API_USERS_POSITIONS, () => {
+    const positions = Array.from(
+      new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.position))
+    );
+    return HttpResponse.json(positions);
+  }),
   http.get(`${API_USERS}/:userId`, ({ params }) => {
     const userId = params.userId as string;
     const profile = findUserProfile(userId);
@@ -237,20 +258,8 @@ export const handlers = [
 
     return HttpResponse.json(updatedProfile);
   }),
-
-  http.get(API_USERS, () => HttpResponse.json(MOCK_USERS_RESPONSE)),
-
-  http.get(API_USERS_DEPARTMENTS, () => {
-    const departments = Array.from(
-      new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.department))
-    );
-    return HttpResponse.json(departments);
-  }),
-
-  http.get(API_USERS_POSITIONS, () => {
-    const positions = Array.from(
-      new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.position))
-    );
-    return HttpResponse.json(positions);
-  }),
 ];
+
+export const handlersTestUtils = {
+  toBase64UrlForTests: toBase64Url,
+};

@@ -162,3 +162,8 @@ export const departmentTreeUtils = {
     ];
   },
 };
+
+export const departmentTreeTestUtils = {
+  createBaseTreeNode,
+  convertEmployeeToTreeNode,
+};

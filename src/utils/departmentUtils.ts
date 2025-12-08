@@ -71,22 +71,34 @@ export const getDepartmentInfo = (departmentName: string) => {
   };
 };
 
-export const getDepartmentHierarchyColor = (level: number): string => {
+export const getDepartmentHierarchyColor = (
+  level: number,
+  hierarchyColors: Record<number, string> = departmentHierarchyColors
+): string => {
   if (level <= 1) {
-    return departmentHierarchyColors[1];
+    return hierarchyColors[1] ?? "#6B7280";
   }
 
-  const color = departmentHierarchyColors[level];
-  if (color) {
-    return color;
+  const directColor = hierarchyColors[level];
+  if (directColor) {
+    return directColor;
   }
 
-  const highestDefinedLevel = Math.max(
-    ...Object.keys(departmentHierarchyColors).map(Number)
-  );
-  return (
-    departmentHierarchyColors[highestDefinedLevel] ??
-    departmentHierarchyColors[1] ??
-    "#6B7280"
-  );
+  const colorKeys = Object.keys(hierarchyColors).map(Number);
+  if (colorKeys.length === 0) {
+    return "#6B7280";
+  }
+
+  const highestDefinedLevel = Math.max(...colorKeys);
+  const highestLevelColor = hierarchyColors[highestDefinedLevel];
+  if (highestLevelColor) {
+    return highestLevelColor;
+  }
+
+  const baseLevelColor = hierarchyColors[1];
+  if (baseLevelColor) {
+    return baseLevelColor;
+  }
+
+  return "#6B7280";
 };

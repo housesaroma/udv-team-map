@@ -115,10 +115,10 @@ describe("departmentTreeUtils", () => {
       );
 
       expect(result).toHaveLength(1);
-      expect(result[0].userId).toBe("manager-1");
+      expect(result[0].userId).toBe("department-99");
       expect(result[0].departmentColor).toBe("#123456");
-      expect(result[0].children[0].userId).toBe("employee-1");
-      expect(result[0].nodeType).toBe("employee");
+      expect(result[0].children[0].userId).toBe("manager-1");
+      expect(result[0].nodeType).toBe("department");
     });
 
     it("использует цвет департамента, если override не передан", () => {
@@ -126,6 +126,23 @@ describe("departmentTreeUtils", () => {
         departmentTreeUtils.buildDepartmentEmployeesTree(mockDepartmentUsers);
 
       expect(result[0].departmentColor).not.toBe("#6B7280");
+    });
+
+    it("создает корневую карточку отдела даже без сотрудников", () => {
+      const emptyDepartment: DepartmentUsersResponse = {
+        hierarchyId: 7,
+        title: "QA",
+        manager: null,
+        employees: [],
+      };
+
+      const result =
+        departmentTreeUtils.buildDepartmentEmployeesTree(emptyDepartment);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].userName).toBe("QA");
+      expect(result[0].children).toHaveLength(0);
+      expect(result[0].nodeType).toBe("department");
     });
   });
 });

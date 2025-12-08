@@ -127,16 +127,38 @@ export const departmentTreeUtils = {
     response: DepartmentUsersResponse,
     colorOverride?: string
   ): TreeNode[] {
-    const managerNode: EmployeeNode = response.manager ?? {
-      userId: `department-${response.hierarchyId}-root`,
-      userName: response.title,
-      position: "Команда отдела",
-      avatarUrl: "",
-      subordinates: summariesToEmployees(response.employees),
-    };
+    const departmentColor = colorOverride ?? getDepartmentColor(response.title);
+    const managerChildren = response.manager
+      ? [
+          convertEmployeeToTreeNode(
+            response.manager,
+            response.title,
+            departmentColor,
+            1
+          ),
+        ]
+      : summariesToEmployees(response.employees).map(employee =>
+          convertEmployeeToTreeNode(
+            employee,
+            response.title,
+            departmentColor,
+            1
+          )
+        );
 
     return [
-      convertEmployeeToTreeNode(managerNode, response.title, colorOverride, 0),
+      createBaseTreeNode({
+        userId: `department-${response.hierarchyId}`,
+        userName: response.title,
+        position: response.title,
+        department: response.title,
+        departmentColor,
+        hierarchyId: response.hierarchyId,
+        nodeType: "department",
+        level: 0,
+        isExpanded: true,
+        children: managerChildren,
+      }),
     ];
   },
 };

@@ -7,7 +7,11 @@ import { ROUTES } from "../../../constants/routes";
 import { useAppDispatch } from "../../../hooks/redux";
 import { organizationService } from "../../../services/organizationService";
 import { setPosition, setZoom } from "../../../stores/mapSlice";
-import type { DepartmentTreeNode, TreeNode } from "../../../types/organization";
+import type {
+  DepartmentTreeNode,
+  DepartmentUsersResponse,
+  TreeNode,
+} from "../../../types/organization";
 import { departmentTreeUtils } from "../../../utils/departmentTreeUtils";
 import { treeUtils } from "../../../utils/treeUtils";
 import { ConnectionLines } from "./ConnectionLines";
@@ -22,6 +26,13 @@ type SelectedDepartment = {
   title: string;
   color: string;
 };
+
+type DepartmentMeta = {
+  title?: string;
+  color?: string;
+};
+
+const NOOP = () => {};
 
 export const DepartmentTreeExplorer: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -125,7 +136,8 @@ export const DepartmentTreeExplorer: React.FC = () => {
   }, []);
 
   const openDepartmentById = useCallback(
-    async (hierarchyId: number, colorOverride?: string) => {
+    async (hierarchyId: number, meta?: DepartmentMeta) => {
+      const colorOverride = meta?.color;
       try {
         setLoadingDepartment(true);
         setError(null);
@@ -146,7 +158,30 @@ export const DepartmentTreeExplorer: React.FC = () => {
         setViewMode("department");
       } catch (err) {
         console.error("Ошибка загрузки сотрудников департамента", err);
-        setError("Не удалось загрузить сотрудников отдела");
+        if (meta?.title) {
+          const fallbackResponse: DepartmentUsersResponse = {
+            hierarchyId,
+            title: meta.title,
+            manager: null,
+            employees: [],
+          };
+          const fallbackNodes =
+            departmentTreeUtils.buildDepartmentEmployeesTree(
+              fallbackResponse,
+              colorOverride
+            );
+          setTreeNodes(fallbackNodes);
+          setSelectedDepartment({
+            hierarchyId,
+            title: meta.title,
+            color:
+              colorOverride || fallbackNodes[0]?.departmentColor || "#1f2937",
+          });
+          setViewMode("department");
+          setError(null);
+        } else {
+          setError("Не удалось загрузить сотрудников отдела");
+        }
       } finally {
         setLoadingDepartment(false);
       }
@@ -160,7 +195,10 @@ export const DepartmentTreeExplorer: React.FC = () => {
         return;
       }
 
-      await openDepartmentById(node.hierarchyId, node.departmentColor);
+      await openDepartmentById(node.hierarchyId, {
+        title: node.userName,
+        color: node.departmentColor,
+      });
       navigate(ROUTES.department.byId(node.hierarchyId));
     },
     [navigate, openDepartmentById]
@@ -176,10 +214,18 @@ export const DepartmentTreeExplorer: React.FC = () => {
   }, [structureNodes, departmentId, navigate]);
 
   useEffect(() => {
+    if (loadingStructure) {
+      return;
+    }
+
     if (!departmentId) {
       if (selectedDepartment) {
         handleBackToStructure();
       }
+      return;
+    }
+
+    if (structureNodes.length === 0) {
       return;
     }
 
@@ -195,10 +241,14 @@ export const DepartmentTreeExplorer: React.FC = () => {
     }
 
     const matchingNode = findTreeNodeByHierarchyId(structureNodes, parsedId);
-    openDepartmentById(parsedId, matchingNode?.departmentColor);
+    openDepartmentById(parsedId, {
+      title: matchingNode?.userName ?? `Отдел ${parsedId}`,
+      color: matchingNode?.departmentColor,
+    });
   }, [
     departmentId,
     handleBackToStructure,
+    loadingStructure,
     navigate,
     openDepartmentById,
     selectedDepartment,
@@ -280,13 +330,23 @@ export const DepartmentTreeExplorer: React.FC = () => {
               onOpenDepartment={handleOpenDepartment}
             />
           ))
-        : visibleNodes.map(node => (
-            <EmployeeCard
-              key={node.id}
-              node={node}
-              onToggleExpand={handleToggleExpand}
-            />
-          ))}
+        : visibleNodes.map(node =>
+            node.nodeType === "department" ? (
+              <DepartmentStructureCard
+                key={node.id}
+                node={node}
+                onSelectBranch={NOOP}
+                onOpenDepartment={NOOP}
+                isStatic
+              />
+            ) : (
+              <EmployeeCard
+                key={node.id}
+                node={node}
+                onToggleExpand={handleToggleExpand}
+              />
+            )
+          )}
     </div>
   );
 };

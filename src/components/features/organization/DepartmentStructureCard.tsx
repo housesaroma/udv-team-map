@@ -6,10 +6,11 @@ interface DepartmentStructureCardProps {
   node: TreeNode;
   onSelectBranch: (node: TreeNode) => void;
   onOpenDepartment: (node: TreeNode) => void;
+  isStatic?: boolean;
 }
 
 export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
-  memo(({ node, onSelectBranch, onOpenDepartment }) => {
+  memo(({ node, onSelectBranch, onOpenDepartment, isStatic = false }) => {
     const [isDragging, setIsDragging] = useState(false);
     const dragStartRef = useRef({ x: 0, y: 0 });
     const dragThreshold = 5;
@@ -44,6 +45,11 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
 
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (isStatic) {
+          event.preventDefault();
+          return;
+        }
+
         if (isDragging) {
           event.preventDefault();
           event.stopPropagation();
@@ -56,7 +62,14 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
           onOpenDepartment(node);
         }
       },
-      [hasChildren, isDragging, node, onOpenDepartment, onSelectBranch]
+      [
+        hasChildren,
+        isDragging,
+        isStatic,
+        node,
+        onOpenDepartment,
+        onSelectBranch,
+      ]
     );
 
     return (
@@ -74,15 +87,19 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
           type="button"
           className={styles.cardButton}
           style={{ backgroundColor: node.departmentColor }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onClick={handleClick}
+          onMouseDown={isStatic ? undefined : handleMouseDown}
+          onMouseMove={isStatic ? undefined : handleMouseMove}
+          onClick={isStatic ? undefined : handleClick}
+          disabled={isStatic}
+          aria-disabled={isStatic}
           aria-label={node.userName}
         >
           <span className={styles.cardTitle}>{node.userName}</span>
-          <span className={styles.cardChevron} aria-hidden="true">
-            <i className={`${iconClass} ${styles.icon}`} />
-          </span>
+          {!isStatic && (
+            <span className={styles.cardChevron} aria-hidden="true">
+              <i className={`${iconClass} ${styles.icon}`} />
+            </span>
+          )}
         </button>
       </div>
     );

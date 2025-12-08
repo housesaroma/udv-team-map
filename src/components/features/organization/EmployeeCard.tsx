@@ -65,7 +65,9 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
         className="rounded-t-lg relative flex items-center justify-center"
         style={{ backgroundColor: node.departmentColor }}
       >
-        <span className="text-white font-semibold px-2 text-center line-clamp-1">
+        <span
+          className={`${styles.departmentTitle} text-white font-semibold px-2 text-center line-clamp-1`}
+        >
           {departmentInfo.name}
         </span>
       </div>

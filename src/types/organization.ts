@@ -25,7 +25,7 @@ export interface DepartmentEmployeeSummary {
 export interface DepartmentUsersResponse {
   hierarchyId: number;
   title: string;
-  manager: EmployeeNode;
+  manager: EmployeeNode | null;
   employees: DepartmentEmployeeSummary[];
 }
 

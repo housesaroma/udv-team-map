@@ -97,6 +97,17 @@ const convertEmployeeToTreeNode = (
   });
 };
 
+const summariesToEmployees = (
+  summaries: DepartmentUsersResponse["employees"]
+): EmployeeNode[] =>
+  summaries.map(summary => ({
+    userId: summary.userId,
+    userName: summary.userName,
+    position: summary.position,
+    avatarUrl: summary.avatarUrl,
+    subordinates: [],
+  }));
+
 export const departmentTreeUtils = {
   buildStructureTree(
     root: DepartmentTreeNode,
@@ -116,13 +127,16 @@ export const departmentTreeUtils = {
     response: DepartmentUsersResponse,
     colorOverride?: string
   ): TreeNode[] {
+    const managerNode: EmployeeNode = response.manager ?? {
+      userId: `department-${response.hierarchyId}-root`,
+      userName: response.title,
+      position: "Команда отдела",
+      avatarUrl: "",
+      subordinates: summariesToEmployees(response.employees),
+    };
+
     return [
-      convertEmployeeToTreeNode(
-        response.manager,
-        response.title,
-        colorOverride,
-        0
-      ),
+      convertEmployeeToTreeNode(managerNode, response.title, colorOverride, 0),
     ];
   },
 };

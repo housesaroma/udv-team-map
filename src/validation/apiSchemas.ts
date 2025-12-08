@@ -129,7 +129,7 @@ export const departmentTreeSchema = departmentTreeNodeSchema;
 export const departmentUsersSchema = z.object({
   hierarchyId: z.number().int().nonnegative(),
   title: z.string().min(1),
-  manager: employeeNodeSchema,
+  manager: employeeNodeSchema.nullable(),
   employees: z.array(departmentEmployeeSummarySchema),
 });
 

@@ -56,7 +56,7 @@ export const treeUtils = {
       level,
       x: 0,
       y: 0,
-      width: 280,
+      width: 360,
       height: 140,
       children: [],
       departmentColor: getDepartmentColor(node.department || ""),

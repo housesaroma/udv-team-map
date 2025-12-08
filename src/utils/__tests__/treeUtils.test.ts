@@ -100,7 +100,7 @@ describe("treeUtils", () => {
       expect(result.isExpanded).toBe(true);
       expect(result.x).toBe(0);
       expect(result.y).toBe(0);
-      expect(result.width).toBe(280);
+      expect(result.width).toBe(360);
       expect(result.height).toBe(140);
       expect(result.children).toEqual([]);
     });
@@ -158,7 +158,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -168,7 +168,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [],
               departmentColor: "#3697FF",
@@ -192,7 +192,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -202,7 +202,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [
                 {
@@ -212,7 +212,7 @@ describe("treeUtils", () => {
                   level: 2,
                   x: 0,
                   y: 0,
-                  width: 280,
+                  width: 360,
                   height: 140,
                   children: [],
                   departmentColor: "#3697FF",
@@ -239,7 +239,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [],
           departmentColor: "#6B7280",
@@ -262,7 +262,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -272,7 +272,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [],
               departmentColor: "#3697FF",
@@ -298,7 +298,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -308,7 +308,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [
                 {
@@ -318,7 +318,7 @@ describe("treeUtils", () => {
                   level: 2,
                   x: 0,
                   y: 0,
-                  width: 280,
+                  width: 360,
                   height: 140,
                   children: [],
                   departmentColor: "#3697FF",
@@ -348,7 +348,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -358,7 +358,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [],
               departmentColor: "#3697FF",
@@ -385,7 +385,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [],
           departmentColor: "#6B7280",
@@ -407,7 +407,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -417,7 +417,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [],
               departmentColor: "#3697FF",
@@ -447,7 +447,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [
             {
@@ -457,7 +457,7 @@ describe("treeUtils", () => {
               level: 1,
               x: 0,
               y: 0,
-              width: 280,
+              width: 360,
               height: 140,
               children: [],
               departmentColor: "#3697FF",
@@ -485,7 +485,7 @@ describe("treeUtils", () => {
         level: 1,
         x: 0,
         y: 0,
-        width: 280,
+        width: 360,
         height: 140,
         children: [],
         departmentColor: "#3697FF",
@@ -498,7 +498,7 @@ describe("treeUtils", () => {
         level: 1,
         x: 0,
         y: 0,
-        width: 280,
+        width: 360,
         height: 140,
         children: [],
         departmentColor: "#24D07A",
@@ -512,7 +512,7 @@ describe("treeUtils", () => {
           level: 0,
           x: 0,
           y: 0,
-          width: 280,
+          width: 360,
           height: 140,
           children: [],
           departmentColor: "#6B7280",

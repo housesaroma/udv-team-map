@@ -18,6 +18,12 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
     const iconClass = hasChildren
       ? `pi ${node.isExpanded ? "pi-chevron-down" : "pi-chevron-right"}`
       : "pi pi-arrow-right";
+    const iconWrapperClassName = `${styles.cardChevron} ${
+      hasChildren ? styles.cardChevronMinimal : styles.cardChevronAction
+    }`;
+    const iconClassName = `${iconClass} ${styles.icon} ${
+      hasChildren ? styles.iconMuted : styles.iconAction
+    }`;
 
     const handleMouseDown = useCallback((event: React.MouseEvent) => {
       dragStartRef.current = {
@@ -96,8 +102,8 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
         >
           <span className={styles.cardTitle}>{node.userName}</span>
           {!isStatic && (
-            <span className={styles.cardChevron} aria-hidden="true">
-              <i className={`${iconClass} ${styles.icon}`} />
+            <span className={iconWrapperClassName} aria-hidden="true">
+              <i className={iconClassName} />
             </span>
           )}
         </button>

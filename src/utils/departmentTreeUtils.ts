@@ -9,7 +9,7 @@ import {
   getDepartmentHierarchyColor,
 } from "./departmentUtils";
 
-const DEFAULT_NODE_WIDTH = 280;
+const DEFAULT_NODE_WIDTH = 360;
 const DEFAULT_NODE_HEIGHT = 140;
 const INITIAL_EXPANDED_LEVEL = 2;
 

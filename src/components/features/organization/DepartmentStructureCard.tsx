@@ -42,20 +42,11 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
       [isDragging]
     );
 
-    const handleMouseLeave = useCallback(() => {
-      setIsDragging(false);
-    }, []);
-
-    const handleMouseUp = useCallback(() => {
-      setIsDragging(false);
-    }, []);
-
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         if (isDragging) {
           event.preventDefault();
           event.stopPropagation();
-          setIsDragging(false);
           return;
         }
 
@@ -85,8 +76,6 @@ export const DepartmentStructureCard: React.FC<DepartmentStructureCardProps> =
           style={{ backgroundColor: node.departmentColor }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
           onClick={handleClick}
           aria-label={node.userName}
         >

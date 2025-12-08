@@ -3,6 +3,11 @@ export const ROUTES = {
   login: "/login",
   admin: "/admin",
   notFound: "*",
+  department: {
+    root: "/department",
+    param: "/department/:departmentId",
+    byId: (departmentId: string | number) => `/department/${departmentId}`,
+  },
   profile: {
     root: "/profile",
     param: "/profile/:userId?",

@@ -10,9 +10,16 @@ import { ROUTES } from "../../constants/routes";
 const Header: React.FC = () => {
   const navigate = useNavigate();
 
+  const handleLogoClick = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("department-tree:reset"));
+    }
+    navigate(ROUTES.root);
+  };
+
   const startContent = (
     <Button
-      onClick={() => navigate(ROUTES.root)}
+      onClick={handleLogoClick}
       text
       className="p-0 hover:bg-transparent focus:shadow-none"
     >

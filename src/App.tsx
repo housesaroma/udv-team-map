@@ -26,6 +26,10 @@ function App() {
       >
         <Route index element={<HomePage />} />
         <Route
+          path={toRelativePath(ROUTES.department.param)}
+          element={<HomePage />}
+        />
+        <Route
           path={toRelativePath(ROUTES.profile.param)}
           element={<ProfilePage />}
         />

@@ -1,7 +1,9 @@
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { MAP_CONSTANTS } from "../../../constants/mapConstants";
+import { ROUTES } from "../../../constants/routes";
 import { useAppDispatch } from "../../../hooks/redux";
 import { organizationService } from "../../../services/organizationService";
 import { setPosition, setZoom } from "../../../stores/mapSlice";
@@ -23,6 +25,8 @@ type SelectedDepartment = {
 
 export const DepartmentTreeExplorer: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { departmentId } = useParams<{ departmentId?: string }>();
   const [viewMode, setViewMode] = useState<ViewMode>("structure");
   const [departmentTreeData, setDepartmentTreeData] =
     useState<DepartmentTreeNode | null>(null);
@@ -120,41 +124,102 @@ export const DepartmentTreeExplorer: React.FC = () => {
     setExpandedPath(node.hierarchyPath);
   }, []);
 
-  const handleOpenDepartment = useCallback(async (node: TreeNode) => {
-    if (!node.hierarchyId) {
-      return;
-    }
+  const openDepartmentById = useCallback(
+    async (hierarchyId: number, colorOverride?: string) => {
+      try {
+        setLoadingDepartment(true);
+        setError(null);
+        const response =
+          await organizationService.getDepartmentUsers(hierarchyId);
+        const departmentNodes =
+          departmentTreeUtils.buildDepartmentEmployeesTree(
+            response,
+            colorOverride
+          );
+        setTreeNodes(departmentNodes);
+        setSelectedDepartment({
+          hierarchyId,
+          title: response.title,
+          color:
+            colorOverride || departmentNodes[0]?.departmentColor || "#1f2937",
+        });
+        setViewMode("department");
+      } catch (err) {
+        console.error("Ошибка загрузки сотрудников департамента", err);
+        setError("Не удалось загрузить сотрудников отдела");
+      } finally {
+        setLoadingDepartment(false);
+      }
+    },
+    []
+  );
 
-    try {
-      setLoadingDepartment(true);
-      setError(null);
-      const response = await organizationService.getDepartmentUsers(
-        node.hierarchyId
-      );
-      const departmentNodes = departmentTreeUtils.buildDepartmentEmployeesTree(
-        response,
-        node.departmentColor
-      );
-      setTreeNodes(departmentNodes);
-      setSelectedDepartment({
-        hierarchyId: node.hierarchyId,
-        title: response.title,
-        color: node.departmentColor,
-      });
-      setViewMode("department");
-    } catch (err) {
-      console.error("Ошибка загрузки сотрудников департамента", err);
-      setError("Не удалось загрузить сотрудников отдела");
-    } finally {
-      setLoadingDepartment(false);
-    }
-  }, []);
+  const handleOpenDepartment = useCallback(
+    async (node: TreeNode) => {
+      if (!node.hierarchyId) {
+        return;
+      }
+
+      await openDepartmentById(node.hierarchyId, node.departmentColor);
+      navigate(ROUTES.department.byId(node.hierarchyId));
+    },
+    [navigate, openDepartmentById]
+  );
 
   const handleBackToStructure = useCallback(() => {
     setTreeNodes(structureNodes);
     setSelectedDepartment(null);
     setViewMode("structure");
-  }, [structureNodes]);
+    if (departmentId) {
+      navigate(ROUTES.root);
+    }
+  }, [structureNodes, departmentId, navigate]);
+
+  useEffect(() => {
+    if (!departmentId) {
+      if (selectedDepartment) {
+        handleBackToStructure();
+      }
+      return;
+    }
+
+    const parsedId = Number(departmentId);
+    if (Number.isNaN(parsedId)) {
+      console.warn("Некорректный departmentId в маршруте:", departmentId);
+      navigate(ROUTES.root, { replace: true });
+      return;
+    }
+
+    if (selectedDepartment?.hierarchyId === parsedId) {
+      return;
+    }
+
+    const matchingNode = findTreeNodeByHierarchyId(structureNodes, parsedId);
+    openDepartmentById(parsedId, matchingNode?.departmentColor);
+  }, [
+    departmentId,
+    handleBackToStructure,
+    navigate,
+    openDepartmentById,
+    selectedDepartment,
+    structureNodes,
+  ]);
+
+  useEffect(() => {
+    const handleResetEvent = () => {
+      handleBackToStructure();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("department-tree:reset", handleResetEvent);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("department-tree:reset", handleResetEvent);
+      }
+    };
+  }, [handleBackToStructure]);
 
   if (isLoading) {
     return <PageLoader />;
@@ -224,4 +289,20 @@ export const DepartmentTreeExplorer: React.FC = () => {
           ))}
     </div>
   );
+};
+
+const findTreeNodeByHierarchyId = (
+  nodes: TreeNode[],
+  targetId: number
+): TreeNode | null => {
+  for (const node of nodes) {
+    if (node.hierarchyId === targetId) {
+      return node;
+    }
+    const childMatch = findTreeNodeByHierarchyId(node.children, targetId);
+    if (childMatch) {
+      return childMatch;
+    }
+  }
+  return null;
 };

@@ -3,7 +3,6 @@ import {
   API_USERS,
   API_USERS_DEPARTMENTS,
   API_USERS_POSITIONS,
-  USE_MOCK_DATA,
 } from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
@@ -84,14 +83,7 @@ const buildQueryString = (params: UsersQueryParams): string => {
 
 export const adminService = {
   async getUsers(params: UsersQueryParams): Promise<UsersResponse> {
-    // Если используем мок-данные, возвращаем их сразу
-    if (USE_MOCK_DATA) {
-      console.log("📁 Используются мок-данные пользователей");
-      return MOCK_USERS_RESPONSE;
-    }
-
-    // Иначе загружаем с бэкенда
-    console.log("🌐 Загрузка данных пользователей с бэкенда...", params);
+    console.log("🌐 Загрузка данных пользователей...", params);
     try {
       const queryString = buildQueryString(params);
       const url = `${API_USERS}?${queryString}`;
@@ -118,7 +110,10 @@ export const adminService = {
 
       return parsed.data;
     } catch (error) {
-      console.error("Ошибка загрузки с бэкенда, используем мок-данные:", error);
+      console.error(
+        "Ошибка загрузки пользователей, используем мок-данные:",
+        error
+      );
       return MOCK_USERS_RESPONSE;
     }
   },
@@ -150,31 +145,6 @@ export const adminService = {
     userId: string,
     updateData: UpdateUserRequest
   ): Promise<UpdateUserResponse> {
-    if (USE_MOCK_DATA) {
-      console.log("📁 Используются мок-данные для обновления пользователя");
-      // Имитируем успешное обновление
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve({
-            userId,
-            userName: "Обновленный пользователь",
-            bornDate: "2000-01-01T00:00:00Z",
-            department: updateData.department,
-            position: updateData.position,
-            workExperience: "2020-01-01T00:00:00Z",
-            phoneNumber: "+7-999-999-99-99",
-            city: "Город",
-            interests: "Интересы",
-            avatar: "",
-            contacts: {
-              skype: [],
-              telegram: [],
-            },
-          });
-        }, 500);
-      });
-    }
-
     try {
       const response = await apiClient.put<UpdateUserResponse>(
         API_USER_BY_ID(userId),
@@ -205,23 +175,8 @@ export const adminService = {
     }
   },
 
-  // Метод для получения текущего режима
-  isUsingMockData(): boolean {
-    return USE_MOCK_DATA;
-  },
-
   // Метод для получения всех доступных подразделений
   async getAllDepartments(): Promise<string[]> {
-    if (USE_MOCK_DATA) {
-      console.log(
-        "📁 Используются мок-данные для получения всех подразделений"
-      );
-      const departments = Array.from(
-        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.department))
-      );
-      return departments;
-    }
-
     try {
       console.log("🌐 Загрузка всех подразделений с бэкенда...");
       const response = await apiClient.get<string[]>(API_USERS_DEPARTMENTS, {
@@ -244,22 +199,19 @@ export const adminService = {
 
       return parsed.data;
     } catch (error) {
-      console.error("Ошибка загрузки подразделений:", error);
-      // Возвращаем пустой массив в случае ошибки
-      return [];
+      console.error(
+        "Ошибка загрузки подразделений, используем мок-данные:",
+        error
+      );
+      const departments = Array.from(
+        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.department))
+      );
+      return departments;
     }
   },
 
   // Метод для получения всех доступных должностей
   async getAllPositions(): Promise<string[]> {
-    if (USE_MOCK_DATA) {
-      console.log("📁 Используются мок-данные для получения всех должностей");
-      const positions = Array.from(
-        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.position))
-      );
-      return positions;
-    }
-
     try {
       console.log("🌐 Загрузка всех должностей с бэкенда...");
       const response = await apiClient.get<string[]>(API_USERS_POSITIONS, {
@@ -282,9 +234,14 @@ export const adminService = {
 
       return parsed.data;
     } catch (error) {
-      console.error("Ошибка загрузки должностей:", error);
-      // Возвращаем пустой массив в случае ошибки
-      return [];
+      console.error(
+        "Ошибка загрузки должностей, используем мок-данные:",
+        error
+      );
+      const positions = Array.from(
+        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.position))
+      );
+      return positions;
     }
   },
 };

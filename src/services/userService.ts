@@ -1,4 +1,4 @@
-import { API_USER_BY_ID, USE_MOCK_DATA } from "../constants/apiConstants";
+import { API_USER_BY_ID } from "../constants/apiConstants";
 import { getDepartmentInfo } from "../utils/departmentUtils";
 import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
@@ -9,16 +9,6 @@ import { apiUserProfileSchema } from "../validation/apiSchemas";
 
 export const userService = {
   async getUserProfile(userId: string): Promise<User> {
-    // Если USE_MOCK_DATA = true, сразу используем мок-данные
-    if (USE_MOCK_DATA) {
-      console.log("Используем mock данные (USE_MOCK_DATA = true)");
-      const mockUser = this.getFallbackUser(userId);
-      if (mockUser) {
-        return mockUser;
-      }
-      throw new Error("Пользователь не найден в mock данных");
-    }
-
     // Сначала проверяем mock данные для текущего пользователя (для разработки)
     const mockUser = this.getMockUser(userId);
     if (mockUser) {
@@ -287,17 +277,13 @@ export const userService = {
     return MOCK_USERS_RESPONSE.usersTable.map(transformApiUserToUser);
   },
 
-  // Метод для получения всех доступных пользователей (в зависимости от режима)
+  // Метод для получения всех доступных пользователей (используется для отладки)
   getAllAvailableUsers(): User[] {
-    if (USE_MOCK_DATA) {
-      // Объединяем все мок-данные и убираем дубликаты по ID
-      const allUsers = [...this.getMockUsers(), ...this.getAdminMockUsers()];
-      const uniqueUsers = allUsers.filter(
-        (user, index, array) => array.findIndex(u => u.id === user.id) === index
-      );
-      return uniqueUsers;
-    }
-    return this.getMockUsers(); // fallback
+    const allUsers = [...this.getMockUsers(), ...this.getAdminMockUsers()];
+    const uniqueUsers = allUsers.filter(
+      (user, index, array) => array.findIndex(u => u.id === user.id) === index
+    );
+    return uniqueUsers;
   },
 };
 
@@ -330,19 +316,6 @@ export const updateUserProfile = async (
   userId: string,
   userData: Partial<User>
 ): Promise<User> => {
-  if (USE_MOCK_DATA) {
-    console.log("Обновление профиля отключено в режиме мок-данных");
-    // Возвращаем обновленный mock-пользователь для симуляции
-    const mockUser = userService.getFallbackUser(userId);
-    if (mockUser) {
-      return {
-        ...mockUser,
-        ...userData,
-      };
-    }
-    throw new Error("Пользователь не найден в mock данных");
-  }
-
   // Валидация UUID
   if (!userService.isValidUUID(userId)) {
     throw new Error("Неверный формат ID пользователя");

@@ -8,7 +8,6 @@ import {
   API_DEPARTMENT_TREE,
   API_DEPARTMENT_USERS,
   API_HIERARCHY,
-  USE_MOCK_DATA,
 } from "../constants/apiConstants";
 import { MOCK_HIERARCHY } from "../constants/mockUsersHierarchy";
 import { MOCK_DEPARTMENT_TREE } from "../constants/mockDepartmentTree";
@@ -22,14 +21,7 @@ import {
 
 export const organizationService = {
   async getOrganizationHierarchy(): Promise<OrganizationHierarchy> {
-    // Если используем мок-данные, возвращаем их сразу
-    if (USE_MOCK_DATA) {
-      console.log("📁 Используются мок-данные организационной структуры");
-      return this.enrichWithDepartments(MOCK_HIERARCHY);
-    }
-
-    // Иначе загружаем с бэкенда
-    console.log("🌐 Загрузка данных с бэкенда...");
+    console.log("🌐 Загрузка данных организационной структуры...");
     try {
       const response = await apiClient.get<OrganizationHierarchy>(
         API_HIERARCHY,
@@ -54,17 +46,15 @@ export const organizationService = {
 
       return this.enrichWithDepartments(parsed.data);
     } catch (error) {
-      console.error("Ошибка загрузки с бэкенда, используем мок-данные:", error);
+      console.error(
+        "Ошибка загрузки организационной структуры, используем мок-данные:",
+        error
+      );
       return this.enrichWithDepartments(MOCK_HIERARCHY);
     }
   },
 
   async getDepartmentTree(): Promise<DepartmentTreeNode> {
-    if (USE_MOCK_DATA) {
-      console.log("📁 Используются мок-данные дерева департаментов");
-      return MOCK_DEPARTMENT_TREE;
-    }
-
     console.log("🌐 Загрузка дерева департаментов...");
 
     try {
@@ -103,11 +93,6 @@ export const organizationService = {
   async getDepartmentUsers(
     hierarchyId: number
   ): Promise<DepartmentUsersResponse> {
-    if (USE_MOCK_DATA) {
-      console.log("📁 Используются мок-данные сотрудников департамента");
-      return getMockDepartmentUsers(hierarchyId);
-    }
-
     console.log(`🌐 Загрузка сотрудников департамента ${hierarchyId}...`);
 
     try {
@@ -168,10 +153,5 @@ export const organizationService = {
     }
 
     return enrichedData;
-  },
-
-  // Метод для получения текущего режима
-  isUsingMockData(): boolean {
-    return USE_MOCK_DATA;
   },
 };

@@ -1,10 +1,20 @@
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import { server } from "../mocks/server";
+
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "error" });
+});
 
 // Очистка после каждого теста
 afterEach(() => {
   cleanup();
+  server.resetHandlers();
+});
+
+afterAll(() => {
+  server.close();
 });
 
 // Моки для window.matchMedia (используется в PrimeReact)

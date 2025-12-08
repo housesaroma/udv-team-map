@@ -10,8 +10,6 @@ import {
   isTokenExpired,
   decodeJwt,
 } from "../utils/jwtUtils";
-import { USE_MOCK_DATA } from "../constants/apiConstants";
-import { MOCK_USERS } from "../constants/mockUsers";
 
 export interface AuthContextType {
   user: User | null;
@@ -39,20 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const initializeAuth = async () => {
       const storedToken = safeReadToken();
       setToken(storedToken);
-      const userRole = localStorage.getItem("userRole") as
-        | keyof typeof MOCK_USERS
-        | null;
-
       if (!storedToken) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Если используем мок-данные, используем старую логику
-      if (USE_MOCK_DATA) {
-        if (userRole && MOCK_USERS[userRole]) {
-          setUser(MOCK_USERS[userRole]);
-        }
         setIsLoading(false);
         return;
       }
@@ -94,34 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      // Если используем мок-данные, используем старую логику
-      if (USE_MOCK_DATA) {
-        if (password !== "password123") {
-          throw new Error("Неверный пароль");
-        }
-
-        // Определяем роль по username/email (поддерживаем оба варианта)
-        let userRole: keyof typeof MOCK_USERS = "employee";
-        const loginValue = username.toLowerCase();
-
-        if (loginValue.includes("admin")) {
-          userRole = "admin";
-        } else if (loginValue.includes("hr")) {
-          userRole = "hr";
-        }
-
-        const mockUser = MOCK_USERS[userRole];
-        if (!mockUser) {
-          throw new Error("Пользователь не найден");
-        }
-
-        setUser(mockUser);
-        localStorage.setItem("authToken", "mock-token");
-        setToken("mock-token");
-        localStorage.setItem("userRole", userRole);
-        return;
-      }
-
       // Выполняем запрос на логин через API
       const response = await authService.login(username, password);
       const { token } = response;

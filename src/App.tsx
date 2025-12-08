@@ -5,6 +5,7 @@ import Layout from "./components/layout/Layout";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./pages/AdminPanel";
+import TreeEditorPage from "./pages/TreeEditorPage";
 import ProtectedRoute from "./components/features/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ROUTES, toRelativePath } from "./constants/routes";
@@ -34,6 +35,10 @@ function App() {
           element={<ProfilePage />}
         />
         <Route path={toRelativePath(ROUTES.admin)} element={<AdminPanel />} />
+        <Route
+          path={toRelativePath(ROUTES.treeEditor)}
+          element={<TreeEditorPage />}
+        />
       </Route>
 
       {/* Обработка несуществующих маршрутов */}

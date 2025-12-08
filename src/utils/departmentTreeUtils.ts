@@ -2,6 +2,7 @@ import type {
   DepartmentTreeNode,
   DepartmentUsersResponse,
   EmployeeNode,
+  FullHierarchyNode,
   TreeNode,
 } from "../types/organization";
 import {
@@ -108,6 +109,76 @@ const summariesToEmployees = (
     subordinates: [],
   }));
 
+const collectTreeNodeIds = (node: TreeNode, acc: Set<string>): void => {
+  acc.add(node.id);
+  for (const child of node.children) {
+    collectTreeNodeIds(child, acc);
+  }
+};
+
+const convertFullHierarchyNode = (
+  node: FullHierarchyNode,
+  level: number = 0,
+  parentPath: number[] = []
+): TreeNode => {
+  const currentPath = node.hierarchyId
+    ? [...parentPath, node.hierarchyId]
+    : [...parentPath];
+  const departmentColor = getDepartmentHierarchyColor(level + 1);
+
+  const departmentChildren = node.children.map(child =>
+    convertFullHierarchyNode(child, level + 1, currentPath)
+  );
+
+  const employeeNodes: TreeNode[] = [];
+  const usedIds = new Set<string>();
+
+  if (node.manager) {
+    const managerNode = convertEmployeeToTreeNode(
+      node.manager,
+      node.title,
+      departmentColor,
+      level + 1
+    );
+    collectTreeNodeIds(managerNode, usedIds);
+    employeeNodes.push(managerNode);
+  }
+
+  if (node.employees.length > 0) {
+    const directEmployees = summariesToEmployees(node.employees)
+      .map(summary =>
+        convertEmployeeToTreeNode(
+          summary,
+          node.title,
+          departmentColor,
+          level + 1
+        )
+      )
+      .filter(employeeNode => {
+        if (usedIds.has(employeeNode.id)) {
+          return false;
+        }
+        usedIds.add(employeeNode.id);
+        return true;
+      });
+    employeeNodes.push(...directEmployees);
+  }
+
+  return createBaseTreeNode({
+    userId: `full-${node.hierarchyId}`,
+    userName: node.title,
+    position: node.title,
+    department: node.title,
+    departmentColor,
+    level,
+    children: [...departmentChildren, ...employeeNodes],
+    hierarchyId: node.hierarchyId,
+    nodeType: "department",
+    hierarchyPath: currentPath,
+    isExpanded: true,
+  });
+};
+
 export const departmentTreeUtils = {
   buildStructureTree(
     root: DepartmentTreeNode,
@@ -160,6 +231,10 @@ export const departmentTreeUtils = {
         children: managerChildren,
       }),
     ];
+  },
+
+  buildFullHierarchyTree(root: FullHierarchyNode): TreeNode[] {
+    return [convertFullHierarchyNode(root)];
   },
 };
 

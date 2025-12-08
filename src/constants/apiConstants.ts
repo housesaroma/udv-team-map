@@ -3,6 +3,7 @@ export const BASE_URL = "http://217.26.29.92:8080";
 export const API_AUTH_LOGIN = `${BASE_URL}/api/Auth/login`;
 export const API_USERS = `${BASE_URL}/api/Users`;
 export const API_HIERARCHY = `${BASE_URL}/api/Users/hierarchy`;
+export const API_HIERARCHY_V2 = `${API_USERS}/hierarchyV2`;
 export const API_DEPARTMENT_TREE = `${API_USERS}/treeWithoutUsers`;
 export const API_DEPARTMENT_USERS = (hierarchyId: number | string) =>
   `${API_USERS}/departmentUsers?hierarchyId=${hierarchyId}`;

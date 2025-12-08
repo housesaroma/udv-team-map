@@ -15,6 +15,16 @@ export interface DepartmentTreeNode {
   children: DepartmentTreeNode[];
 }
 
+export interface FullHierarchyNode {
+  hierarchyId: number;
+  level: number;
+  title: string;
+  color: string;
+  children: FullHierarchyNode[];
+  manager: EmployeeNode | null;
+  employees: DepartmentEmployeeSummary[];
+}
+
 export interface DepartmentEmployeeSummary {
   userId: string;
   userName: string;

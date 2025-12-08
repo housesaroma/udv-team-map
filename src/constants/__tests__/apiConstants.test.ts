@@ -3,6 +3,7 @@ import {
   API_AUTH_LOGIN,
   API_USERS,
   API_HIERARCHY,
+  API_HIERARCHY_V2,
   API_DEPARTMENT_TREE,
   API_DEPARTMENT_USERS,
   API_USER_BY_ID,
@@ -30,6 +31,10 @@ describe("apiConstants", () => {
 
     it("должен сформировать корректный API_HIERARCHY", () => {
       expect(API_HIERARCHY).toBe(`${BASE_URL}/api/Users/hierarchy`);
+    });
+
+    it("должен сформировать корректный API_HIERARCHY_V2", () => {
+      expect(API_HIERARCHY_V2).toBe(`${API_USERS}/hierarchyV2`);
     });
 
     it("должен сформировать корректный API_DEPARTMENT_TREE", () => {

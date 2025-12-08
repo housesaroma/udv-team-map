@@ -6,9 +6,13 @@ import { Button } from "primereact/button";
 import { AdminButton } from "../ui/AdminButton/AdminButton";
 import logo from "../../assets/logo.svg";
 import { ROUTES } from "../../constants/routes";
+import { usePermissions } from "../../hooks/usePermissions";
+import { Permission } from "../../types/permissions";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const canEditTree = hasPermission(Permission.ACCESS_ADMIN_PANEL);
 
   const handleLogoClick = () => {
     if (typeof window !== "undefined") {
@@ -31,6 +35,20 @@ const Header: React.FC = () => {
 
   const endContent = (
     <div className="flex items-center gap-4">
+      {canEditTree && (
+        <Button
+          onClick={() => navigate(ROUTES.treeEditor)}
+          label="Редактировать дерево"
+          text
+          style={{
+            color: "#28CA9E",
+            border: "1px solid #f8fafc",
+          }}
+          className="p-2 hover:bg-transparent focus:shadow-none font-inter hover:opacity-80 transition-opacity rounded-md"
+          tooltip="Перейти к редактированию дерева"
+          tooltipOptions={{ position: "bottom" }}
+        />
+      )}
       <AdminButton />
       <Button
         onClick={() => navigate(ROUTES.profile.root)}

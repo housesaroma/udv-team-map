@@ -6,6 +6,7 @@ import {
   API_USERS,
   API_USERS_DEPARTMENTS,
   API_USERS_POSITIONS,
+  API_HIERARCHY_V2,
 } from "../../constants/apiConstants";
 import { handlersTestUtils } from "../handlers";
 
@@ -242,6 +243,16 @@ describe("MSW handlers", () => {
       const data = await response.json();
       expect(Array.isArray(data)).toBe(true);
     });
+  });
+});
+
+describe("GET /api/Users/hierarchyV2", () => {
+  it("должен вернуть дерево иерархии с сотрудниками", async () => {
+    const response = await fetch(API_HIERARCHY_V2);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toHaveProperty("children");
+    expect(Array.isArray(data.children)).toBe(true);
   });
 });
 

@@ -1,13 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks/redux";
 import { useKeyboardShortcuts } from "../../../hooks/useKeyboardShortcuts";
 import { setPosition, setZoom } from "../../../stores/mapSlice";
-import { DepartmentTreeExplorer } from "../organization/DepartmentTreeExplorer";
 import { SvgDotPattern } from "./SvgDotPattern";
 import { ZoomControlsComponent } from "./ZoomControls";
 import { MAP_CONSTANTS } from "../../../constants/mapConstants";
-
-const CustomCanvas: React.FC = () => {
+const CustomCanvas: React.FC<PropsWithChildren> = ({ children }) => {
   const dispatch = useAppDispatch();
   const { zoom, position } = useAppSelector(state => state.map);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -275,7 +279,7 @@ const CustomCanvas: React.FC = () => {
             // Убрал CSS transition - все перемещения будут резкими кроме анимации сброса
           }}
         >
-          <DepartmentTreeExplorer />
+          {children}
         </div>
       </div>
     </div>

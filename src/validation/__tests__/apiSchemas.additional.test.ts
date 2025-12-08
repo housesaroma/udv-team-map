@@ -3,7 +3,9 @@ import {
   organizationHierarchySchema,
   departmentTreeSchema,
   departmentUsersSchema,
+  hierarchyV2Schema,
 } from "../apiSchemas";
+import { MOCK_HIERARCHY_V2 } from "../../constants/mockHierarchyV2";
 
 describe("apiSchemas edge cases", () => {
   describe("organizationHierarchySchema", () => {
@@ -97,6 +99,16 @@ describe("apiSchemas edge cases", () => {
 
       const result = departmentUsersSchema.safeParse(validData);
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe("hierarchyV2Schema", () => {
+    it("валидирует сложное дерево", () => {
+      const result = hierarchyV2Schema.safeParse(MOCK_HIERARCHY_V2);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.children.length).toBeGreaterThan(0);
+      }
     });
   });
 });

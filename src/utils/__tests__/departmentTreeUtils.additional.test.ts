@@ -7,7 +7,9 @@ import type {
   DepartmentTreeNode,
   DepartmentUsersResponse,
   EmployeeNode,
+  FullHierarchyNode,
 } from "../../types/organization";
+import { getDepartmentHierarchyColor } from "../departmentUtils";
 
 describe("departmentTreeUtils", () => {
   describe("buildDepartmentEmployeesTree edge cases", () => {
@@ -154,6 +156,161 @@ describe("departmentTreeUtils", () => {
       );
 
       expect(node.departmentColor).toBe("#24D07A");
+    });
+  });
+
+  describe("buildFullHierarchyTree", () => {
+    it("объединяет отделы и сотрудников в единое дерево", () => {
+      const root: FullHierarchyNode = {
+        hierarchyId: 1,
+        level: 1,
+        title: "Root",
+        color: "#000000",
+        children: [
+          {
+            hierarchyId: 2,
+            level: 2,
+            title: "Child",
+            color: "#222222",
+            children: [],
+            manager: null,
+            employees: [
+              {
+                userId: "emp-2",
+                userName: "Child Employee",
+                position: "Analyst",
+                avatarUrl: "",
+              },
+            ],
+          },
+        ],
+        manager: {
+          userId: "mgr-1",
+          userName: "Manager",
+          position: "Head",
+          avatarUrl: "",
+          subordinates: [],
+        },
+        employees: [
+          {
+            userId: "emp-1",
+            userName: "Employee",
+            position: "Developer",
+            avatarUrl: "",
+          },
+        ],
+      };
+
+      const tree = departmentTreeUtils.buildFullHierarchyTree(root);
+
+      expect(tree).toHaveLength(1);
+      const [rootNode] = tree;
+      expect(rootNode.children).toHaveLength(3);
+      expect(rootNode.children[0].nodeType).toBe("department");
+      expect(rootNode.children[1].nodeType).toBe("employee");
+      expect(rootNode.children[2].userName).toBe("Employee");
+    });
+
+    it("использует те же цвета, что дерево отделов", () => {
+      const root: FullHierarchyNode = {
+        hierarchyId: 10,
+        level: 0,
+        title: "Root",
+        color: "#000",
+        children: [
+          {
+            hierarchyId: 11,
+            level: 1,
+            title: "Child",
+            color: "#222",
+            children: [],
+            manager: null,
+            employees: [],
+          },
+        ],
+        manager: null,
+        employees: [],
+      };
+
+      const [rootNode] = departmentTreeUtils.buildFullHierarchyTree(root);
+
+      expect(rootNode.departmentColor).toBe(getDepartmentHierarchyColor(1));
+      expect(rootNode.children[0].departmentColor).toBe(
+        getDepartmentHierarchyColor(2)
+      );
+    });
+
+    it("не дублирует сотрудников если они уже есть в менеджерах", () => {
+      const root: FullHierarchyNode = {
+        hierarchyId: 20,
+        level: 0,
+        title: "Root",
+        color: "#000",
+        children: [],
+        manager: {
+          userId: "mgr",
+          userName: "Manager",
+          position: "Lead",
+          avatarUrl: "",
+          subordinates: [
+            {
+              userId: "dup",
+              userName: "Duplicate",
+              position: "Dev",
+              avatarUrl: "",
+              subordinates: [],
+            },
+          ],
+        },
+        employees: [
+          {
+            userId: "dup",
+            userName: "Duplicate",
+            position: "Dev",
+            avatarUrl: "",
+          },
+          {
+            userId: "uniq",
+            userName: "Unique",
+            position: "QA",
+            avatarUrl: "",
+          },
+        ],
+      };
+
+      const [rootNode] = departmentTreeUtils.buildFullHierarchyTree(root);
+      const employeeNodes = rootNode.children.filter(
+        child => child.nodeType === "employee"
+      );
+
+      expect(employeeNodes.map(node => node.userId)).toEqual(["mgr", "uniq"]);
+    });
+
+    it("не добавляет hierarchyId в путь когда он равен 0", () => {
+      const root: FullHierarchyNode = {
+        hierarchyId: 0,
+        level: 0,
+        title: "Zero Root",
+        color: "#000",
+        children: [
+          {
+            hierarchyId: 3,
+            level: 1,
+            title: "Child",
+            color: "#222",
+            children: [],
+            manager: null,
+            employees: [],
+          },
+        ],
+        manager: null,
+        employees: [],
+      };
+
+      const [rootNode] = departmentTreeUtils.buildFullHierarchyTree(root);
+
+      expect(rootNode.hierarchyPath).toEqual([]);
+      expect(rootNode.children[0].hierarchyPath).toEqual([3]);
     });
   });
 });

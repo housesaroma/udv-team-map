@@ -3,6 +3,7 @@ import {
   API_AUTH_LOGIN,
   API_DEPARTMENT_TREE,
   API_HIERARCHY,
+  API_HIERARCHY_V2,
   API_USERS,
   API_USERS_DEPARTMENTS,
   API_USERS_POSITIONS,
@@ -11,6 +12,7 @@ import { MOCK_HIERARCHY } from "../constants/mockUsersHierarchy";
 import { MOCK_DEPARTMENT_TREE } from "../constants/mockDepartmentTree";
 import { getMockDepartmentUsers } from "../constants/mockDepartmentUsers";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
+import { MOCK_HIERARCHY_V2 } from "../constants/mockHierarchyV2";
 import type { ApiUserProfile } from "../validation/apiSchemas";
 import type { LoginRequest } from "../services/authService";
 import type { UserRole } from "../utils/jwtUtils";
@@ -195,6 +197,7 @@ export const handlers = [
   }),
 
   http.get(API_HIERARCHY, () => HttpResponse.json(MOCK_HIERARCHY)),
+  http.get(API_HIERARCHY_V2, () => HttpResponse.json(MOCK_HIERARCHY_V2)),
   http.get(API_DEPARTMENT_TREE, () => HttpResponse.json(MOCK_DEPARTMENT_TREE)),
   http.get(`${API_USERS}/departmentUsers`, ({ request }) => {
     const url = new URL(request.url);

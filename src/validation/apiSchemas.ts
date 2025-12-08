@@ -37,6 +37,12 @@ type DepartmentTreeNodeShape = {
   children: DepartmentTreeNodeShape[];
 };
 
+type FullHierarchyNodeShape = DepartmentTreeNodeShape & {
+  children: FullHierarchyNodeShape[];
+  manager: EmployeeNodeShape | null;
+  employees: DepartmentEmployeeSummaryShape[];
+};
+
 type DepartmentEmployeeSummaryShape = {
   userId: string;
   userName: string;
@@ -73,6 +79,18 @@ const departmentEmployeeSummarySchema: z.ZodType<DepartmentEmployeeSummaryShape>
     position: z.string().min(1),
     avatarUrl: z.string(),
   });
+
+const fullHierarchyNodeSchema: z.ZodType<FullHierarchyNodeShape> = z.lazy(() =>
+  z.object({
+    hierarchyId: z.number().int().nonnegative(),
+    level: z.number().int().nonnegative(),
+    title: z.string().min(1),
+    color: z.string().min(1),
+    children: z.array(fullHierarchyNodeSchema),
+    manager: employeeNodeSchema.nullable(),
+    employees: z.array(departmentEmployeeSummarySchema),
+  })
+);
 
 export const apiUserProfileSchema = z.object({
   userId: z.string().min(1),
@@ -126,6 +144,8 @@ export const organizationHierarchySchema = z.object({
 
 export const departmentTreeSchema = departmentTreeNodeSchema;
 
+export const hierarchyV2Schema = fullHierarchyNodeSchema;
+
 export const departmentUsersSchema = z.object({
   hierarchyId: z.number().int().nonnegative(),
   title: z.string().min(1),
@@ -143,3 +163,4 @@ export type OrganizationHierarchyResponse = z.infer<
 export type EmployeeNodeResponse = z.infer<typeof employeeNodeSchema>;
 export type DepartmentTreeResponse = z.infer<typeof departmentTreeSchema>;
 export type DepartmentUsersApiResponse = z.infer<typeof departmentUsersSchema>;
+export type HierarchyV2Response = z.infer<typeof hierarchyV2Schema>;

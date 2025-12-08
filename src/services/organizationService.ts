@@ -2,20 +2,24 @@ import type {
   DepartmentTreeNode,
   DepartmentUsersResponse,
   EmployeeNode,
+  FullHierarchyNode,
   OrganizationHierarchy,
 } from "../types/organization";
 import {
   API_DEPARTMENT_TREE,
   API_DEPARTMENT_USERS,
   API_HIERARCHY,
+  API_HIERARCHY_V2,
 } from "../constants/apiConstants";
 import { MOCK_HIERARCHY } from "../constants/mockUsersHierarchy";
 import { MOCK_DEPARTMENT_TREE } from "../constants/mockDepartmentTree";
 import { getMockDepartmentUsers } from "../constants/mockDepartmentUsers";
+import { MOCK_HIERARCHY_V2 } from "../constants/mockHierarchyV2";
 import { apiClient } from "../utils/apiClient";
 import {
   departmentTreeSchema,
   departmentUsersSchema,
+  hierarchyV2Schema,
   organizationHierarchySchema,
 } from "../validation/apiSchemas";
 
@@ -51,6 +55,41 @@ export const organizationService = {
         error
       );
       return this.enrichWithDepartments(MOCK_HIERARCHY);
+    }
+  },
+
+  async getFullHierarchyTree(): Promise<FullHierarchyNode> {
+    console.log("🌐 Загрузка расширенного дерева иерархии...");
+    try {
+      const response = await apiClient.get<FullHierarchyNode>(
+        API_HIERARCHY_V2,
+        {
+          validateStatus: () => true,
+        }
+      );
+
+      if (response.status >= 400) {
+        throw new Error(
+          `Ошибка загрузки расширенной иерархии: ${response.status}`
+        );
+      }
+
+      const parsed = hierarchyV2Schema.safeParse(response.data);
+
+      if (!parsed.success) {
+        console.error("Некорректное дерево иерархии V2 от сервера:", {
+          issues: parsed.error.flatten(),
+        });
+        throw new Error("Некорректный ответ сервера");
+      }
+
+      return parsed.data;
+    } catch (error) {
+      console.error(
+        "Ошибка загрузки расширенного дерева иерархии, используем мок-данные:",
+        error
+      );
+      return MOCK_HIERARCHY_V2;
     }
   },
 

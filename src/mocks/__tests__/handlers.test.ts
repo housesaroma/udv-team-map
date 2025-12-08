@@ -313,7 +313,7 @@ describe("handlersTestUtils.toBase64UrlForTests", () => {
     const originalBtoa = windowWithBtoa.btoa;
 
     delete globalBuffer.Buffer;
-    delete windowWithBtoa.btoa;
+    delete (windowWithBtoa as { btoa?: typeof window.btoa }).btoa;
 
     try {
       expect(() => handlersTestUtils.toBase64UrlForTests("data")).toThrow(

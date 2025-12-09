@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import { MAP_CONSTANTS } from "../../../constants/mapConstants";
 import { useAppDispatch } from "../../../hooks/redux";
@@ -15,7 +16,7 @@ import { PageLoader } from "../../ui/PageLoader";
 
 const NOOP = () => {};
 
-type SwapFeedback = {
+type ActionFeedback = {
   type: "success" | "warn" | "error" | "info";
   text: string;
 };
@@ -27,9 +28,15 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedSwapUserIds, setSelectedSwapUserIds] = useState<string[]>([]);
-  const [swapFeedback, setSwapFeedback] = useState<SwapFeedback | null>(null);
+  const [swapFeedback, setSwapFeedback] = useState<ActionFeedback | null>(null);
   const [swapLoading, setSwapLoading] = useState(false);
   const [swapDepartment, setSwapDepartment] = useState<string | null>(null);
+  const [moveSourceUserId, setMoveSourceUserId] = useState<string | null>(null);
+  const [moveTargetManagerId, setMoveTargetManagerId] = useState<string | null>(
+    null
+  );
+  const [moveFeedback, setMoveFeedback] = useState<ActionFeedback | null>(null);
+  const [moveLoading, setMoveLoading] = useState(false);
 
   const nodesWithLayout = useMemo(() => {
     if (nodes.length === 0) {
@@ -107,6 +114,20 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
       .map(id => getNodeByUserId(id))
       .filter((node): node is TreeNode => Boolean(node));
   }, [getNodeByUserId, selectedSwapUserIds]);
+
+  const moveSourceNode = useMemo(() => {
+    if (!moveSourceUserId) {
+      return null;
+    }
+    return getNodeByUserId(moveSourceUserId);
+  }, [getNodeByUserId, moveSourceUserId]);
+
+  const moveTargetNode = useMemo(() => {
+    if (!moveTargetManagerId) {
+      return null;
+    }
+    return getNodeByUserId(moveTargetManagerId);
+  }, [getNodeByUserId, moveTargetManagerId]);
 
   const handleSwapToggle = useCallback(
     (node: TreeNode) => {
@@ -216,8 +237,138 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     }
   }, [getNodeByUserId, loadFullHierarchy, selectedSwapUserIds]);
 
+  const resetMoveSelection = useCallback(() => {
+    setMoveSourceUserId(null);
+    setMoveTargetManagerId(null);
+    setMoveFeedback(null);
+  }, []);
+
+  const handleMoveSourceToggle = useCallback(
+    (node: TreeNode) => {
+      if (moveLoading) {
+        return;
+      }
+
+      if (node.nodeType !== "employee") {
+        setMoveFeedback({
+          type: "warn",
+          text: "Для перемещения выберите карточку сотрудника",
+        });
+        return;
+      }
+
+      setMoveSourceUserId(prev => {
+        if (prev === node.userId) {
+          setMoveTargetManagerId(null);
+          setMoveFeedback(null);
+          return null;
+        }
+
+        setMoveTargetManagerId(null);
+        setMoveFeedback(null);
+        return node.userId;
+      });
+    },
+    [moveLoading]
+  );
+
+  const handleMoveTargetToggle = useCallback(
+    (node: TreeNode) => {
+      if (moveLoading) {
+        return;
+      }
+
+      if (!moveSourceUserId) {
+        setMoveFeedback({
+          type: "warn",
+          text: "Сначала выберите сотрудника для перемещения",
+        });
+        return;
+      }
+
+      if (node.nodeType !== "employee") {
+        setMoveFeedback({
+          type: "warn",
+          text: "Назначить менеджером можно только сотрудника",
+        });
+        return;
+      }
+
+      if (node.userId === moveSourceUserId) {
+        setMoveFeedback({
+          type: "warn",
+          text: "Нельзя назначить менеджером самого себя",
+        });
+        return;
+      }
+
+      if (typeof node.hierarchyId !== "number") {
+        setMoveFeedback({
+          type: "error",
+          text: "Для выбранного менеджера не найден hierarchyId",
+        });
+        return;
+      }
+
+      setMoveTargetManagerId(prev => {
+        const isSame = prev === node.userId;
+        setMoveFeedback(null);
+        return isSame ? null : node.userId;
+      });
+    },
+    [moveLoading, moveSourceUserId]
+  );
+
+  const handleMoveEmployee = useCallback(async () => {
+    if (!moveSourceNode) {
+      setMoveFeedback({
+        type: "warn",
+        text: "Выберите сотрудника для перемещения",
+      });
+      return;
+    }
+
+    if (!moveTargetNode || typeof moveTargetNode.hierarchyId !== "number") {
+      setMoveFeedback({
+        type: "error",
+        text: "Не удалось определить целевой отдел или менеджера",
+      });
+      return;
+    }
+
+    try {
+      setMoveLoading(true);
+      setMoveFeedback(null);
+      await userService.moveUser({
+        userId: moveSourceNode.userId,
+        targetHierarchyId: moveTargetNode.hierarchyId,
+        newManagerId: moveTargetNode.userId,
+      });
+      await loadFullHierarchy();
+      resetMoveSelection();
+      setMoveFeedback({
+        type: "success",
+        text: `${moveSourceNode.userName} теперь подчиняется ${moveTargetNode.userName}`,
+      });
+    } catch (moveError) {
+      const message =
+        moveError instanceof Error
+          ? moveError.message
+          : "Не удалось переместить сотрудника";
+      setMoveFeedback({ type: "error", text: message });
+    } finally {
+      setMoveLoading(false);
+    }
+  }, [loadFullHierarchy, moveSourceNode, moveTargetNode, resetMoveSelection]);
+
   const swapReady = selectedSwapUserIds.length === 2;
   const selectionLimitReached = selectedSwapUserIds.length >= 2;
+  const moveReady = Boolean(
+    moveSourceNode &&
+      moveTargetNode &&
+      typeof moveTargetNode.hierarchyId === "number"
+  );
+  const moveHasSelection = Boolean(moveSourceUserId || moveTargetManagerId);
 
   const isSelectionDisabled = useCallback(
     (node: TreeNode): boolean => {
@@ -309,6 +460,76 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         {swapFeedback && (
           <Message severity={swapFeedback.type} text={swapFeedback.text} />
         )}
+
+        <div className="border-t border-gray-100 pt-4 space-y-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+              Перемещение сотрудника
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              Сначала отметьте сотрудника кнопкой «Переместить», затем выберите
+              нового руководителя. После этого кнопка на карточке сотрудника
+              превратится в «Подтвердить», либо воспользуйтесь общей кнопкой
+              ниже.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div
+              className={`rounded-xl border px-3 py-2 text-sm ${
+                moveSourceNode
+                  ? "border-blue-200 bg-blue-50 text-blue-900"
+                  : "border-dashed border-gray-300 text-gray-500"
+              }`}
+            >
+              <p className="font-semibold">Сотрудник</p>
+              <p className="text-xs opacity-80">
+                {moveSourceNode
+                  ? `${moveSourceNode.userName} · ${moveSourceNode.position}`
+                  : "Не выбран"}
+              </p>
+            </div>
+            <div
+              className={`rounded-xl border px-3 py-2 text-sm ${
+                moveTargetNode
+                  ? "border-amber-200 bg-amber-50 text-amber-900"
+                  : "border-dashed border-gray-300 text-gray-500"
+              }`}
+            >
+              <p className="font-semibold">Новый менеджер</p>
+              <p className="text-xs opacity-80">
+                {moveTargetNode
+                  ? `${moveTargetNode.userName} · ${moveTargetNode.position}`
+                  : "Не выбран"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              icon="pi pi-send"
+              label="Переместить"
+              className="p-button-sm"
+              severity="help"
+              onClick={handleMoveEmployee}
+              disabled={!moveReady || moveLoading}
+              loading={moveLoading}
+            />
+            <Button
+              icon="pi pi-refresh"
+              label="Сбросить выбор"
+              className="p-button-sm"
+              severity="secondary"
+              outlined
+              onClick={resetMoveSelection}
+              disabled={!moveHasSelection || moveLoading}
+            />
+          </div>
+
+          {moveFeedback && (
+            <Message severity={moveFeedback.type} text={moveFeedback.text} />
+          )}
+        </div>
       </div>
 
       <ConnectionLines nodes={nodesWithLayout} />
@@ -350,6 +571,22 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
               node.department === swapDepartment ||
               selectedSwapUserIds.includes(node.userId)
             }
+            onMoveSourceToggle={handleMoveSourceToggle}
+            onMoveTargetToggle={handleMoveTargetToggle}
+            isMoveSource={moveSourceUserId === node.userId}
+            isMoveTarget={moveTargetManagerId === node.userId}
+            moveSourceDisabled={moveLoading}
+            moveTargetDisabled={
+              moveLoading ||
+              !moveSourceUserId ||
+              typeof node.hierarchyId !== "number"
+            }
+            showMoveTargetAction={Boolean(
+              moveSourceUserId && node.userId !== moveSourceUserId
+            )}
+            moveActionDisabled={moveLoading}
+            moveReady={moveReady}
+            onMoveConfirm={handleMoveEmployee}
           />
         )
       )}

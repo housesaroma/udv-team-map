@@ -10,7 +10,8 @@ import { apiUserProfileSchema } from "../validation/apiSchemas";
 export interface MoveUserPayload {
   userId: string;
   targetHierarchyId: number;
-  swapWithUserId: string;
+  swapWithUserId?: string;
+  newManagerId?: string;
 }
 
 export const userService = {
@@ -279,7 +280,7 @@ export const userService = {
   },
 
   async moveUser(payload: MoveUserPayload): Promise<void> {
-    const { userId, targetHierarchyId, swapWithUserId } = payload;
+    const { userId, targetHierarchyId, swapWithUserId, newManagerId } = payload;
 
     if (!this.isValidUUID(userId)) {
       throw new Error("Неверный формат ID пользователя");
@@ -296,32 +297,47 @@ export const userService = {
       throw new Error("targetHierarchyId должен быть целым числом");
     }
 
-    if (!swapWithUserId) {
-      throw new Error("Не указан swapWithUserId для операции обмена");
+    const hasSwapTarget = Boolean(swapWithUserId);
+    const hasNewManager = Boolean(newManagerId);
+
+    if (hasSwapTarget && hasNewManager) {
+      throw new Error(
+        "Нельзя одновременно указывать swapWithUserId и newManagerId"
+      );
     }
 
-    if (!this.isValidUUID(swapWithUserId)) {
+    if (hasSwapTarget && !this.isValidUUID(swapWithUserId as string)) {
       throw new Error("Неверный формат swapWithUserId");
     }
 
-    console.log("🔁 Свап сотрудников", {
+    if (hasNewManager && !this.isValidUUID(newManagerId as string)) {
+      throw new Error("Неверный формат newManagerId");
+    }
+
+    console.log("🔁 Перемещение сотрудника", {
       userId,
       targetHierarchyId,
       swapWithUserId,
+      newManagerId,
     });
 
+    const requestBody: Record<string, unknown> = {
+      userId,
+      targetHierarchyId,
+    };
+
+    if (hasSwapTarget) {
+      requestBody.swapWithUserId = swapWithUserId;
+    }
+
+    if (hasNewManager) {
+      requestBody.newManagerId = newManagerId;
+    }
+
     try {
-      const response = await apiClient.post(
-        API_USERS_MOVE,
-        {
-          userId,
-          targetHierarchyId,
-          swapWithUserId,
-        },
-        {
-          validateStatus: () => true,
-        }
-      );
+      const response = await apiClient.post(API_USERS_MOVE, requestBody, {
+        validateStatus: () => true,
+      });
 
       if (response.status >= 400) {
         const errorText =

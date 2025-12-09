@@ -19,6 +19,16 @@ interface EmployeeCardProps {
   swapActionDisabled?: boolean;
   swapHighlight?: boolean;
   swapEligible?: boolean;
+  onMoveSourceToggle?: (node: TreeNode) => void;
+  onMoveTargetToggle?: (node: TreeNode) => void;
+  isMoveSource?: boolean;
+  isMoveTarget?: boolean;
+  moveSourceDisabled?: boolean;
+  moveTargetDisabled?: boolean;
+  showMoveTargetAction?: boolean;
+  moveActionDisabled?: boolean;
+  onMoveConfirm?: () => void;
+  moveReady?: boolean;
 }
 
 export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
@@ -34,6 +44,16 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
     swapActionDisabled = false,
     swapHighlight = false,
     swapEligible = true,
+    onMoveSourceToggle,
+    onMoveTargetToggle,
+    isMoveSource = false,
+    isMoveTarget = false,
+    moveSourceDisabled,
+    moveTargetDisabled,
+    showMoveTargetAction = false,
+    moveActionDisabled = false,
+    onMoveConfirm,
+    moveReady = false,
   }) => {
     const navigate = useNavigate();
     const [isDragging, setIsDragging] = useState(false);
@@ -97,6 +117,26 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
       }
     };
 
+    const handleMoveSourceToggleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isMoveSource && moveReady && onMoveConfirm) {
+        onMoveConfirm();
+        return;
+      }
+      if (onMoveSourceToggle) {
+        onMoveSourceToggle(node);
+      }
+    };
+
+    const handleMoveTargetToggleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onMoveTargetToggle) {
+        onMoveTargetToggle(node);
+      }
+    };
+
     const header = (
       <div
         className="rounded-t-lg relative flex items-center justify-center"
@@ -131,6 +171,43 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
         </div>
       ) : null;
 
+    const cardClassName = [
+      "cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg",
+      styles.noPaddingCard,
+      "transition-all",
+      isSwapCandidate ? styles.swapSelectedCard : "",
+      swapHighlight ? styles.swapEligibleCard : "",
+      !swapEligible ? styles.swapRestrictedCard : "",
+      isMoveSource ? styles.moveSourceCard : "",
+      isMoveTarget ? styles.moveTargetCard : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const swapButtonDisabled = Boolean(
+      swapSelectionDisabled && !isSwapCandidate
+    );
+
+    const moveSourceButtonDisabled = Boolean(
+      (moveSourceDisabled && !isMoveSource) || moveActionDisabled
+    );
+
+    const moveTargetButtonDisabled = Boolean(
+      moveTargetDisabled || moveActionDisabled
+    );
+
+    const moveSourceButtonLabel = isMoveSource
+      ? moveReady
+        ? "Подтвердить"
+        : "Перемещаем"
+      : "Переместить";
+
+    const moveSourceButtonIcon = isMoveSource
+      ? moveReady
+        ? "pi pi-check"
+        : "pi pi-user-edit"
+      : "pi pi-arrow-right-arrow-left";
+
     return (
       <div
         className={`${styles.cardContainer} relative`}
@@ -148,25 +225,26 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
         <Card
           header={header}
           footer={footer}
-          className={`cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg ${styles.noPaddingCard} transition-all ${isSwapCandidate ? styles.swapSelectedCard : ""} ${swapHighlight ? styles.swapEligibleCard : ""} ${!swapEligible ? styles.swapRestrictedCard : ""}`}
+          className={cardClassName}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onClick={handleCardClick}
         >
           <div className="flex flex-col">
-            {onSwapToggle && (
+            {(onSwapToggle || onMoveSourceToggle || onMoveTargetToggle) && (
               <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
-                <Button
-                  icon={isSwapCandidate ? "pi pi-check" : "pi pi-user-plus"}
-                  label={isSwapCandidate ? "Выбрано" : "Выбрать"}
-                  className={`p-button-sm $
-                    {isSwapCandidate ? "p-button-success" : "p-button-outlined"}
-                  }`}
-                  severity={isSwapCandidate ? "success" : "secondary"}
-                  onClick={handleSwapToggle}
-                  disabled={Boolean(swapSelectionDisabled && !isSwapCandidate)}
-                />
-                {onSwapAction && showSwapAction && (
+                {onSwapToggle && (
+                  <Button
+                    icon={isSwapCandidate ? "pi pi-check" : "pi pi-user-plus"}
+                    label={isSwapCandidate ? "Выбрано" : "Выбрать"}
+                    className="p-button-sm"
+                    outlined={!isSwapCandidate}
+                    severity={isSwapCandidate ? "success" : "secondary"}
+                    onClick={handleSwapToggle}
+                    disabled={swapButtonDisabled}
+                  />
+                )}
+                {onSwapAction && showSwapAction && onSwapToggle && (
                   <Button
                     icon="pi pi-exchange"
                     label="Поменять"
@@ -176,6 +254,58 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
                     disabled={swapActionDisabled}
                     loading={swapActionDisabled}
                   />
+                )}
+                {onMoveSourceToggle && (
+                  <Button
+                    icon={moveSourceButtonIcon}
+                    label={moveSourceButtonLabel}
+                    className="p-button-sm"
+                    severity={
+                      isMoveSource
+                        ? moveReady
+                          ? "success"
+                          : "warning"
+                        : "info"
+                    }
+                    outlined={!(isMoveSource && moveReady)}
+                    onClick={handleMoveSourceToggleClick}
+                    disabled={moveSourceButtonDisabled}
+                    loading={moveActionDisabled && isMoveSource}
+                  />
+                )}
+                {onMoveTargetToggle && showMoveTargetAction && (
+                  <Button
+                    icon={isMoveTarget ? "pi pi-star" : "pi pi-user"}
+                    label={
+                      isMoveTarget ? "Менеджер выбран" : "Назначить менеджера"
+                    }
+                    className="p-button-sm"
+                    severity={isMoveTarget ? "success" : "help"}
+                    outlined={!isMoveTarget}
+                    onClick={handleMoveTargetToggleClick}
+                    disabled={moveTargetButtonDisabled}
+                    loading={moveActionDisabled && isMoveTarget}
+                  />
+                )}
+              </div>
+            )}
+            {(isMoveSource || isMoveTarget) && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {isMoveSource && (
+                  <span
+                    className={`${styles.moveBadge} ${styles.moveSourceBadge}`}
+                  >
+                    <i className="pi pi-user-edit" aria-hidden="true" />
+                    <span>Перемещаем</span>
+                  </span>
+                )}
+                {isMoveTarget && (
+                  <span
+                    className={`${styles.moveBadge} ${styles.moveTargetBadge}`}
+                  >
+                    <i className="pi pi-briefcase" aria-hidden="true" />
+                    <span>Новый менеджер</span>
+                  </span>
                 )}
               </div>
             )}

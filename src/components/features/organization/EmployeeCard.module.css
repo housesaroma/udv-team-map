@@ -85,6 +85,38 @@
   box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35);
 }
 
+.moveSourceCard {
+  border: 2px solid rgba(37, 99, 235, 0.8) !important;
+  box-shadow: 0 12px 35px rgba(37, 99, 235, 0.3) !important;
+}
+
+.moveTargetCard {
+  border: 2px solid rgba(249, 115, 22, 0.8) !important;
+  box-shadow: 0 12px 35px rgba(249, 115, 22, 0.3) !important;
+}
+
+.moveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.moveSourceBadge {
+  background: rgba(219, 234, 254, 0.9);
+  color: #1d4ed8;
+}
+
+.moveTargetBadge {
+  background: rgba(255, 237, 213, 0.9);
+  color: #c2410c;
+}
+
 /* Улучшенные анимации для появления/исчезновения */
 .cardContainer-enter {
   opacity: 0;

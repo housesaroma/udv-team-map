@@ -130,6 +130,45 @@ describe("userService.moveUser", () => {
     expect(options.validateStatus()).toBe(true);
   });
 
+  it("отправляет корректный запрос при назначении нового менеджера", async () => {
+    mockPost.mockResolvedValueOnce({ status: 200, data: { success: true } });
+
+    const payload: MoveUserPayload = {
+      userId: validMovePayload.userId,
+      targetHierarchyId: 99,
+      newManagerId: "33333333-3333-4333-8333-333333333333",
+    };
+
+    await expect(userService.moveUser(payload)).resolves.toBeUndefined();
+
+    expect(mockPost).toHaveBeenCalledWith(
+      API_USERS_MOVE,
+      {
+        userId: payload.userId,
+        targetHierarchyId: payload.targetHierarchyId,
+        newManagerId: payload.newManagerId,
+      },
+      expect.anything()
+    );
+  });
+
+  it("поддерживает перемещение без swap и менеджера (назначение главой отдела)", async () => {
+    mockPost.mockResolvedValueOnce({ status: 200, data: { success: true } });
+
+    const payload: MoveUserPayload = {
+      userId: validMovePayload.userId,
+      targetHierarchyId: 55,
+    };
+
+    await expect(userService.moveUser(payload)).resolves.toBeUndefined();
+
+    const [, body] = mockPost.mock.calls[mockPost.mock.calls.length - 1];
+    expect(body).toEqual({
+      userId: payload.userId,
+      targetHierarchyId: payload.targetHierarchyId,
+    });
+  });
+
   it("бросает ошибку когда сервер возвращает статус 400+", async () => {
     mockPost.mockResolvedValueOnce({
       status: 409,
@@ -179,13 +218,25 @@ describe("userService.moveUser", () => {
     ).rejects.toThrow("targetHierarchyId должен быть целым числом");
   });
 
-  it("требует swapWithUserId", async () => {
+  it("валидирует newManagerId", async () => {
     await expect(
       userService.moveUser({
         ...validMovePayload,
-        swapWithUserId: "",
+        swapWithUserId: undefined,
+        newManagerId: "bad-id",
       })
-    ).rejects.toThrow("Не указан swapWithUserId для операции обмена");
+    ).rejects.toThrow("Неверный формат newManagerId");
+  });
+
+  it("не допускает одновременного указания swapWithUserId и newManagerId", async () => {
+    await expect(
+      userService.moveUser({
+        ...validMovePayload,
+        newManagerId: "33333333-3333-4333-8333-333333333333",
+      })
+    ).rejects.toThrow(
+      "Нельзя одновременно указывать swapWithUserId и newManagerId"
+    );
   });
 });
 

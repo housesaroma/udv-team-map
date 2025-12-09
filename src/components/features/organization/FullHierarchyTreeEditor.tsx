@@ -397,6 +397,17 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
       const hasDirectEmployees = node.children.some(
         child => child.nodeType === "employee"
       );
+      const hasChildDepartments = node.children.some(
+        child => child.nodeType === "department"
+      );
+
+      if (hasChildDepartments) {
+        setMoveFeedback({
+          type: "warn",
+          text: "Назначить сотрудника можно только в конечный отдел",
+        });
+        return;
+      }
 
       if (hasDirectEmployees) {
         setMoveFeedback({
@@ -686,10 +697,14 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
           const hasDirectEmployees = node.children.some(
             child => child.nodeType === "employee"
           );
+          const hasChildDepartments = node.children.some(
+            child => child.nodeType === "department"
+          );
           const canSelectDepartmentTarget = Boolean(
             moveSourceUserId &&
               typeof node.hierarchyId === "number" &&
-              !hasDirectEmployees
+              !hasDirectEmployees &&
+              !hasChildDepartments
           );
           const isDepartmentTargetSelected = Boolean(
             typeof node.hierarchyId === "number" &&

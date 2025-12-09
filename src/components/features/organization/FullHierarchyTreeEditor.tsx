@@ -1,6 +1,14 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
+import { Toast } from "primereact/toast";
 import { MAP_CONSTANTS } from "../../../constants/mapConstants";
 import { useAppDispatch } from "../../../hooks/redux";
 import { organizationService } from "../../../services/organizationService";
@@ -23,6 +31,7 @@ type ActionFeedback = {
 
 export const FullHierarchyTreeEditor: React.FC = memo(() => {
   const dispatch = useAppDispatch();
+  const toastRef = useRef<Toast | null>(null);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +44,9 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
   const [moveTargetManagerId, setMoveTargetManagerId] = useState<string | null>(
     null
   );
+  const [moveTargetHierarchyId, setMoveTargetHierarchyId] = useState<
+    number | null
+  >(null);
   const [moveFeedback, setMoveFeedback] = useState<ActionFeedback | null>(null);
   const [moveLoading, setMoveLoading] = useState(false);
 
@@ -109,6 +121,28 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     [nodesWithLayout]
   );
 
+  const getNodeByHierarchyId = useCallback(
+    (hierarchyId: number): TreeNode | null => {
+      const traverse = (list: TreeNode[]): TreeNode | null => {
+        for (const node of list) {
+          if (node.hierarchyId === hierarchyId) {
+            return node;
+          }
+          if (node.children.length > 0) {
+            const found = traverse(node.children);
+            if (found) {
+              return found;
+            }
+          }
+        }
+        return null;
+      };
+
+      return traverse(nodesWithLayout);
+    },
+    [nodesWithLayout]
+  );
+
   const selectedEmployees = useMemo(() => {
     return selectedSwapUserIds
       .map(id => getNodeByUserId(id))
@@ -122,12 +156,19 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     return getNodeByUserId(moveSourceUserId);
   }, [getNodeByUserId, moveSourceUserId]);
 
-  const moveTargetNode = useMemo(() => {
+  const moveTargetManagerNode = useMemo(() => {
     if (!moveTargetManagerId) {
       return null;
     }
     return getNodeByUserId(moveTargetManagerId);
   }, [getNodeByUserId, moveTargetManagerId]);
+
+  const moveTargetDepartmentNode = useMemo(() => {
+    if (typeof moveTargetHierarchyId !== "number") {
+      return null;
+    }
+    return getNodeByHierarchyId(moveTargetHierarchyId);
+  }, [getNodeByHierarchyId, moveTargetHierarchyId]);
 
   const handleSwapToggle = useCallback(
     (node: TreeNode) => {
@@ -240,7 +281,15 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
   const resetMoveSelection = useCallback(() => {
     setMoveSourceUserId(null);
     setMoveTargetManagerId(null);
+    setMoveTargetHierarchyId(null);
     setMoveFeedback(null);
+  }, []);
+
+  const normalizeMoveErrorMessage = useCallback((text: string) => {
+    if (text.includes("Cannot move CEO user with subordinates")) {
+      return "Нельзя перемещать руководителя с подчиненными - воспользуйтесь обменом сотрудников";
+    }
+    return text;
   }, []);
 
   const handleMoveSourceToggle = useCallback(
@@ -260,11 +309,13 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
       setMoveSourceUserId(prev => {
         if (prev === node.userId) {
           setMoveTargetManagerId(null);
+          setMoveTargetHierarchyId(null);
           setMoveFeedback(null);
           return null;
         }
 
         setMoveTargetManagerId(null);
+        setMoveTargetHierarchyId(null);
         setMoveFeedback(null);
         return node.userId;
       });
@@ -313,10 +364,70 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
       setMoveTargetManagerId(prev => {
         const isSame = prev === node.userId;
         setMoveFeedback(null);
-        return isSame ? null : node.userId;
+        if (isSame) {
+          setMoveTargetHierarchyId(null);
+          return null;
+        }
+
+        setMoveTargetHierarchyId(node.hierarchyId ?? null);
+        return node.userId;
       });
     },
     [moveLoading, moveSourceUserId]
+  );
+
+  const handleMoveDepartmentTarget = useCallback(
+    (node: TreeNode) => {
+      if (moveLoading) {
+        return;
+      }
+
+      if (!moveSourceUserId) {
+        setMoveFeedback({
+          type: "warn",
+          text: "Сначала выберите сотрудника для перемещения",
+        });
+        return;
+      }
+
+      if (node.nodeType !== "department") {
+        return;
+      }
+
+      const hasDirectEmployees = node.children.some(
+        child => child.nodeType === "employee"
+      );
+
+      if (hasDirectEmployees) {
+        setMoveFeedback({
+          type: "warn",
+          text: "В отделе уже есть руководитель или сотрудники, выберите менеджера",
+        });
+        return;
+      }
+
+      if (typeof node.hierarchyId !== "number") {
+        setMoveFeedback({
+          type: "error",
+          text: "Для выбранного отдела не найден hierarchyId",
+        });
+        return;
+      }
+
+      const isSameDepartment =
+        moveTargetHierarchyId === node.hierarchyId && !moveTargetManagerId;
+
+      if (isSameDepartment) {
+        setMoveTargetHierarchyId(null);
+        setMoveFeedback(null);
+        return;
+      }
+
+      setMoveTargetManagerId(null);
+      setMoveTargetHierarchyId(node.hierarchyId);
+      setMoveFeedback(null);
+    },
+    [moveLoading, moveSourceUserId, moveTargetHierarchyId, moveTargetManagerId]
   );
 
   const handleMoveEmployee = useCallback(async () => {
@@ -328,7 +439,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
       return;
     }
 
-    if (!moveTargetNode || typeof moveTargetNode.hierarchyId !== "number") {
+    if (typeof moveTargetHierarchyId !== "number") {
       setMoveFeedback({
         type: "error",
         text: "Не удалось определить целевой отдел или менеджера",
@@ -341,34 +452,54 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
       setMoveFeedback(null);
       await userService.moveUser({
         userId: moveSourceNode.userId,
-        targetHierarchyId: moveTargetNode.hierarchyId,
-        newManagerId: moveTargetNode.userId,
+        targetHierarchyId: moveTargetHierarchyId,
+        newManagerId: moveTargetManagerNode?.userId || undefined,
       });
       await loadFullHierarchy();
       resetMoveSelection();
+      const successText = moveTargetManagerNode
+        ? `${moveSourceNode.userName} теперь подчиняется ${moveTargetManagerNode.userName}`
+        : `${moveSourceNode.userName} назначен(а) руководителем отдела ${moveTargetDepartmentNode?.userName ?? ""}`;
       setMoveFeedback({
         type: "success",
-        text: `${moveSourceNode.userName} теперь подчиняется ${moveTargetNode.userName}`,
+        text: successText,
       });
     } catch (moveError) {
       const message =
         moveError instanceof Error
           ? moveError.message
           : "Не удалось переместить сотрудника";
-      setMoveFeedback({ type: "error", text: message });
+      const normalizedMessage = normalizeMoveErrorMessage(message);
+      setMoveFeedback({ type: "error", text: normalizedMessage });
+      toastRef.current?.show({
+        severity: "error",
+        summary: "Перемещение отклонено",
+        detail: normalizedMessage,
+        life: 6000,
+      });
     } finally {
       setMoveLoading(false);
     }
-  }, [loadFullHierarchy, moveSourceNode, moveTargetNode, resetMoveSelection]);
+  }, [
+    loadFullHierarchy,
+    moveSourceNode,
+    moveTargetDepartmentNode,
+    moveTargetHierarchyId,
+    moveTargetManagerNode,
+    normalizeMoveErrorMessage,
+    resetMoveSelection,
+  ]);
 
   const swapReady = selectedSwapUserIds.length === 2;
   const selectionLimitReached = selectedSwapUserIds.length >= 2;
   const moveReady = Boolean(
-    moveSourceNode &&
-      moveTargetNode &&
-      typeof moveTargetNode.hierarchyId === "number"
+    moveSourceNode && typeof moveTargetHierarchyId === "number"
   );
-  const moveHasSelection = Boolean(moveSourceUserId || moveTargetManagerId);
+  const moveHasSelection = Boolean(
+    moveSourceUserId ||
+      moveTargetManagerId ||
+      typeof moveTargetHierarchyId === "number"
+  );
 
   const isSelectionDisabled = useCallback(
     (node: TreeNode): boolean => {
@@ -423,6 +554,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         minHeight: `${MAP_CONSTANTS.MAP_HEIGHT}px`,
       }}
     >
+      <Toast ref={toastRef} position="top-right" />
       <div className="absolute top-6 left-6 z-20 w-[360px] max-w-full space-y-4 rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-2xl backdrop-blur">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
@@ -470,7 +602,8 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
               Сначала отметьте сотрудника кнопкой «Переместить», затем выберите
               нового руководителя. После этого кнопка на карточке сотрудника
               превратится в «Подтвердить», либо воспользуйтесь общей кнопкой
-              ниже.
+              ниже. Чтобы назначить сотрудника главой пустого отдела, нажмите
+              «Назначить» на карточке отдела без сотрудников.
             </p>
           </div>
 
@@ -491,15 +624,29 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
             </div>
             <div
               className={`rounded-xl border px-3 py-2 text-sm ${
-                moveTargetNode
+                moveTargetDepartmentNode
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                  : "border-dashed border-gray-300 text-gray-500"
+              }`}
+            >
+              <p className="font-semibold">Новый отдел</p>
+              <p className="text-xs opacity-80">
+                {moveTargetDepartmentNode
+                  ? moveTargetDepartmentNode.userName
+                  : "Не выбран"}
+              </p>
+            </div>
+            <div
+              className={`rounded-xl border px-3 py-2 text-sm ${
+                moveTargetManagerNode
                   ? "border-amber-200 bg-amber-50 text-amber-900"
                   : "border-dashed border-gray-300 text-gray-500"
               }`}
             >
-              <p className="font-semibold">Новый менеджер</p>
+              <p className="font-semibold">Новый менеджер (опционально)</p>
               <p className="text-xs opacity-80">
-                {moveTargetNode
-                  ? `${moveTargetNode.userName} · ${moveTargetNode.position}`
+                {moveTargetManagerNode
+                  ? `${moveTargetManagerNode.userName} · ${moveTargetManagerNode.position}`
                   : "Не выбран"}
               </p>
             </div>
@@ -534,15 +681,37 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
 
       <ConnectionLines nodes={nodesWithLayout} />
 
-      {visibleNodes.map(node =>
-        node.nodeType === "department" ? (
-          <DepartmentStructureCard
-            key={node.id}
-            node={node}
-            onSelectBranch={handleDepartmentSelect}
-            onOpenDepartment={NOOP}
-          />
-        ) : (
+      {visibleNodes.map(node => {
+        if (node.nodeType === "department") {
+          const hasDirectEmployees = node.children.some(
+            child => child.nodeType === "employee"
+          );
+          const canSelectDepartmentTarget = Boolean(
+            moveSourceUserId &&
+              typeof node.hierarchyId === "number" &&
+              !hasDirectEmployees
+          );
+          const isDepartmentTargetSelected = Boolean(
+            typeof node.hierarchyId === "number" &&
+              moveTargetHierarchyId === node.hierarchyId &&
+              !moveTargetManagerId
+          );
+
+          return (
+            <DepartmentStructureCard
+              key={node.id}
+              node={node}
+              onSelectBranch={handleDepartmentSelect}
+              onOpenDepartment={NOOP}
+              onAssignMoveTarget={handleMoveDepartmentTarget}
+              showMoveTargetAction={canSelectDepartmentTarget}
+              moveTargetActionDisabled={moveLoading}
+              isMoveTargetDepartment={isDepartmentTargetSelected}
+            />
+          );
+        }
+
+        return (
           <EmployeeCard
             key={node.id}
             node={node}
@@ -582,14 +751,16 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
               typeof node.hierarchyId !== "number"
             }
             showMoveTargetAction={Boolean(
-              moveSourceUserId && node.userId !== moveSourceUserId
+              moveSourceUserId &&
+                node.userId !== moveSourceUserId &&
+                typeof node.hierarchyId === "number"
             )}
             moveActionDisabled={moveLoading}
             moveReady={moveReady}
             onMoveConfirm={handleMoveEmployee}
           />
-        )
-      )}
+        );
+      })}
     </div>
   );
 });

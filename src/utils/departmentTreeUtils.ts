@@ -12,6 +12,8 @@ import {
 
 const DEFAULT_NODE_WIDTH = 360;
 const DEFAULT_NODE_HEIGHT = 140;
+const EMPLOYEE_NODE_HEIGHT = 220;
+const DEPARTMENT_NODE_HEIGHT = DEFAULT_NODE_HEIGHT;
 const INITIAL_EXPANDED_LEVEL = 2;
 
 const createBaseTreeNode = (
@@ -71,6 +73,7 @@ const convertDepartmentNode = (
     hierarchyId: node.hierarchyId,
     nodeType: "department",
     hierarchyPath: currentPath,
+    height: DEPARTMENT_NODE_HEIGHT,
   });
 };
 
@@ -110,6 +113,7 @@ const convertEmployeeToTreeNode = (
     nodeType: "employee",
     hierarchyPath: normalizedPath.length > 0 ? normalizedPath : undefined,
     hierarchyId: effectiveHierarchyId,
+    height: EMPLOYEE_NODE_HEIGHT,
   });
 };
 
@@ -193,6 +197,7 @@ const convertFullHierarchyNode = (
     nodeType: "department",
     hierarchyPath: currentPath,
     isExpanded: true,
+    height: DEPARTMENT_NODE_HEIGHT,
   });
 };
 
@@ -248,6 +253,7 @@ export const departmentTreeUtils = {
         level: 0,
         isExpanded: true,
         children: managerChildren,
+        height: DEPARTMENT_NODE_HEIGHT,
       }),
     ];
   },

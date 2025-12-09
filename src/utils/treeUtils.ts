@@ -105,7 +105,21 @@ export const treeUtils = {
     startY: number = 0
   ): TreeNode[] {
     const HORIZONTAL_SPACING = 20;
-    const VERTICAL_SPACING = 300;
+    const VERTICAL_SPACING_DEPARTMENT = 220;
+    const VERTICAL_SPACING_EMPLOYEE = 360;
+
+    const getVerticalSpacing = (parent: TreeNode, child: TreeNode): number => {
+      const isDepartmentChild =
+        child.nodeType === "department" || child.level <= 1;
+
+      if (isDepartmentChild) {
+        return parent.nodeType === "employee"
+          ? VERTICAL_SPACING_EMPLOYEE
+          : VERTICAL_SPACING_DEPARTMENT;
+      }
+
+      return VERTICAL_SPACING_EMPLOYEE;
+    };
 
     // Функция для расчета ширины поддерева с учетом всех развернутых узлов
     const calculateSubtreeWidth = (node: TreeNode): number => {
@@ -156,10 +170,11 @@ export const treeUtils = {
       // Позиционируем каждого ребенка
       for (const child of node.children) {
         const childSubtreeWidth = calculateSubtreeWidth(child);
+        const verticalSpacing = getVerticalSpacing(node, child);
 
         // Ребенок позиционируется по центру своего поддерева
         const childX = currentX + childSubtreeWidth / 2;
-        const childY = y + VERTICAL_SPACING;
+        const childY = y + verticalSpacing;
 
         const laidOutChild = layoutNode(child, childX, childY);
         childrenWithLayout.push(laidOutChild.node);
@@ -215,7 +230,7 @@ export const treeUtils = {
 
       // Отдел позиционируется по центру своего поддерева
       const nodeX = currentDeptX + deptWidth / 2;
-      const nodeY = startY + VERTICAL_SPACING;
+      const nodeY = startY + VERTICAL_SPACING_DEPARTMENT;
 
       const laidOutDept = layoutNode(node, nodeX, nodeY);
       departmentNodesWithLayout.push(laidOutDept.node);

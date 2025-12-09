@@ -7,6 +7,10 @@
   overflow: hidden;
 }
 
+.moveTargetSelected {
+  box-shadow: 0 24px 45px rgba(37, 99, 235, 0.35);
+}
+
 .cardButton {
   width: 100%;
   height: 100%;
@@ -36,6 +40,32 @@
   text-align: center;
   line-height: 1.3;
   font-size: 1.4rem;
+}
+
+.moveAssignButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  border: 0;
+  border-radius: 9999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.65);
+  color: #fff;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.moveAssignButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.moveAssignButtonActive {
+  background: #059669;
+  box-shadow: 0 10px 25px rgba(5, 150, 105, 0.4);
 }
 
 .cardChevron {

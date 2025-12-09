@@ -434,7 +434,7 @@ describe("treeUtils", () => {
       // Проверяем, что дети позиционированы правильно
       expect(result[0].children.length).toBeGreaterThan(0);
       if (result[0].children.length > 0) {
-        expect(result[0].children[0].y).toBe(300); // VERTICAL_SPACING = 300
+        expect(result[0].children[0].y).toBe(220); // departments use tighter spacing
       }
     });
 
@@ -534,11 +534,67 @@ describe("treeUtils", () => {
       expect(result[0].y).toBe(0);
 
       // Отделы должны быть позиционированы под CEO
-      expect(result[1].y).toBe(300); // VERTICAL_SPACING = 300
-      expect(result[2].y).toBe(300);
+      expect(result[1].y).toBe(220);
+      expect(result[2].y).toBe(220);
 
       // Отделы должны быть распределены горизонтально
       expect(result[1].x).not.toBe(result[2].x);
+    });
+
+    it("должен использовать увеличенный отступ для сотрудников", () => {
+      const employeeNode: TreeNode = {
+        ...mockEmployee1,
+        id: "employee-1",
+        nodeType: "employee",
+        isExpanded: true,
+        level: 2,
+        x: 0,
+        y: 0,
+        width: 360,
+        height: 140,
+        children: [],
+        departmentColor: "#3697FF",
+      };
+
+      const departmentNode: TreeNode = {
+        ...mockEmployee2,
+        id: "dept-1",
+        nodeType: "department",
+        isExpanded: true,
+        level: 1,
+        x: 0,
+        y: 0,
+        width: 360,
+        height: 140,
+        children: [employeeNode],
+        departmentColor: "#24D07A",
+      };
+
+      const nodes: TreeNode[] = [
+        {
+          ...mockCEO,
+          id: "ceo-1",
+          nodeType: "department",
+          isExpanded: true,
+          level: 0,
+          x: 0,
+          y: 0,
+          width: 360,
+          height: 140,
+          children: [departmentNode],
+          departmentColor: "#6B7280",
+        },
+      ];
+
+      const result = treeUtils.calculateLayout(nodes, 400, 0);
+
+      expect(result[0].children.length).toBe(1);
+      const firstDepartment = result[0].children[0];
+      expect(firstDepartment.children.length).toBe(1);
+      const employee = firstDepartment.children[0];
+
+      expect(firstDepartment.y).toBe(220);
+      expect(employee.y - firstDepartment.y).toBe(360);
     });
   });
 });

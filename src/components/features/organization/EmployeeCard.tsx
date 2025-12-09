@@ -232,7 +232,9 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
         >
           <div className="flex flex-col">
             {(onSwapToggle || onMoveSourceToggle || onMoveTargetToggle) && (
-              <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+              <div
+                className={`${styles.cardActions} mb-3 flex flex-wrap items-center justify-end gap-2`}
+              >
                 {onSwapToggle && (
                   <Button
                     icon={isSwapCandidate ? "pi pi-check" : "pi pi-user-plus"}

@@ -1,16 +1,12 @@
-import {
-  API_USER_BY_ID,
-  API_USERS,
-  API_USERS_DEPARTMENTS,
-  API_USERS_POSITIONS,
-} from "../constants/apiConstants";
+import { API_USER_BY_ID, API_USERS } from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
 import type { SortToken } from "../types/ui";
 import { getDepartmentColor } from "../utils/departmentUtils";
 import { apiClient } from "../utils/apiClient";
+import { organizationService } from "./organizationService";
+import type { FullHierarchyNode } from "../types/organization";
 import {
-  stringArraySchema,
   updateUserResponseSchema,
   usersResponseSchema,
   type UpdateUserResponse,
@@ -177,71 +173,105 @@ export const adminService = {
 
   // Метод для получения всех доступных подразделений
   async getAllDepartments(): Promise<string[]> {
-    try {
-      console.log("🌐 Загрузка всех подразделений с бэкенда...");
-      const response = await apiClient.get<string[]>(API_USERS_DEPARTMENTS, {
-        validateStatus: () => true,
-      });
-
-      if (response.status >= 400) {
-        throw new Error(`Ошибка загрузки подразделений: ${response.status}`);
-      }
-
-      const rawData = response.data;
-      const parsed = stringArraySchema.safeParse(rawData);
-
-      if (!parsed.success) {
-        console.error("Некорректный список подразделений:", {
-          issues: parsed.error.flatten(),
-        });
-        throw new Error("Некорректный ответ сервера");
-      }
-
-      return parsed.data;
-    } catch (error) {
-      console.error(
-        "Ошибка загрузки подразделений, используем мок-данные:",
-        error
-      );
-      const departments = Array.from(
-        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.department))
-      );
-      return departments;
-    }
+    const { departments } = await loadHierarchyFilterOptions();
+    return departments;
   },
 
   // Метод для получения всех доступных должностей
   async getAllPositions(): Promise<string[]> {
-    try {
-      console.log("🌐 Загрузка всех должностей с бэкенда...");
-      const response = await apiClient.get<string[]>(API_USERS_POSITIONS, {
-        validateStatus: () => true,
-      });
-
-      if (response.status >= 400) {
-        throw new Error(`Ошибка загрузки должностей: ${response.status}`);
-      }
-
-      const rawData = response.data;
-      const parsed = stringArraySchema.safeParse(rawData);
-
-      if (!parsed.success) {
-        console.error("Некорректный список должностей:", {
-          issues: parsed.error.flatten(),
-        });
-        throw new Error("Некорректный ответ сервера");
-      }
-
-      return parsed.data;
-    } catch (error) {
-      console.error(
-        "Ошибка загрузки должностей, используем мок-данные:",
-        error
-      );
-      const positions = Array.from(
-        new Set(MOCK_USERS_RESPONSE.usersTable.map(user => user.position))
-      );
-      return positions;
-    }
+    const { positions } = await loadHierarchyFilterOptions();
+    return positions;
   },
+};
+
+type FilterOptions = {
+  departments: string[];
+  positions: string[];
+};
+
+const collator = new Intl.Collator("ru-RU");
+
+let cachedFilterOptions: FilterOptions | null = null;
+let filterOptionsPromise: Promise<FilterOptions> | null = null;
+
+const loadHierarchyFilterOptions = async (): Promise<FilterOptions> => {
+  if (cachedFilterOptions) {
+    return cachedFilterOptions;
+  }
+
+  if (!filterOptionsPromise) {
+    filterOptionsPromise = organizationService
+      .getFullHierarchyTree()
+      .then(extractFilterOptionsFromHierarchy)
+      .then(options => {
+        cachedFilterOptions = options;
+        return options;
+      })
+      .catch(error => {
+        console.error(
+          "Не удалось получить дерево иерархии для фильтров, используем мок-данные",
+          error
+        );
+        const fallback = getFallbackFilterOptionsFromMocks();
+        cachedFilterOptions = fallback;
+        return fallback;
+      })
+      .finally(() => {
+        filterOptionsPromise = null;
+      });
+  }
+
+  return filterOptionsPromise;
+};
+
+const extractFilterOptionsFromHierarchy = (
+  root: FullHierarchyNode
+): FilterOptions => {
+  const departmentSet = new Set<string>();
+  const positionSet = new Set<string>();
+
+  const traverse = (node: FullHierarchyNode) => {
+    if (node.title.trim()) {
+      departmentSet.add(node.title.trim());
+    }
+
+    if (node.manager?.position?.trim()) {
+      positionSet.add(node.manager.position.trim());
+    }
+
+    for (const employee of node.employees) {
+      if (employee.position.trim()) {
+        positionSet.add(employee.position.trim());
+      }
+    }
+
+    for (const child of node.children) {
+      traverse(child);
+    }
+  };
+
+  traverse(root);
+
+  return {
+    departments: Array.from(departmentSet).sort(collator.compare),
+    positions: Array.from(positionSet).sort(collator.compare),
+  };
+};
+
+const getFallbackFilterOptionsFromMocks = (): FilterOptions => {
+  const departmentSet = new Set(
+    MOCK_USERS_RESPONSE.usersTable
+      .map(user => user.department.trim())
+      .filter(Boolean)
+  );
+  const positionSet = new Set(
+    MOCK_USERS_RESPONSE.usersTable
+      .map(user => user.position.trim())
+      .filter(Boolean)
+  );
+
+  return {
+    departments: Array.from(departmentSet).sort(collator.compare),
+    positions: Array.from(positionSet).sort(collator.compare),
+  };
 };

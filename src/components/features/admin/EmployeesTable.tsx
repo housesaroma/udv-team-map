@@ -9,6 +9,7 @@ import { MultiSelect } from "primereact/multiselect";
 import { OverlayPanel } from "primereact/overlaypanel";
 import React, { useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader } from "../../ui/Loader";
 import { getDepartmentColor } from "../../../utils/departmentUtils";
 import {
   useEmployeesTable,
@@ -315,7 +316,12 @@ export const EmployeesTable: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 shadow-sm">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 shadow-sm relative">
+      {loading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+          <Loader size="lg" text="Загрузка" />
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-primary font-golos">
           Таблица сотрудников
@@ -360,7 +366,6 @@ export const EmployeesTable: React.FC = () => {
       <DataTable
         ref={dt}
         value={users}
-        loading={loading}
         sortMode="single"
         removableSort
         paginator

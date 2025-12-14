@@ -7,6 +7,105 @@ import { apiClient } from "../utils/apiClient";
 import { extractFullNameFromToken } from "../utils/jwtUtils";
 import { apiUserProfileSchema } from "../validation/apiSchemas";
 
+/**
+ * Извлекает строковое значение из возможно вложенных массивов или строки
+ * Обрабатывает случаи: "value", ["value"], [[["value"]]], [[[]]] и т.д.
+ */
+function extractStringFromNested(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    // Рекурсивно ищем первую непустую строку в массиве
+    for (const item of value) {
+      const result = extractStringFromNested(item);
+      if (result) {
+        return result;
+      }
+    }
+    return "";
+  }
+  return "";
+}
+
+/**
+ * Нормализует поле contacts из API, обрабатывая различные некорректные форматы
+ */
+function normalizeContacts(contacts: unknown):
+  | {
+      telegram?: string[];
+      skype?: string[];
+      linkedin?: string[];
+      whatsapp?: string[];
+      vk?: string[];
+      mattermost?: string[];
+    }
+  | undefined {
+  if (!contacts || typeof contacts !== "object") {
+    return undefined;
+  }
+
+  const contactsObj = contacts as Record<string, unknown>;
+  const result: {
+    telegram?: string[];
+    skype?: string[];
+    linkedin?: string[];
+    whatsapp?: string[];
+    vk?: string[];
+    mattermost?: string[];
+  } = {};
+
+  // Нормализуем telegram
+  if (contactsObj.telegram !== undefined) {
+    const telegramValue = extractStringFromNested(contactsObj.telegram);
+    if (telegramValue) {
+      result.telegram = [telegramValue];
+    }
+  }
+
+  // Нормализуем skype
+  if (contactsObj.skype !== undefined) {
+    const skypeValue = extractStringFromNested(contactsObj.skype);
+    if (skypeValue) {
+      result.skype = [skypeValue];
+    }
+  }
+
+  // Нормализуем linkedin
+  if (contactsObj.linkedin !== undefined) {
+    const linkedinValue = extractStringFromNested(contactsObj.linkedin);
+    if (linkedinValue) {
+      result.linkedin = [linkedinValue];
+    }
+  }
+
+  // Нормализуем whatsapp
+  if (contactsObj.whatsapp !== undefined) {
+    const whatsappValue = extractStringFromNested(contactsObj.whatsapp);
+    if (whatsappValue) {
+      result.whatsapp = [whatsappValue];
+    }
+  }
+
+  // Нормализуем vk
+  if (contactsObj.vk !== undefined) {
+    const vkValue = extractStringFromNested(contactsObj.vk);
+    if (vkValue) {
+      result.vk = [vkValue];
+    }
+  }
+
+  // Нормализуем mattermost
+  if (contactsObj.mattermost !== undefined) {
+    const mattermostValue = extractStringFromNested(contactsObj.mattermost);
+    if (mattermostValue) {
+      result.mattermost = [mattermostValue];
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
 export interface MoveUserPayload {
   userId: string;
   targetHierarchyId: number;
@@ -153,9 +252,7 @@ export const userService = {
           data.work_experience ||
           data.hireDate ||
           data.hire_date) as string | undefined,
-        contacts: data.contacts as
-          | { telegram?: string[]; skype?: string[] }
-          | undefined,
+        contacts: normalizeContacts(data.contacts),
       };
 
       console.log("Нормализованные данные профиля:", normalizedData);
@@ -370,6 +467,11 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
   // FIXED: Handle potentially undefined contacts
   const contacts = apiUser.contacts || {};
   const telegramContacts = contacts.telegram || [];
+  const skypeContacts = contacts.skype || [];
+  const linkedinContacts = contacts.linkedin || [];
+  const whatsappContacts = contacts.whatsapp || [];
+  const vkContacts = contacts.vk || [];
+  const mattermostContacts = contacts.mattermost || [];
 
   return {
     id: apiUser.userId, // FIXED: user_id → userId
@@ -385,6 +487,14 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     birthDate: apiUser.bornDate,
     hireDate: apiUser.workExperience,
     messengerLink: telegramContacts[0] || "", // FIXED: safe access
+    contacts: {
+      telegram: telegramContacts[0] || undefined,
+      skype: skypeContacts[0] || undefined,
+      linkedin: linkedinContacts[0] || undefined,
+      whatsapp: whatsappContacts[0] || undefined,
+      vk: vkContacts[0] || undefined,
+      mattermost: mattermostContacts[0] || undefined,
+    },
   };
 };
 
@@ -399,14 +509,42 @@ export const updateUserProfile = async (
   }
 
   try {
+    // Формируем contacts из отдельных полей или из объекта contacts
+    const contacts: Record<string, string> = {
+      email: userData.email || "",
+    };
+
+    // Добавляем мессенджеры из contacts объекта
+    if (userData.contacts) {
+      if (userData.contacts.telegram) {
+        contacts.telegram = userData.contacts.telegram;
+      }
+      if (userData.contacts.skype) {
+        contacts.skype = userData.contacts.skype;
+      }
+      if (userData.contacts.linkedin) {
+        contacts.linkedin = userData.contacts.linkedin;
+      }
+      if (userData.contacts.whatsapp) {
+        contacts.whatsapp = userData.contacts.whatsapp;
+      }
+      if (userData.contacts.vk) {
+        contacts.vk = userData.contacts.vk;
+      }
+      if (userData.contacts.mattermost) {
+        contacts.mattermost = userData.contacts.mattermost;
+      }
+    } else if (userData.messengerLink) {
+      // Fallback на старое поле messengerLink (telegram)
+      contacts.telegram = userData.messengerLink;
+    }
+
     const requestBody = {
       phone: userData.phone,
       city: userData.city,
       interests: userData.interests,
       avatar: userData.avatar,
-      contacts: userData.messengerLink
-        ? { telegram: [userData.messengerLink] }
-        : {},
+      contacts,
       position: userData.position,
       department: userData.department?.name || userData.department || "",
     };
@@ -472,6 +610,10 @@ export const updateUserProfile = async (
       "Полученные данные обновленного профиля от API:",
       typeof apiData === "string" ? apiData : JSON.stringify(apiData, null, 2)
     );
+    console.log(
+      "Raw contacts от API:",
+      (apiData as Record<string, unknown>)?.contacts
+    );
 
     // Проверяем, что данные в правильном формате
     if (!apiData || typeof apiData !== "object") {
@@ -505,9 +647,7 @@ export const updateUserProfile = async (
         data.work_experience ||
         data.hireDate ||
         data.hire_date) as string | undefined,
-      contacts: data.contacts as
-        | { telegram?: string[]; skype?: string[] }
-        | undefined,
+      contacts: normalizeContacts(data.contacts),
     };
 
     console.log("Нормализованные данные обновленного профиля:", normalizedData);

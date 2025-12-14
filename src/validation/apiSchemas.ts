@@ -16,6 +16,10 @@ const optionalContacts = z.preprocess(
     .object({
       telegram: optionalStringArray,
       skype: optionalStringArray,
+      linkedin: optionalStringArray,
+      whatsapp: optionalStringArray,
+      vk: optionalStringArray,
+      mattermost: optionalStringArray,
     })
     .optional()
 );

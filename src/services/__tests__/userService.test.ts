@@ -472,6 +472,326 @@ describe("userService.getUserProfile", () => {
 
     fallbackSpy.mockRestore();
   });
+
+  it("нормализует вложенные массивы в contacts", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: [[["@nested_telegram"]]],
+            skype: [],
+          } as unknown as { telegram?: string[]; skype?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.messengerLink).toBe("@nested_telegram");
+  });
+
+  it("обрабатывает пустые вложенные массивы в contacts", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            email: [[[]]],
+            telegram: [[[]]],
+            skype: [],
+          } as unknown as { telegram?: string[]; skype?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.messengerLink).toBeFalsy();
+  });
+
+  it("обрабатывает undefined contacts", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser({ contacts: undefined })),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.messengerLink).toBeFalsy();
+  });
+
+  it("обрабатывает contacts с примитивным значением", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: "invalid" as unknown as { telegram?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.messengerLink).toBeFalsy();
+  });
+
+  it("извлекает строку напрямую из telegram если это строка", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: "@direct_string",
+          } as unknown as { telegram?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.messengerLink).toBe("@direct_string");
+  });
+
+  it("нормализует linkedin из вложенных массивов", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            linkedin: [[["https://linkedin.com/in/test"]]],
+          } as unknown as { linkedin?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.linkedin).toBe("https://linkedin.com/in/test");
+  });
+
+  it("нормализует whatsapp из вложенных массивов", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            whatsapp: [[["+79001234567"]]],
+          } as unknown as { whatsapp?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.whatsapp).toBe("+79001234567");
+  });
+
+  it("нормализует vk из вложенных массивов", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            vk: [[["https://vk.com/test_user"]]],
+          } as unknown as { vk?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.vk).toBe("https://vk.com/test_user");
+  });
+
+  it("нормализует mattermost из вложенных массивов", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            mattermost: [[["@mattermost_user"]]],
+          } as unknown as { mattermost?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.mattermost).toBe("@mattermost_user");
+  });
+
+  it("нормализует все мессенджеры одновременно", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: "@tg_user",
+            skype: "skype_user",
+            linkedin: "https://linkedin.com/in/user",
+            whatsapp: "+79001234567",
+            vk: "https://vk.com/user",
+            mattermost: "@mm_user",
+          } as unknown as {
+            telegram?: string[];
+            skype?: string[];
+            linkedin?: string[];
+            whatsapp?: string[];
+            vk?: string[];
+            mattermost?: string[];
+          },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts).toEqual({
+      telegram: "@tg_user",
+      skype: "skype_user",
+      linkedin: "https://linkedin.com/in/user",
+      whatsapp: "+79001234567",
+      vk: "https://vk.com/user",
+      mattermost: "@mm_user",
+    });
+  });
+
+  it("пропускает пустые значения linkedin", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            linkedin: [[[]]],
+          } as unknown as { linkedin?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.linkedin).toBeUndefined();
+  });
+
+  it("пропускает пустые значения whatsapp", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            whatsapp: [[[]]],
+          } as unknown as { whatsapp?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.whatsapp).toBeUndefined();
+  });
+
+  it("пропускает пустые значения vk", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            vk: [[[]]],
+          } as unknown as { vk?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.vk).toBeUndefined();
+  });
+
+  it("пропускает пустые значения mattermost", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            mattermost: [[[]]],
+          } as unknown as { mattermost?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.mattermost).toBeUndefined();
+  });
+
+  it("пропускает пустой массив в messenger field", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: [],
+          } as unknown as { telegram?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.telegram).toBeUndefined();
+  });
+
+  it("пропускает нестроковые значения в messenger field (число)", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: 12345,
+          } as unknown as { telegram?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.telegram).toBeUndefined();
+  });
+
+  it("пропускает нестроковые значения в messenger field (объект)", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: { invalid: true },
+          } as unknown as { telegram?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.telegram).toBeUndefined();
+  });
+
+  it("пропускает null в messenger field", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          contacts: {
+            telegram: null,
+          } as unknown as { telegram?: string[] },
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.contacts?.telegram).toBeUndefined();
+  });
 });
 
 describe("вспомогательные методы userService", () => {
@@ -569,7 +889,10 @@ describe("updateUserProfile", () => {
         city: baseUpdate.city,
         interests: baseUpdate.interests,
         avatar: baseUpdate.avatar,
-        contacts: { telegram: [baseUpdate.messengerLink as string] },
+        contacts: {
+          email: baseUpdate.email || "",
+          telegram: baseUpdate.messengerLink || "",
+        },
         position: baseUpdate.position,
         department: baseUpdate.department?.name ?? baseUpdate.department ?? "",
       },
@@ -591,7 +914,98 @@ describe("updateUserProfile", () => {
     await updateUserProfile(SERVER_USER_ID, { position: "Lead" });
 
     const [, body] = mockPut.mock.calls[mockPut.mock.calls.length - 1];
-    expect(body.contacts).toEqual({});
+    // Без contacts и messengerLink передается только email
+    expect(body.contacts).toEqual({ email: "" });
+  });
+
+  it("передает контакты из userData.contacts", async () => {
+    mockPut.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser()),
+    });
+
+    await updateUserProfile(SERVER_USER_ID, {
+      position: "Lead",
+      contacts: {
+        telegram: "@test",
+        skype: "skype_user",
+        linkedin: "linkedin_url",
+        whatsapp: "+123456",
+      },
+    });
+
+    const [, body] = mockPut.mock.calls[mockPut.mock.calls.length - 1];
+    expect(body.contacts).toEqual({
+      email: "",
+      telegram: "@test",
+      skype: "skype_user",
+      linkedin: "linkedin_url",
+      whatsapp: "+123456",
+    });
+  });
+
+  it("передает vk контакт", async () => {
+    mockPut.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser()),
+    });
+
+    await updateUserProfile(SERVER_USER_ID, {
+      position: "Lead",
+      contacts: {
+        vk: "https://vk.com/test_user",
+      },
+    });
+
+    const [, body] = mockPut.mock.calls[mockPut.mock.calls.length - 1];
+    expect(body.contacts.vk).toBe("https://vk.com/test_user");
+  });
+
+  it("передает mattermost контакт", async () => {
+    mockPut.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser()),
+    });
+
+    await updateUserProfile(SERVER_USER_ID, {
+      position: "Lead",
+      contacts: {
+        mattermost: "@mattermost_user",
+      },
+    });
+
+    const [, body] = mockPut.mock.calls[mockPut.mock.calls.length - 1];
+    expect(body.contacts.mattermost).toBe("@mattermost_user");
+  });
+
+  it("передает все контакты одновременно", async () => {
+    mockPut.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser()),
+    });
+
+    await updateUserProfile(SERVER_USER_ID, {
+      position: "Lead",
+      contacts: {
+        telegram: "@tg",
+        skype: "skype_id",
+        linkedin: "https://linkedin.com/in/user",
+        whatsapp: "+79001234567",
+        vk: "https://vk.com/user",
+        mattermost: "@mm",
+      },
+    });
+
+    const [, body] = mockPut.mock.calls[mockPut.mock.calls.length - 1];
+    expect(body.contacts).toEqual({
+      email: "",
+      telegram: "@tg",
+      skype: "skype_id",
+      linkedin: "https://linkedin.com/in/user",
+      whatsapp: "+79001234567",
+      vk: "https://vk.com/user",
+      mattermost: "@mm",
+    });
   });
 
   it("бросает ошибку при 401", async () => {

@@ -1,3 +1,20 @@
+export type MessengerType =
+  | "telegram"
+  | "skype"
+  | "linkedin"
+  | "whatsapp"
+  | "vk"
+  | "mattermost";
+
+export interface UserContacts {
+  telegram?: string;
+  skype?: string;
+  linkedin?: string;
+  whatsapp?: string;
+  vk?: string;
+  mattermost?: string;
+}
+
 export interface User {
   id: string;
   firstName: string;
@@ -15,6 +32,7 @@ export interface User {
   managerId?: string;
   subordinates?: string[];
   messengerLink?: string;
+  contacts?: UserContacts;
 }
 
 export interface Department {

@@ -1,15 +1,42 @@
 import { Button } from "primereact/button";
+import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
-import React, { useEffect, useState } from "react";
+import { MultiSelect } from "primereact/multiselect";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageLoader } from "../components/ui/PageLoader";
 import { useAuth } from "../hooks/useAuth";
 import { usePermissions } from "../hooks/usePermissions";
+import { adminService } from "../services/adminService";
 import { userService, updateUserProfile } from "../services/userService";
-import type { User } from "../types";
+import type { MessengerType, User, UserContacts } from "../types";
+import type { SelectOption } from "../types/ui";
 import { calculateExperience, formatDate } from "../utils/dateUtils";
+import { getDepartmentColor } from "../utils/departmentUtils";
 import { ROUTES } from "../constants/routes";
+import {
+  MESSENGER_OPTIONS,
+  ALL_MESSENGER_TYPES,
+  type MessengerOption,
+} from "../constants/messengerOptions";
+
+// Хелпер для рендеринга иконки мессенджера
+const MessengerIcon: React.FC<{
+  option: MessengerOption;
+  className?: string;
+}> = ({ option, className = "" }) => {
+  if (option.iconImage) {
+    return (
+      <img
+        src={option.iconImage}
+        alt={option.label}
+        className={`w-5 h-5 object-contain ${className}`}
+      />
+    );
+  }
+  return <i className={`${option.icon} ${className}`}></i>;
+};
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams();
@@ -25,6 +52,11 @@ const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editData, setEditData] = useState<Partial<User>>({});
   const [saving, setSaving] = useState<boolean>(false);
+  const [allDepartments, setAllDepartments] = useState<string[]>([]);
+  const [selectedMessengers, setSelectedMessengers] = useState<MessengerType[]>(
+    []
+  );
+  const [editContacts, setEditContacts] = useState<UserContacts>({});
 
   // Загрузка данных профиля и руководителя
   useEffect(() => {
@@ -110,17 +142,60 @@ const ProfilePage: React.FC = () => {
     loadProfile();
   }, [userId, currentUser]);
 
+  // Загрузка списка подразделений для выбора
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const departments = await adminService.getAllDepartments();
+        setAllDepartments(departments);
+      } catch (err) {
+        console.error("Ошибка загрузки списка подразделений:", err);
+      }
+    };
+
+    loadDepartments();
+  }, []);
+
+  // Опции для выбора подразделения
+  const departmentOptions = useMemo<SelectOption[]>(
+    () =>
+      allDepartments.map(dept => ({
+        label: dept,
+        value: dept,
+      })),
+    [allDepartments]
+  );
+
   // Обработка начала редактирования
   const handleStartEditing = () => {
     if (profile) {
+      // Инициализируем контакты из профиля
+      const contacts: UserContacts = profile.contacts || {};
+
+      // Если есть messengerLink (telegram) из старого формата, используем его
+      if (!contacts.telegram && profile.messengerLink) {
+        contacts.telegram = profile.messengerLink;
+      }
+
+      // Определяем какие мессенджеры уже заполнены
+      const activeMessengers: MessengerType[] = [];
+      if (contacts.telegram) activeMessengers.push("telegram");
+      if (contacts.skype) activeMessengers.push("skype");
+      if (contacts.linkedin) activeMessengers.push("linkedin");
+      if (contacts.whatsapp) activeMessengers.push("whatsapp");
+
+      setSelectedMessengers(activeMessengers);
+      setEditContacts(contacts);
+
       setEditData({
         phone: profile.phone || "",
+        email: profile.email || "",
         city: profile.city || "",
         interests: profile.interests || "",
         avatar: profile.avatar || "",
-        messengerLink: profile.messengerLink || "",
         position: profile.position || "",
         department: profile.department || undefined,
+        contacts: contacts,
       });
       setIsEditing(true);
     }
@@ -132,9 +207,16 @@ const ProfilePage: React.FC = () => {
 
     setSaving(true);
     try {
-      const updatedProfile = await updateUserProfile(profile.id, editData);
+      // Включаем отредактированные контакты в данные для сохранения
+      const dataToSave = {
+        ...editData,
+        contacts: editContacts,
+      };
+      const updatedProfile = await updateUserProfile(profile.id, dataToSave);
       setProfile(updatedProfile);
       setIsEditing(false);
+      setSelectedMessengers([]);
+      setEditContacts({});
     } catch (error) {
       console.error("Ошибка при сохранении профиля:", error);
       setError("Ошибка при сохранении профиля");
@@ -147,6 +229,8 @@ const ProfilePage: React.FC = () => {
   const handleCancel = () => {
     setIsEditing(false);
     setEditData({});
+    setSelectedMessengers([]);
+    setEditContacts({});
   };
 
   // Обработка изменения полей формы
@@ -154,6 +238,28 @@ const ProfilePage: React.FC = () => {
     setEditData(prev => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  // Обработка выбора мессенджеров
+  const handleMessengersChange = (messengers: MessengerType[]) => {
+    setSelectedMessengers(messengers);
+
+    // Удаляем контакты для снятых мессенджеров
+    const newContacts = { ...editContacts };
+    for (const type of ALL_MESSENGER_TYPES) {
+      if (!messengers.includes(type)) {
+        delete newContacts[type];
+      }
+    }
+    setEditContacts(newContacts);
+  };
+
+  // Обработка изменения контакта
+  const handleContactChange = (type: MessengerType, value: string) => {
+    setEditContacts(prev => ({
+      ...prev,
+      [type]: value || undefined,
     }));
   };
 
@@ -345,17 +451,52 @@ const ProfilePage: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-800 mb-2 font-golos">
                           Подразделение
                         </h3>
-                        <InputText
-                          value={editData.department?.name || ""}
-                          onChange={e =>
-                            handleChange("department", {
-                              id: profile.department?.id || "",
-                              name: e.target.value,
-                              color: profile.department?.color || "",
-                            })
-                          }
-                          className="w-full font-inter"
-                        />
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{
+                              backgroundColor:
+                                editData.department?.color ||
+                                getDepartmentColor(
+                                  editData.department?.name || ""
+                                ),
+                            }}
+                          />
+                          <Dropdown
+                            value={editData.department?.name || ""}
+                            options={departmentOptions}
+                            onChange={e => {
+                              const selectedDepartment =
+                                typeof e.value === "string"
+                                  ? e.value
+                                  : editData.department?.name || "";
+                              handleChange("department", {
+                                id:
+                                  profile.department?.id ||
+                                  selectedDepartment
+                                    .toLowerCase()
+                                    .replaceAll(/\s+/g, "-"),
+                                name: selectedDepartment,
+                                color: getDepartmentColor(selectedDepartment),
+                              });
+                            }}
+                            className="w-full font-inter"
+                            placeholder="Выберите подразделение"
+                            itemTemplate={(option: SelectOption) => (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{
+                                    backgroundColor: getDepartmentColor(
+                                      option.value
+                                    ),
+                                  }}
+                                />
+                                <span>{option.label}</span>
+                              </div>
+                            )}
+                          />
+                        </div>
                       </div>
                       <div className="bg-white rounded-lg p-4 shadow-sm">
                         <h3 className="text-lg font-semibold text-gray-800 mb-2 font-golos">
@@ -436,15 +577,60 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="md:col-span-2">
                           <span className="font-medium">
-                            Корпоративный чат:
+                            Корпоративные чаты:
                           </span>
-                          <InputText
-                            value={editData.messengerLink || ""}
+                          <MultiSelect
+                            value={selectedMessengers}
+                            options={MESSENGER_OPTIONS}
                             onChange={e =>
-                              handleChange("messengerLink", e.target.value)
+                              handleMessengersChange(e.value as MessengerType[])
                             }
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Выберите мессенджеры"
                             className="w-full font-inter mt-1"
+                            display="chip"
+                            itemTemplate={option => (
+                              <div className="flex items-center gap-2">
+                                <MessengerIcon option={option} />
+                                <span>{option.label}</span>
+                              </div>
+                            )}
                           />
+
+                          {/* Инпуты для выбранных мессенджеров */}
+                          {selectedMessengers.length > 0 && (
+                            <div className="mt-3 space-y-3">
+                              {selectedMessengers.map(messengerType => {
+                                const option = MESSENGER_OPTIONS.find(
+                                  o => o.value === messengerType
+                                );
+                                if (!option) return null;
+                                return (
+                                  <div
+                                    key={messengerType}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <MessengerIcon
+                                      option={option}
+                                      className="text-lg w-6"
+                                    />
+                                    <InputText
+                                      value={editContacts[messengerType] || ""}
+                                      onChange={e =>
+                                        handleContactChange(
+                                          messengerType,
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder={option.placeholder}
+                                      className="flex-1 font-inter"
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </>
                     ) : (
@@ -467,9 +653,35 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="md:col-span-2">
                           <span className="font-medium">
-                            Корпоративный чат:
-                          </span>{" "}
-                          {profile.messengerLink || "Не указан"}
+                            Корпоративные чаты:
+                          </span>
+                          {profile.contacts &&
+                          Object.entries(profile.contacts).some(
+                            ([, value]) => value
+                          ) ? (
+                            <div className="mt-2 space-y-2">
+                              {MESSENGER_OPTIONS.map(option => {
+                                const value = profile.contacts?.[option.value];
+                                if (!value) return null;
+                                return (
+                                  <div
+                                    key={option.value}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <MessengerIcon
+                                      option={option}
+                                      className="text-lg w-6"
+                                    />
+                                    <span>{value}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span className="text-gray-500 ml-1">
+                              Не указаны
+                            </span>
+                          )}
                         </div>
                       </>
                     )}

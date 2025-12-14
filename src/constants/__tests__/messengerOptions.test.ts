@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALL_MESSENGER_TYPES,
   MESSENGER_OPTIONS,
+  getMessengerLink,
   type MessengerOption,
 } from "../messengerOptions";
 
@@ -177,6 +178,134 @@ describe("messengerOptions", () => {
 
       expect(option.icon).toBe("pi pi-test");
       expect(option.iconImage).toBe("/path/to/image.png");
+    });
+  });
+
+  describe("getMessengerLink", () => {
+    describe("возвращает URL как есть если он уже полный", () => {
+      it("для https URL", () => {
+        expect(getMessengerLink("telegram", "https://t.me/user")).toBe(
+          "https://t.me/user"
+        );
+      });
+
+      it("для http URL", () => {
+        expect(getMessengerLink("telegram", "http://example.com")).toBe(
+          "http://example.com"
+        );
+      });
+    });
+
+    describe("telegram", () => {
+      it("преобразует @username в ссылку", () => {
+        expect(getMessengerLink("telegram", "@username")).toBe(
+          "https://t.me/username"
+        );
+      });
+
+      it("преобразует t.me/ ссылку", () => {
+        expect(getMessengerLink("telegram", "t.me/username")).toBe(
+          "https://t.me/username"
+        );
+      });
+
+      it("преобразует username без @", () => {
+        expect(getMessengerLink("telegram", "username")).toBe(
+          "https://t.me/username"
+        );
+      });
+
+      it("обрабатывает пробелы", () => {
+        expect(getMessengerLink("telegram", "  @username  ")).toBe(
+          "https://t.me/username"
+        );
+      });
+    });
+
+    describe("skype", () => {
+      it("оставляет skype: URI как есть", () => {
+        expect(getMessengerLink("skype", "skype:username?chat")).toBe(
+          "skype:username?chat"
+        );
+      });
+
+      it("преобразует live: в skype URI", () => {
+        expect(getMessengerLink("skype", "live:username")).toBe(
+          "skype:live:username?chat"
+        );
+      });
+
+      it("преобразует обычный username в skype URI", () => {
+        expect(getMessengerLink("skype", "username")).toBe(
+          "skype:username?chat"
+        );
+      });
+    });
+
+    describe("linkedin", () => {
+      it("добавляет https:// к linkedin.com", () => {
+        expect(getMessengerLink("linkedin", "linkedin.com/in/user")).toBe(
+          "https://linkedin.com/in/user"
+        );
+      });
+
+      it("формирует ссылку из username", () => {
+        expect(getMessengerLink("linkedin", "username")).toBe(
+          "https://linkedin.com/in/username"
+        );
+      });
+    });
+
+    describe("whatsapp", () => {
+      it("добавляет https:// к wa.me/", () => {
+        expect(getMessengerLink("whatsapp", "wa.me/79001234567")).toBe(
+          "https://wa.me/79001234567"
+        );
+      });
+
+      it("очищает номер телефона от лишних символов", () => {
+        expect(getMessengerLink("whatsapp", "+7 (900) 123-45-67")).toBe(
+          "https://wa.me/79001234567"
+        );
+      });
+
+      it("удаляет + из номера для wa.me", () => {
+        expect(getMessengerLink("whatsapp", "+79001234567")).toBe(
+          "https://wa.me/79001234567"
+        );
+      });
+    });
+
+    describe("vk", () => {
+      it("добавляет https:// к vk.com", () => {
+        expect(getMessengerLink("vk", "vk.com/username")).toBe(
+          "https://vk.com/username"
+        );
+      });
+
+      it("формирует ссылку из username", () => {
+        expect(getMessengerLink("vk", "username")).toBe(
+          "https://vk.com/username"
+        );
+      });
+    });
+
+    describe("mattermost", () => {
+      it("возвращает значение как есть", () => {
+        expect(getMessengerLink("mattermost", "@username")).toBe("@username");
+      });
+    });
+
+    describe("unknown type", () => {
+      it("возвращает значение как есть для неизвестного типа", () => {
+        // Type assertion to test default case
+        expect(
+          getMessengerLink(
+            "unknown" as Parameters<typeof getMessengerLink>[0],
+            "value"
+          )
+        ).toBe("value");
+      });
     });
   });
 });

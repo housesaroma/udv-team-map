@@ -18,6 +18,7 @@ import { ROUTES } from "../constants/routes";
 import {
   MESSENGER_OPTIONS,
   ALL_MESSENGER_TYPES,
+  getMessengerLink,
   type MessengerOption,
 } from "../constants/messengerOptions";
 
@@ -659,20 +660,42 @@ const ProfilePage: React.FC = () => {
                           Object.entries(profile.contacts).some(
                             ([, value]) => value
                           ) ? (
-                            <div className="mt-2 space-y-2">
+                            <div className="mt-2 flex flex-wrap gap-3">
                               {MESSENGER_OPTIONS.map(option => {
                                 const value = profile.contacts?.[option.value];
                                 if (!value) return null;
-                                return (
-                                  <div
+                                const link = getMessengerLink(
+                                  option.value,
+                                  value
+                                );
+                                // Mattermost может не иметь внешней ссылки
+                                const isClickable =
+                                  option.value !== "mattermost" ||
+                                  link.startsWith("http");
+                                return isClickable ? (
+                                  <a
                                     key={option.value}
-                                    className="flex items-center gap-2"
+                                    href={link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                                    title={`${option.label}: ${value}`}
                                   >
                                     <MessengerIcon
                                       option={option}
-                                      className="text-lg w-6"
+                                      className="text-xl"
                                     />
-                                    <span>{value}</span>
+                                  </a>
+                                ) : (
+                                  <div
+                                    key={option.value}
+                                    className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 cursor-default"
+                                    title={`${option.label}: ${value}`}
+                                  >
+                                    <MessengerIcon
+                                      option={option}
+                                      className="text-xl"
+                                    />
                                   </div>
                                 );
                               })}

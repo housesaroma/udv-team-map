@@ -25,6 +25,7 @@ export const AdminButton: React.FC = () => {
         className={`${styles.adminButton} p-2 hover:bg-transparent focus:shadow-none font-inter hover:opacity-80 transition-opacity rounded-md`}
         tooltip="Перейти к таблице сотрудников"
         tooltipOptions={{ position: "bottom" }}
+        data-tour="admin-button"
       />
     );
   }
@@ -42,6 +43,7 @@ export const AdminButton: React.FC = () => {
       className={`${styles.adminButton} p-2 hover:bg-transparent focus:shadow-none font-inter hover:opacity-80 transition-opacity rounded-md`}
       tooltip="Перейти в административную панель"
       tooltipOptions={{ position: "bottom" }}
+      data-tour="admin-button"
     />
   );
 };

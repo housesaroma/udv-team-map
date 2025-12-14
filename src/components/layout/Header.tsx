@@ -26,6 +26,7 @@ const Header: React.FC = () => {
       onClick={handleLogoClick}
       text
       className="p-0 hover:bg-transparent focus:shadow-none"
+      data-tour="logo"
     >
       <div className="flex items-center">
         <img src={logo} alt="UDV Team Map Logo" className="h-8" />
@@ -44,6 +45,7 @@ const Header: React.FC = () => {
         tooltip="О системе"
         tooltipOptions={{ position: "bottom" }}
         style={{ color: "#f8fafc" }}
+        data-tour="about-button"
       />
       {canEditTree && (
         <Button
@@ -57,6 +59,7 @@ const Header: React.FC = () => {
           className="p-2 hover:bg-transparent focus:shadow-none font-inter hover:opacity-80 transition-opacity rounded-md"
           tooltip="Перейти к редактированию дерева"
           tooltipOptions={{ position: "bottom" }}
+          data-tour="tree-editor-button"
         />
       )}
       <AdminButton />
@@ -65,6 +68,7 @@ const Header: React.FC = () => {
         text
         rounded
         className="p-0 hover:bg-transparent focus:shadow-none"
+        data-tour="profile-button"
       >
         <Avatar
           icon="pi pi-user"

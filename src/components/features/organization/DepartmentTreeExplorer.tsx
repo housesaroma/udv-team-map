@@ -304,6 +304,7 @@ export const DepartmentTreeExplorer: React.FC = () => {
         minWidth: `${MAP_CONSTANTS.MAP_WIDTH}px`,
         minHeight: `${MAP_CONSTANTS.MAP_HEIGHT}px`,
       }}
+      data-tour="organization-tree"
     >
       <ConnectionLines nodes={nodesWithLayout} />
 

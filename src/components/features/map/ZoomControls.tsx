@@ -22,7 +22,10 @@ export const ZoomControlsComponent: React.FC<ZoomControlsProps> = ({
   const isZoomInDisabled = zoom >= maxZoom;
 
   return (
-    <div className="flex items-center gap-2 bg-secondary p-2 rounded-lg shadow-lg border-1 surface-border">
+    <div
+      className="flex items-center gap-2 bg-secondary p-2 rounded-lg shadow-lg border-1 surface-border"
+      data-tour="zoom-controls"
+    >
       {/* Кнопка уменьшения */}
       <Button
         icon="pi pi-minus"

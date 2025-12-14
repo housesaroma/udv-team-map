@@ -3,6 +3,7 @@ export const ROUTES = {
   login: "/login",
   admin: "/admin",
   treeEditor: "/tree-editor",
+  about: "/about",
   notFound: "*",
   department: {
     root: "/department",

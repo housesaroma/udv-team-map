@@ -35,6 +35,16 @@ const Header: React.FC = () => {
 
   const endContent = (
     <div className="flex items-center gap-4">
+      <Button
+        onClick={() => navigate(ROUTES.about)}
+        icon="pi pi-info-circle"
+        text
+        rounded
+        className="p-2 hover:bg-transparent focus:shadow-none hover:opacity-80 transition-opacity"
+        tooltip="О системе"
+        tooltipOptions={{ position: "bottom" }}
+        style={{ color: "#f8fafc" }}
+      />
       {canEditTree && (
         <Button
           onClick={() => navigate(ROUTES.treeEditor)}

@@ -7,6 +7,7 @@ describe("routes constants", () => {
     expect(ROUTES.login).toBe("/login");
     expect(ROUTES.admin).toBe("/admin");
     expect(ROUTES.treeEditor).toBe("/tree-editor");
+    expect(ROUTES.about).toBe("/about");
     expect(ROUTES.department.byId(7)).toBe("/department/7");
     expect(ROUTES.profile.byId("42")).toBe("/profile/42");
   });

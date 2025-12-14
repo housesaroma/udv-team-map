@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./pages/AdminPanel";
 import TreeEditorPage from "./pages/TreeEditorPage";
+import AboutPage from "./pages/AboutPage";
 import ProtectedRoute from "./components/features/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import { ROUTES, toRelativePath } from "./constants/routes";
@@ -39,6 +40,7 @@ function App() {
           path={toRelativePath(ROUTES.treeEditor)}
           element={<TreeEditorPage />}
         />
+        <Route path={toRelativePath(ROUTES.about)} element={<AboutPage />} />
       </Route>
 
       {/* Обработка несуществующих маршрутов */}

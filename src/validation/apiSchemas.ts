@@ -109,6 +109,7 @@ export const apiUserProfileSchema = z.object({
   bornDate: optionalString,
   workExperience: optionalString,
   contacts: optionalContacts,
+  managerId: optionalString,
 });
 
 export const usersResponseSchema = z.object({

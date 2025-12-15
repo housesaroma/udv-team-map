@@ -253,6 +253,7 @@ export const userService = {
           data.hireDate ||
           data.hire_date) as string | undefined,
         contacts: normalizeContacts(data.contacts),
+        managerId: (data.managerId || data.manager_id) as string | undefined,
       };
 
       console.log("Нормализованные данные профиля:", normalizedData);
@@ -495,6 +496,7 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
       vk: vkContacts[0] || undefined,
       mattermost: mattermostContacts[0] || undefined,
     },
+    managerId: apiUser.managerId,
   };
 };
 
@@ -648,6 +650,7 @@ export const updateUserProfile = async (
         data.hireDate ||
         data.hire_date) as string | undefined,
       contacts: normalizeContacts(data.contacts),
+      managerId: (data.managerId || data.manager_id) as string | undefined,
     };
 
     console.log("Нормализованные данные обновленного профиля:", normalizedData);

@@ -792,6 +792,48 @@ describe("userService.getUserProfile", () => {
 
     expect(result.contacts?.telegram).toBeUndefined();
   });
+
+  it("корректно маппит manager_id из snake_case в managerId", async () => {
+    const managerId = "10000000-0000-0000-0000-000000000050";
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify({
+        ...createApiUser(),
+        manager_id: managerId,
+      }),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.managerId).toBe(managerId);
+  });
+
+  it("корректно обрабатывает managerId в camelCase формате", async () => {
+    const managerId = "20000000-0000-0000-0000-000000000060";
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(
+        createApiUser({
+          managerId,
+        })
+      ),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.managerId).toBe(managerId);
+  });
+
+  it("устанавливает managerId в undefined если он отсутствует", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser()),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.managerId).toBeUndefined();
+  });
 });
 
 describe("вспомогательные методы userService", () => {

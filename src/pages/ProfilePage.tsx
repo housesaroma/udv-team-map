@@ -62,6 +62,10 @@ const ProfilePage: React.FC = () => {
   // Загрузка данных профиля и руководителя
   useEffect(() => {
     const loadProfile = async () => {
+      // Очищаем предыдущие данные при изменении userId
+      setProfile(null);
+      setManager(null);
+
       // Если это личный профиль (без userId) и есть текущий пользователь
       if (!userId && currentUser) {
         try {

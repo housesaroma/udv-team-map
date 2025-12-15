@@ -21,7 +21,10 @@ const TreeEditorPage: React.FC = () => {
       permission={Permission.ACCESS_ADMIN_PANEL}
       fallback={<ForbiddenFallback />}
     >
-      <div className="w-full h-100vh bg-primary relative">
+      <div
+        className="w-full h-100vh bg-primary relative"
+        data-tour="tree-editor-page"
+      >
         <CustomCanvas>
           <FullHierarchyTreeEditor />
         </CustomCanvas>

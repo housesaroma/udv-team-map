@@ -359,7 +359,7 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto pt-24 pb-12">
+    <div className="container mx-auto pt-24 pb-12" data-tour="profile-page">
       <div className="bg-secondary rounded-lg shadow-md p-8 mx-4 md:mx-6 lg:mx-8">
         {/* Заголовок и кнопка выхода */}
         <div className="flex justify-between items-center mb-8">

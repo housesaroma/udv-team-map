@@ -14,7 +14,7 @@ const AdminPanel: React.FC = () => {
   // Если пользователь не может модерировать фото, показываем только таблицу сотрудников
   if (!canModeratePhotos) {
     return (
-      <div className="container mx-auto p-6 pt-24">
+      <div className="container mx-auto p-6 pt-24" data-tour="admin-page">
         <div className="bg-secondary rounded-lg shadow-md p-8">
           <EmployeesTable />
         </div>
@@ -24,7 +24,7 @@ const AdminPanel: React.FC = () => {
 
   // Для HR и админов показываем обе вкладки
   return (
-    <div className="container mx-auto p-6 pt-24">
+    <div className="container mx-auto p-6 pt-24" data-tour="admin-page">
       <div className="bg-secondary rounded-lg shadow-md p-8">
         {/* Переключатель видов */}
         <div className="flex mb-8">

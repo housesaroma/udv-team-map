@@ -25,6 +25,7 @@ export interface UsersQueryParams {
 }
 
 export interface UpdateUserRequest {
+  userId: string;
   department: string;
   position: string;
 }
@@ -155,6 +156,8 @@ export const adminService = {
       }
 
       const rawData = response.data;
+      console.log("Ответ сервера на обновление пользователя (raw):", rawData);
+      
       const parsed = updateUserResponseSchema.safeParse(rawData);
 
       if (!parsed.success) {
@@ -164,6 +167,7 @@ export const adminService = {
         throw new Error("Некорректный ответ сервера");
       }
 
+      console.log("Валидированные данные после обновления:", parsed.data);
       return parsed.data;
     } catch (error) {
       console.error("Ошибка обновления пользователя:", error);

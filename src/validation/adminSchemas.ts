@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const updateUserRequestSchema = z.object({
+  userId: z.string().min(1, "Не указан ID пользователя"),
   department: z
     .string()
     .trim()

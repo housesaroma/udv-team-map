@@ -119,15 +119,35 @@ export const usersResponseSchema = z.object({
   pageSize: z.number().int().positive(),
 });
 
-export const updateUserResponseSchema = apiUserProfileSchema.extend({
-  bornDate: optionalString,
-  workExperience: optionalString,
+// Схема для ответа от сервера с поддержкой snake_case
+const updateUserResponseSchemaRaw = z.object({
+  user_id: z.string().min(1).optional(),
+  userId: z.string().min(1).optional(),
+  userName: z.string().min(1),
+  position: z.string().min(1),
+  department: z.string().min(1),
+  avatar: optionalString,
   phoneNumber: optionalString,
   city: optionalString,
   interests: optionalString,
-  avatar: optionalString,
+  bornDate: optionalString,
+  workExperience: optionalString,
   contacts: optionalContacts,
 });
+
+export const updateUserResponseSchema = updateUserResponseSchemaRaw.transform((data) => ({
+  userId: data.userId || data.user_id || "",
+  userName: data.userName,
+  position: data.position,
+  department: data.department,
+  avatar: data.avatar,
+  phoneNumber: data.phoneNumber,
+  city: data.city,
+  interests: data.interests,
+  bornDate: data.bornDate,
+  workExperience: data.workExperience,
+  contacts: data.contacts,
+}));
 
 export const stringArraySchema = z.array(z.string().min(1));
 

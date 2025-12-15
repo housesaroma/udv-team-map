@@ -128,9 +128,11 @@ export const useEmployeesTable = () => {
     return role === "admin" || role === "hr";
   }, []);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
 
       const positionFilterStr =
         tableState.positionFilter.length > 0
@@ -167,7 +169,9 @@ export const useEmployeesTable = () => {
     } catch (error) {
       console.error("Ошибка загрузки пользователей:", error);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [tableState, debouncedSearchText]);
 
@@ -306,6 +310,7 @@ export const useEmployeesTable = () => {
     if (!canEditUsers) return;
 
     const normalizedData = {
+      userId: user.id,
       department: user.department.name.trim(),
       position: user.position.trim(),
     };
@@ -327,24 +332,26 @@ export const useEmployeesTable = () => {
       return;
     }
 
+    // Оптимистичное обновление UI - сразу применяем изменения
+    setUsers(prevUsers =>
+      prevUsers.map(u =>
+        u.id === user.id
+          ? { ...u, isEditing: false, originalData: undefined }
+          : u
+      )
+    );
+    setEditingUserId(null);
+    clearRowValidation(user.id);
+
+    // Отправляем запрос в фоне
     try {
       const updateData: UpdateUserRequest = validationResult.data;
-
       await adminService.updateUser(user.id, updateData);
-
-      setUsers(prevUsers =>
-        prevUsers.map(u =>
-          u.id === user.id
-            ? { ...u, isEditing: false, originalData: undefined }
-            : u
-        )
-      );
-      setEditingUserId(null);
-      clearRowValidation(user.id);
-      console.log("Пользователь успешно обновлен");
+      console.log("Пользователь успешно обновлен на сервере");
     } catch (error) {
-      console.error("Ошибка при обновлении пользователя:", error);
-      cancelEditing(user.id);
+      console.error("Ошибка при обновлении пользователя на сервере:", error);
+      // При ошибке перезагружаем данные с сервера (без спиннера)
+      await loadUsers(true);
     }
   };
 
@@ -414,6 +421,10 @@ export const useEmployeesTable = () => {
     setSortState({ sortField: undefined, sortOrder: null });
   };
 
+  const refreshUsers = useCallback(() => {
+    return loadUsers(false);
+  }, [loadUsers]);
+
   return {
     users,
     loading,
@@ -427,7 +438,7 @@ export const useEmployeesTable = () => {
     selectedUser,
     editingUserId,
     handleGlobalFilterChange,
-    refreshUsers: loadUsers,
+    refreshUsers,
     resetAllFilters,
     onPageChange,
     onSort,

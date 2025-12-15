@@ -130,9 +130,9 @@ describe("AboutPage", () => {
 
     it("renders keyboard shortcuts", () => {
       renderAboutPage();
-      expect(screen.getByText("Ctrl + +")).toBeInTheDocument();
-      expect(screen.getByText("Ctrl + -")).toBeInTheDocument();
-      expect(screen.getByText("Ctrl + 0")).toBeInTheDocument();
+      expect(screen.getByText('Ctrl + "+"')).toBeInTheDocument();
+      expect(screen.getByText('Ctrl + "-"')).toBeInTheDocument();
+      expect(screen.getByText('Ctrl + "0"')).toBeInTheDocument();
       expect(screen.getByText("Увеличить масштаб")).toBeInTheDocument();
     });
   });

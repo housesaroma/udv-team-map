@@ -49,6 +49,7 @@ export const useEmployeesTable = () => {
   const [users, setUsers] = useState<TableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState("");
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [totalRecords, setTotalRecords] = useState(0);
   const [, setIsCached] = useState(false);
@@ -147,7 +148,7 @@ export const useEmployeesTable = () => {
         positionFilter: positionFilterStr,
         departmentFilter: departmentFilterStr,
         isCached: false,
-        SearchText: globalFilter.trim() || undefined,
+        SearchText: debouncedSearchText.trim() || undefined,
       };
 
       const response = await adminService.getUsersTransformed(params);
@@ -168,7 +169,7 @@ export const useEmployeesTable = () => {
     } finally {
       setLoading(false);
     }
-  }, [tableState, globalFilter]);
+  }, [tableState, debouncedSearchText]);
 
   useEffect(() => {
     loadUsers();
@@ -207,6 +208,7 @@ export const useEmployeesTable = () => {
     }
 
     debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchText(value);
       setTableState(prev => ({
         ...prev,
         page: 0,
@@ -397,6 +399,7 @@ export const useEmployeesTable = () => {
 
   const resetAllFilters = () => {
     setGlobalFilter("");
+    setDebouncedSearchText("");
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;

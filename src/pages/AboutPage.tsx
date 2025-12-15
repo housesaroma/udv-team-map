@@ -243,11 +243,11 @@ const SystemInfo: React.FC = () => {
         </h2>
         <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="grid md:grid-cols-2 gap-4">
-            <ShortcutItem keys="Ctrl + +" description="Увеличить масштаб" />
-            <ShortcutItem keys="Ctrl + -" description="Уменьшить масштаб" />
-            <ShortcutItem keys="Ctrl + 0" description="Сбросить масштаб" />
+            <ShortcutItem keys='Ctrl + "+"' description="Увеличить масштаб" />
+            <ShortcutItem keys='Ctrl + "-"' description="Уменьшить масштаб" />
+            <ShortcutItem keys='Ctrl + "0"' description="Сбросить масштаб" />
             <ShortcutItem
-              keys="Перетаскивание"
+              keys="ЛКМ"
               description="Перемещение по карте"
             />
           </div>

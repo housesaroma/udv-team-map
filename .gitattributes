@@ -1,1 +1,2 @@
-public/videos/*.mp4 filter=lfs diff=lfs merge=lfs -text
+# Git LFS отключен - видео теперь обычные файлы
+# public/videos/*.mp4 filter=lfs diff=lfs merge=lfs -text

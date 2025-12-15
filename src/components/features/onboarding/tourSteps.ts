@@ -92,7 +92,7 @@ export const tourSteps: TourStepWithRoles[] = [
     target: "[data-tour='logo']",
     title: "Панель администратора",
     content:
-      "Здесь вы можете редактировать данные сотрудников, модерировать фотографии и управлять пользователями.",
+      "Здесь вы можете редактировать данные сотрудников такие как подразделение и должность. А также искать нужных сотрудников в компании.",
     placement: "bottom",
     route: ROUTES.admin,
     roles: ["hr", "admin"],
@@ -113,7 +113,7 @@ export const tourSteps: TourStepWithRoles[] = [
     target: "[data-tour='admin-button']",
     title: "Таблица сотрудников",
     content:
-      "Нажмите сюда, чтобы открыть таблицу всех сотрудников компании. Здесь можно искать коллег, смотреть их контакты и должности.",
+      "Нажмите сюда, чтобы открыть таблицу всех сотрудников компании. Здесь можно искать коллег, смотреть их подразделения и должности.",
     placement: "bottom",
     route: ROUTES.root,
     roles: ["employee"],
@@ -154,7 +154,7 @@ export const tourSteps: TourStepWithRoles[] = [
     target: "[data-tour='logo']",
     title: "Страница профиля",
     content:
-      "Здесь вы можете просмотреть и отредактировать свою информацию, контакты и фотографию.",
+      "Здесь вы можете просмотреть и отредактировать свою информацию.",
     placement: "bottom",
     route: ROUTES.profile.root,
     disableScroll: true,

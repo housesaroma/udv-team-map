@@ -14,7 +14,7 @@ interface VideoLesson {
   duration: string;
   videoUrl: string; // путь к видео в /public/videos/
   thumbnail?: string;
-  category: "basics" | "admin" | "advanced";
+  category: "map" | "profile" | "admin" | "tree";
   /** Роли, которым доступен этот урок. Если не указано - доступен всем */
   roles?: UserRole[];
 }
@@ -23,77 +23,92 @@ interface VideoLesson {
 const VIDEO_LESSONS: VideoLesson[] = [
   {
     id: "lesson-1",
-    title: "Навигация по карте организации",
+    title: "Просмотр карты сотрудников",
     description:
-      "Узнайте, как перемещаться по карте, масштабировать и находить нужные отделы",
-    duration: "2:30",
-    videoUrl: "/videos/lesson-1-navigation.mp4",
-    category: "basics",
+      "Узнайте, как перемещаться по интерактивной карте организации, масштабировать её и быстро находить нужные отделы и сотрудников",
+    duration: "0:13",
+    videoUrl: "/videos/просмотр карты сотрудников.mp4",
+    category: "map",
     // Доступен всем - roles не указан
   },
   {
     id: "lesson-2",
-    title: "Поиск сотрудников",
-    description: "Как быстро найти нужного сотрудника по имени или должности",
-    duration: "1:45",
-    videoUrl: "/videos/lesson-2-search.mp4",
-    category: "basics",
+    title: "Переход к просмотру отдела",
+    description:
+      "Научитесь быстро переходить к просмотру конкретного отдела, чтобы увидеть всех его сотрудников и структуру подразделений",
+    duration: "0:10",
+    videoUrl: "/videos/переход к просмотру отдела.mp4",
+    category: "map",
     // Доступен всем
   },
   {
     id: "lesson-3",
-    title: "Просмотр профиля сотрудника",
-    description: "Как открыть профиль сотрудника и посмотреть его контакты",
-    duration: "1:30",
-    videoUrl: "/videos/lesson-3-profile.mp4",
-    category: "basics",
+    title: "Просмотр чужого профиля",
+    description:
+      "Как открыть профиль любого сотрудника компании и посмотреть его контактные данные, должность и другую информацию",
+    duration: "0:07",
+    videoUrl: "/videos/просмотр чужого профиля.mp4",
+    category: "profile",
     // Доступен всем
   },
   {
     id: "lesson-4",
     title: "Редактирование своего профиля",
-    description: "Как обновить свою информацию, фото и контактные данные",
-    duration: "2:00",
-    videoUrl: "/videos/lesson-4-edit-profile.mp4",
-    category: "basics",
+    description:
+      "Пошаговая инструкция по обновлению своей информации: как изменить контактные данные, должность и другие поля",
+    duration: "0:08",
+    videoUrl: "/videos/редактирование своего профиля.mp4",
+    category: "profile",
     // Доступен всем
   },
   {
     id: "lesson-5",
-    title: "Работа с таблицей сотрудников",
-    description: "Как использовать таблицу для поиска и фильтрации сотрудников",
-    duration: "2:15",
-    videoUrl: "/videos/lesson-5-employees-table.mp4",
+    title: "Админ панель",
+    description:
+      "Обзор административной панели: работа с таблицей сотрудников, фильтрация и поиск данных",
+    duration: "0:18",
+    videoUrl: "/videos/админ панель.mp4",
     category: "admin",
-    roles: ["hr", "admin"], // Только для HR и админов
+    roles: ["hr", "admin"], // Для HR и админов
   },
   {
     id: "lesson-6",
-    title: "Перемещение сотрудников между отделами",
+    title: "Редактирование на админ панели",
     description:
-      "Пошаговая инструкция по переводу сотрудника в другой отдел (для HR)",
-    duration: "3:00",
-    videoUrl: "/videos/lesson-6-move-employee.mp4",
+      "Как редактировать данные сотрудников через административную панель: изменение должности и отдела",
+    duration: "0:11",
+    videoUrl: "/videos/редактирование на админ панели.mp4",
     category: "admin",
-    roles: ["hr", "admin"], // Только для HR и админов
+    roles: ["hr", "admin"], // Для HR и админов
   },
   {
     id: "lesson-7",
-    title: "Модерация фотографий",
-    description: "Как одобрять или отклонять фотографии сотрудников (для HR)",
-    duration: "1:45",
-    videoUrl: "/videos/lesson-7-photo-moderation.mp4",
-    category: "admin",
-    roles: ["hr", "admin"], // Только для HR и админов
+    title: "Редактирование чужого профиля",
+    description:
+      "Инструкция для HR по редактированию профилей других сотрудников: как внести изменения и обновить информацию",
+    duration: "0:08",
+    videoUrl: "/videos/редактирование чужого профиля.mp4",
+    category: "profile",
+    roles: ["hr", "admin"], // Для HR и админов
   },
   {
     id: "lesson-8",
-    title: "Редактирование структуры организации",
+    title: "Перемещение сотрудников",
     description:
-      "Как добавлять, удалять и перемещать отделы в дереве (для HR и администраторов)",
-    duration: "4:00",
-    videoUrl: "/videos/lesson-8-tree-editor.mp4",
-    category: "advanced",
+      "Как перемещать сотрудников между отделами в организационной структуре, изменять их позиции и иерархию",
+    duration: "0:11",
+    videoUrl: "/videos/перемещение сотрудников.mp4",
+    category: "tree",
+    roles: ["hr", "admin"], // Для HR и админов
+  },
+  {
+    id: "lesson-9",
+    title: "Свап сотрудников",
+    description:
+      "Продвинутая функция: как менять местами сотрудников в пределах одного отдела для быстрой реорганизации",
+    duration: "0:11",
+    videoUrl: "/videos/свап сотрудников.mp4",
+    category: "tree",
     roles: ["hr", "admin"], // Для HR и админов
   },
 ];
@@ -258,7 +273,7 @@ export const TrainingContent: React.FC = () => {
   const { userRole } = usePermissions();
   const [selectedVideo, setSelectedVideo] = useState<VideoLesson | null>(null);
   const [activeCategory, setActiveCategory] = useState<
-    "all" | "basics" | "admin" | "advanced"
+    "all" | "map" | "profile" | "admin" | "tree"
   >("all");
 
   // Фильтруем уроки по роли пользователя
@@ -269,35 +284,43 @@ export const TrainingContent: React.FC = () => {
 
   // Определяем доступные категории на основе отфильтрованных уроков
   const availableCategories = useMemo(() => {
-    const hasBasics = availableLessons.some(l => l.category === "basics");
+    const hasMap = availableLessons.some(l => l.category === "map");
+    const hasProfile = availableLessons.some(l => l.category === "profile");
     const hasAdmin = availableLessons.some(l => l.category === "admin");
-    const hasAdvanced = availableLessons.some(l => l.category === "advanced");
+    const hasTree = availableLessons.some(l => l.category === "tree");
 
     const categories: {
-      key: "all" | "basics" | "admin" | "advanced";
+      key: "all" | "map" | "profile" | "admin" | "tree";
       label: string;
       icon: string;
     }[] = [{ key: "all" as const, label: "Все уроки", icon: "pi-list" }];
 
-    if (hasBasics) {
+    if (hasMap) {
       categories.push({
-        key: "basics" as const,
-        label: "Основы",
-        icon: "pi-home",
+        key: "map" as const,
+        label: "Карта",
+        icon: "pi-sitemap",
+      });
+    }
+    if (hasProfile) {
+      categories.push({
+        key: "profile" as const,
+        label: "Профиль",
+        icon: "pi-user",
       });
     }
     if (hasAdmin) {
       categories.push({
         key: "admin" as const,
-        label: "Для HR",
-        icon: "pi-users",
+        label: "Админ панель",
+        icon: "pi-table",
       });
     }
-    if (hasAdvanced) {
+    if (hasTree) {
       categories.push({
-        key: "advanced" as const,
-        label: "Администрирование",
-        icon: "pi-cog",
+        key: "tree" as const,
+        label: "Редактор структуры",
+        icon: "pi-share-alt",
       });
     }
 
@@ -409,15 +432,17 @@ const VideoLessonCard: React.FC<VideoLessonCardProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const categoryColors = {
-    basics: "bg-blue-100 text-blue-700",
+    map: "bg-blue-100 text-blue-700",
+    profile: "bg-green-100 text-green-700",
     admin: "bg-purple-100 text-purple-700",
-    advanced: "bg-orange-100 text-orange-700",
+    tree: "bg-orange-100 text-orange-700",
   };
 
   const categoryLabels = {
-    basics: "Основы",
-    admin: "Для HR",
-    advanced: "Администрирование",
+    map: "Карта",
+    profile: "Профиль",
+    admin: "Админ панель",
+    tree: "Редактор структуры",
   };
 
   const handleMouseEnter = () => {
@@ -471,8 +496,8 @@ const VideoLessonCard: React.FC<VideoLessonCardProps> = ({
             isHovered ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-            <i className="pi pi-play text-2xl text-white" />
+          <div className="bg-white/20 backdrop-blur-sm rounded-full p-1.5">
+            <i className="pi pi-play text-xl text-white" />
           </div>
         </div>
 

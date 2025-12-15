@@ -147,9 +147,9 @@ describe("filterTourStepsByRole", () => {
     );
     // Employee can see admin route but only with employee role
     expect(
-      filtered.filter(s => s.route === ROUTES.admin).every(
-        s => !s.roles || s.roles.includes("employee")
-      )
+      filtered
+        .filter(s => s.route === ROUTES.admin)
+        .every(s => !s.roles || s.roles.includes("employee"))
     ).toBe(true);
     expect(filtered.every(s => s.route !== ROUTES.treeEditor || !s.roles)).toBe(
       true

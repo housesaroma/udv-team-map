@@ -230,58 +230,61 @@ describe("AboutPage", () => {
       expect(
         screen.getByRole("button", { name: /Все уроки/ })
       ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Карта/ })).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Основы/ })
+        screen.getByRole("button", { name: /Профиль/ })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Для HR/ })
+        screen.getByRole("button", { name: /Админ панель/ })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Администрирование/ })
+        screen.getByRole("button", { name: /Редактор структуры/ })
       ).toBeInTheDocument();
     });
 
     it("renders video lessons", () => {
       renderTrainingContent();
       expect(
-        screen.getByText("Навигация по карте организации")
+        screen.getByText("Просмотр карты сотрудников")
       ).toBeInTheDocument();
-      expect(screen.getByText("Поиск сотрудников")).toBeInTheDocument();
+      expect(
+        screen.getByText("Переход к просмотру отдела")
+      ).toBeInTheDocument();
     });
 
     it("filters lessons by category", () => {
       renderTrainingContent();
 
-      // Click HR category button
-      fireEvent.click(screen.getByRole("button", { name: /Для HR/ }));
+      // Click Admin panel category button
+      fireEvent.click(screen.getByRole("button", { name: /Админ панель/ }));
 
-      // HR lessons should be visible
+      // Admin panel lessons should be visible (category="admin")
       expect(
-        screen.getByText("Работа с таблицей сотрудников")
+        screen.getByText("Редактирование на админ панели")
       ).toBeInTheDocument();
       expect(
-        screen.getByText("Перемещение сотрудников между отделами")
+        screen.getByRole("heading", { name: "Админ панель" })
       ).toBeInTheDocument();
 
       // Basic lessons should NOT be visible
       expect(
-        screen.queryByText("Навигация по карте организации")
+        screen.queryByText("Просмотр карты сотрудников")
       ).not.toBeInTheDocument();
     });
 
     it("shows all lessons when 'Все уроки' clicked", () => {
       renderTrainingContent();
 
-      // First filter by HR
-      fireEvent.click(screen.getByRole("button", { name: /Для HR/ }));
+      // First filter by Admin panel
+      fireEvent.click(screen.getByRole("button", { name: /Админ панель/ }));
       expect(
-        screen.queryByText("Навигация по карте организации")
+        screen.queryByText("Просмотр карты сотрудников")
       ).not.toBeInTheDocument();
 
       // Then click all
       fireEvent.click(screen.getByRole("button", { name: /Все уроки/ }));
       expect(
-        screen.getByText("Навигация по карте организации")
+        screen.getByText("Просмотр карты сотрудников")
       ).toBeInTheDocument();
     });
 
@@ -290,7 +293,7 @@ describe("AboutPage", () => {
 
       // Find the first video lesson card and click on it
       const lessonCard = screen
-        .getByText("Навигация по карте организации")
+        .getByText("Просмотр карты сотрудников")
         .closest("div.bg-white");
       expect(lessonCard).toBeInTheDocument();
       fireEvent.click(lessonCard!);
@@ -304,7 +307,7 @@ describe("AboutPage", () => {
 
       // Open dialog
       const lessonCard = screen
-        .getByText("Навигация по карте организации")
+        .getByText("Просмотр карты сотрудников")
         .closest("div.bg-white");
       fireEvent.click(lessonCard!);
 
@@ -333,35 +336,35 @@ describe("AboutPage", () => {
       expect(mockLocation.href).toBe("/");
     });
 
-    it("filters to advanced category", () => {
+    it("filters to tree category", () => {
       renderTrainingContent();
 
       fireEvent.click(
-        screen.getByRole("button", { name: /Администрирование/ })
+        screen.getByRole("button", { name: /Редактор структуры/ })
       );
 
+      expect(screen.getByText("Свап сотрудников")).toBeInTheDocument();
       expect(
-        screen.getByText("Редактирование структуры организации")
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByText("Навигация по карте организации")
+        screen.queryByText("Просмотр карты сотрудников")
       ).not.toBeInTheDocument();
     });
 
-    it("filters to basics category", () => {
+    it("filters to map category", () => {
       renderTrainingContent();
 
       // First filter to something else
-      fireEvent.click(screen.getByRole("button", { name: /Для HR/ }));
-      // Then filter to basics
-      fireEvent.click(screen.getByRole("button", { name: /Основы/ }));
+      fireEvent.click(screen.getByRole("button", { name: /Админ панель/ }));
+      // Then filter to map
+      fireEvent.click(screen.getByRole("button", { name: /Карта/ }));
 
       expect(
-        screen.getByText("Навигация по карте организации")
+        screen.getByText("Просмотр карты сотрудников")
       ).toBeInTheDocument();
-      expect(screen.getByText("Поиск сотрудников")).toBeInTheDocument();
       expect(
-        screen.queryByText("Работа с таблицей сотрудников")
+        screen.getByText("Переход к просмотру отдела")
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText("Редактирование на админ панели")
       ).not.toBeInTheDocument();
     });
   });
@@ -376,17 +379,17 @@ describe("AboutPage", () => {
 
       // Should see basic lessons
       expect(
-        screen.getByText("Навигация по карте организации")
+        screen.getByText("Просмотр карты сотрудников")
       ).toBeInTheDocument();
-      expect(screen.getByText("Поиск сотрудников")).toBeInTheDocument();
+      expect(
+        screen.getByText("Переход к просмотру отдела")
+      ).toBeInTheDocument();
 
       // Should NOT see HR or admin lessons
       expect(
-        screen.queryByText("Работа с таблицей сотрудников")
+        screen.queryByText("Редактирование на админ панели")
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText("Редактирование структуры организации")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Свап сотрудников")).not.toBeInTheDocument();
     });
 
     it("employee does not see HR and Admin category buttons", () => {
@@ -400,16 +403,17 @@ describe("AboutPage", () => {
       expect(
         screen.getByRole("button", { name: /Все уроки/ })
       ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Карта/ })).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Основы/ })
+        screen.getByRole("button", { name: /Профиль/ })
       ).toBeInTheDocument();
 
       // Should NOT see HR and Admin category buttons
       expect(
-        screen.queryByRole("button", { name: /Для HR/ })
+        screen.queryByRole("button", { name: /Админ панель/ })
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /Администрирование/ })
+        screen.queryByRole("button", { name: /Редактор структуры/ })
       ).not.toBeInTheDocument();
     });
 
@@ -422,18 +426,16 @@ describe("AboutPage", () => {
 
       // Should see basic lessons
       expect(
-        screen.getByText("Навигация по карте организации")
+        screen.getByText("Просмотр карты сотрудников")
       ).toBeInTheDocument();
 
       // Should see HR lessons
       expect(
-        screen.getByText("Работа с таблицей сотрудников")
+        screen.getByText("Редактирование на админ панели")
       ).toBeInTheDocument();
 
       // Should also see admin lessons (HR has same rights)
-      expect(
-        screen.getByText("Редактирование структуры организации")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Свап сотрудников")).toBeInTheDocument();
     });
 
     it("hr sees all category buttons including Admin (same rights as admin)", () => {
@@ -443,14 +445,16 @@ describe("AboutPage", () => {
       });
       renderTrainingContent();
 
-      // Should see HR category button
+      // Should see all category buttons
+      expect(screen.getByRole("button", { name: /Карта/ })).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Для HR/ })
+        screen.getByRole("button", { name: /Профиль/ })
       ).toBeInTheDocument();
-
-      // Should also see Admin category button (HR has same rights)
       expect(
-        screen.getByRole("button", { name: /Администрирование/ })
+        screen.getByRole("button", { name: /Админ панель/ })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Редактор структуры/ })
       ).toBeInTheDocument();
     });
 
@@ -463,18 +467,16 @@ describe("AboutPage", () => {
 
       // Should see basic lessons
       expect(
-        screen.getByText("Навигация по карте организации")
+        screen.getByText("Просмотр карты сотрудников")
       ).toBeInTheDocument();
 
       // Should see HR lessons
       expect(
-        screen.getByText("Работа с таблицей сотрудников")
+        screen.getByText("Редактирование на админ панели")
       ).toBeInTheDocument();
 
       // Should see admin lessons
-      expect(
-        screen.getByText("Редактирование структуры организации")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Свап сотрудников")).toBeInTheDocument();
     });
 
     it("admin sees all category buttons", () => {
@@ -487,14 +489,15 @@ describe("AboutPage", () => {
       expect(
         screen.getByRole("button", { name: /Все уроки/ })
       ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Карта/ })).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Основы/ })
+        screen.getByRole("button", { name: /Профиль/ })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Для HR/ })
+        screen.getByRole("button", { name: /Админ панель/ })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Администрирование/ })
+        screen.getByRole("button", { name: /Редактор структуры/ })
       ).toBeInTheDocument();
     });
   });

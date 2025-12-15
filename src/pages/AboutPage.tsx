@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { usePermissions } from "../hooks/usePermissions";
@@ -369,14 +369,6 @@ export const TrainingContent: React.FC = () => {
         ))}
       </div>
 
-      {/* Заглушка если видео еще не записаны */}
-      {filteredLessons.length > 0 && (
-        <div className="text-center text-gray-500 text-sm mt-4">
-          <i className="pi pi-info-circle mr-2" />
-          Видео появятся после записи. Пока доступен интерактивный тур.
-        </div>
-      )}
-
       {/* Модальное окно с видео */}
       <Dialog
         visible={!!selectedVideo}
@@ -415,6 +407,10 @@ const VideoLessonCard: React.FC<VideoLessonCardProps> = ({
   lesson,
   onSelect,
 }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
   const categoryColors = {
     basics: "bg-blue-100 text-blue-700",
     admin: "bg-purple-100 text-purple-700",
@@ -427,16 +423,75 @@ const VideoLessonCard: React.FC<VideoLessonCardProps> = ({
     advanced: "Администрирование",
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    // Пробуем воспроизвести видео при наведении (если не загружено автоматически)
+    if (videoRef.current && videoRef.current.paused) {
+      videoRef.current.play().catch(() => {
+        // Игнорируем ошибки автовоспроизведения
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
     <div
       onClick={onSelect}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden border border-gray-100"
     >
-      {/* Превью */}
-      <div className="aspect-video bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center relative group">
-        <i className="pi pi-play-circle text-5xl text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+      {/* Превью с автовоспроизведением */}
+      <div className="aspect-video bg-gradient-to-br from-gray-700 to-gray-900 relative group overflow-hidden">
+        {/* Видео с автовоспроизведением */}
+        <video
+          ref={videoRef}
+          src={lesson.videoUrl}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            isVideoLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedData={() => setIsVideoLoaded(true)}
+          onError={() => setIsVideoLoaded(false)}
+        />
+
+        {/* Плейсхолдер пока видео не загружено */}
+        {!isVideoLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <i className="pi pi-video text-4xl text-white/50" />
+          </div>
+        )}
+
+        {/* Оверлей с кнопкой воспроизведения при наведении */}
+        <div
+          className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${
+            isHovered ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+            <i className="pi pi-play text-2xl text-white" />
+          </div>
+        </div>
+
+        {/* Длительность */}
         <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
           {lesson.duration}
+        </span>
+
+        {/* Иконка для открытия в плеере */}
+        <span
+          className={`absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded transition-opacity duration-200 ${
+            isHovered ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <i className="pi pi-external-link mr-1" />
+          Открыть
         </span>
       </div>
 

@@ -246,10 +246,7 @@ const SystemInfo: React.FC = () => {
             <ShortcutItem keys='Ctrl + "+"' description="Увеличить масштаб" />
             <ShortcutItem keys='Ctrl + "-"' description="Уменьшить масштаб" />
             <ShortcutItem keys='Ctrl + "0"' description="Сбросить масштаб" />
-            <ShortcutItem
-              keys="ЛКМ"
-              description="Перемещение по карте"
-            />
+            <ShortcutItem keys="ЛКМ" description="Перемещение по карте" />
           </div>
         </div>
       </section>

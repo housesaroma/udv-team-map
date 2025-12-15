@@ -101,6 +101,7 @@ export const apiUserProfileSchema = z.object({
   userName: z.string().min(1),
   position: z.string().min(1),
   department: z.string().min(1),
+  hierarchyColor: optionalString,
   avatar: optionalString,
   phoneNumber: optionalString,
   city: optionalString,
@@ -126,6 +127,7 @@ const updateUserResponseSchemaRaw = z.object({
   userName: z.string().min(1),
   position: z.string().min(1),
   department: z.string().min(1),
+  hierarchyColor: optionalString,
   avatar: optionalString,
   phoneNumber: optionalString,
   city: optionalString,
@@ -135,19 +137,22 @@ const updateUserResponseSchemaRaw = z.object({
   contacts: optionalContacts,
 });
 
-export const updateUserResponseSchema = updateUserResponseSchemaRaw.transform((data) => ({
-  userId: data.userId || data.user_id || "",
-  userName: data.userName,
-  position: data.position,
-  department: data.department,
-  avatar: data.avatar,
-  phoneNumber: data.phoneNumber,
-  city: data.city,
-  interests: data.interests,
-  bornDate: data.bornDate,
-  workExperience: data.workExperience,
-  contacts: data.contacts,
-}));
+export const updateUserResponseSchema = updateUserResponseSchemaRaw.transform(
+  data => ({
+    userId: data.userId || data.user_id || "",
+    userName: data.userName,
+    position: data.position,
+    department: data.department,
+    hierarchyColor: data.hierarchyColor,
+    avatar: data.avatar,
+    phoneNumber: data.phoneNumber,
+    city: data.city,
+    interests: data.interests,
+    bornDate: data.bornDate,
+    workExperience: data.workExperience,
+    contacts: data.contacts,
+  })
+);
 
 export const stringArraySchema = z.array(z.string().min(1));
 

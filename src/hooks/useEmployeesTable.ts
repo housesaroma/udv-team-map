@@ -128,52 +128,55 @@ export const useEmployeesTable = () => {
     return role === "admin" || role === "hr";
   }, []);
 
-  const loadUsers = useCallback(async (silent = false) => {
-    try {
-      if (!silent) {
-        setLoading(true);
+  const loadUsers = useCallback(
+    async (silent = false) => {
+      try {
+        if (!silent) {
+          setLoading(true);
+        }
+
+        const positionFilterStr =
+          tableState.positionFilter.length > 0
+            ? tableState.positionFilter.join(",")
+            : "";
+        const departmentFilterStr =
+          tableState.departmentFilter.length > 0
+            ? tableState.departmentFilter.join(",")
+            : "";
+
+        const params: UsersQueryParams = {
+          page: tableState.page + 1,
+          limit: tableState.limit,
+          sort: tableState.sort,
+          positionFilter: positionFilterStr,
+          departmentFilter: departmentFilterStr,
+          isCached: false,
+          SearchText: debouncedSearchText.trim() || undefined,
+        };
+
+        const response = await adminService.getUsersTransformed(params);
+
+        const tableUsers: TableUser[] = response.users.map(user => ({
+          ...user,
+          fullName: `${user.lastName} ${user.firstName} ${
+            user.middleName || ""
+          }`.trim(),
+          isEditing: false,
+        }));
+
+        setUsers(tableUsers);
+        setTotalRecords(response.totalRecords);
+        setIsCached(response.isCached);
+      } catch (error) {
+        console.error("Ошибка загрузки пользователей:", error);
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
       }
-
-      const positionFilterStr =
-        tableState.positionFilter.length > 0
-          ? tableState.positionFilter.join(",")
-          : "";
-      const departmentFilterStr =
-        tableState.departmentFilter.length > 0
-          ? tableState.departmentFilter.join(",")
-          : "";
-
-      const params: UsersQueryParams = {
-        page: tableState.page + 1,
-        limit: tableState.limit,
-        sort: tableState.sort,
-        positionFilter: positionFilterStr,
-        departmentFilter: departmentFilterStr,
-        isCached: false,
-        SearchText: debouncedSearchText.trim() || undefined,
-      };
-
-      const response = await adminService.getUsersTransformed(params);
-
-      const tableUsers: TableUser[] = response.users.map(user => ({
-        ...user,
-        fullName: `${user.lastName} ${user.firstName} ${
-          user.middleName || ""
-        }`.trim(),
-        isEditing: false,
-      }));
-
-      setUsers(tableUsers);
-      setTotalRecords(response.totalRecords);
-      setIsCached(response.isCached);
-    } catch (error) {
-      console.error("Ошибка загрузки пользователей:", error);
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  }, [tableState, debouncedSearchText]);
+    },
+    [tableState, debouncedSearchText]
+  );
 
   useEffect(() => {
     loadUsers();

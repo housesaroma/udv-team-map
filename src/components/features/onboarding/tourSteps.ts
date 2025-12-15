@@ -110,6 +110,38 @@ export const tourSteps: TourStepWithRoles[] = [
     nextRoute: ROUTES.root,
   },
   {
+    target: "[data-tour='admin-button']",
+    title: "Таблица сотрудников",
+    content:
+      "Нажмите сюда, чтобы открыть таблицу всех сотрудников компании. Здесь можно искать коллег, смотреть их контакты и должности.",
+    placement: "bottom",
+    route: ROUTES.root,
+    roles: ["employee"],
+    requiresClick: true,
+    nextRoute: ROUTES.admin,
+  },
+  {
+    target: "[data-tour='logo']",
+    title: "Таблица сотрудников",
+    content:
+      "В этой таблице вы можете найти любого сотрудника компании, отфильтровать по отделу или должности, и посмотреть контактную информацию.",
+    placement: "bottom",
+    route: ROUTES.admin,
+    roles: ["employee"],
+    disableScroll: true,
+    highlightContent: true,
+  },
+  {
+    target: "[data-tour='logo']",
+    title: "Возврат на главную",
+    content: "Нажмите на логотип, чтобы вернуться на главную страницу.",
+    placement: "bottom",
+    route: ROUTES.admin,
+    roles: ["employee"],
+    requiresClick: true,
+    nextRoute: ROUTES.root,
+  },
+  {
     target: "[data-tour='profile-button']",
     title: "Ваш профиль",
     content: "Нажмите сюда, чтобы перейти в свой профиль.",

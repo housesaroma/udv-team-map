@@ -35,7 +35,9 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
   const nameParts = apiUser.userName.split(" ");
 
   const departmentName = apiUser.department;
-  const departmentColor = getDepartmentColor(departmentName);
+  // Используем hierarchyColor из API, если он есть, иначе fallback на getDepartmentColor
+  const departmentColor =
+    apiUser.hierarchyColor || getDepartmentColor(departmentName);
 
   return {
     id: apiUser.userId,
@@ -157,7 +159,7 @@ export const adminService = {
 
       const rawData = response.data;
       console.log("Ответ сервера на обновление пользователя (raw):", rawData);
-      
+
       const parsed = updateUserResponseSchema.safeParse(rawData);
 
       if (!parsed.success) {

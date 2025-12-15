@@ -99,13 +99,19 @@ describe("tourSteps", () => {
   it("should have page-specific steps for admin pages", () => {
     // Информационные шаги на страницах теперь привязаны к logo, проверяем по route
     const adminPageStep = tourSteps.find(
-      s => s.route === ROUTES.admin && s.target.includes("logo") && s.roles?.includes("admin")
+      s =>
+        s.route === ROUTES.admin &&
+        s.target.includes("logo") &&
+        s.roles?.includes("admin")
     );
     expect(adminPageStep).toBeDefined();
     expect(adminPageStep?.title).toContain("Панель администратора");
 
     const treeEditorPageStep = tourSteps.find(
-      s => s.route === ROUTES.treeEditor && s.target.includes("logo") && s.roles?.includes("admin")
+      s =>
+        s.route === ROUTES.treeEditor &&
+        s.target.includes("logo") &&
+        s.roles?.includes("admin")
     );
     expect(treeEditorPageStep).toBeDefined();
     expect(treeEditorPageStep?.title).toContain("Редактор структуры");
@@ -114,7 +120,10 @@ describe("tourSteps", () => {
   it("should have profile page step", () => {
     // Информационный шаг на странице profile теперь привязан к logo
     const profilePageStep = tourSteps.find(
-      s => s.route === ROUTES.profile.root && s.target.includes("logo") && !s.requiresClick
+      s =>
+        s.route === ROUTES.profile.root &&
+        s.target.includes("logo") &&
+        !s.requiresClick
     );
     expect(profilePageStep).toBeDefined();
     expect(profilePageStep?.title).toContain("Страница профиля");
@@ -131,12 +140,17 @@ describe("tourSteps", () => {
 describe("filterTourStepsByRole", () => {
   it("should return all steps without roles restriction for employee", () => {
     const filtered = filterTourStepsByRole("employee");
-    // Employee should not see admin-button, tree-editor-button, or any steps on admin/tree-editor routes with roles
-    expect(filtered.every(s => !s.target.includes("admin-button"))).toBe(true);
+    // Employee should see admin-button (for employees table) but not tree-editor-button
+    expect(filtered.some(s => s.target.includes("admin-button"))).toBe(true);
     expect(filtered.every(s => !s.target.includes("tree-editor-button"))).toBe(
       true
     );
-    expect(filtered.every(s => s.route !== ROUTES.admin || !s.roles)).toBe(true);
+    // Employee can see admin route but only with employee role
+    expect(
+      filtered.filter(s => s.route === ROUTES.admin).every(
+        s => !s.roles || s.roles.includes("employee")
+      )
+    ).toBe(true);
     expect(filtered.every(s => s.route !== ROUTES.treeEditor || !s.roles)).toBe(
       true
     );
@@ -147,49 +161,79 @@ describe("filterTourStepsByRole", () => {
     expect(filtered.some(s => s.target.includes("zoom-controls"))).toBe(true);
     expect(filtered.some(s => s.target.includes("about-button"))).toBe(true);
     expect(filtered.some(s => s.target.includes("profile-button"))).toBe(true);
-    expect(filtered.some(s => s.route === ROUTES.profile.root && !s.requiresClick)).toBe(true);
+    expect(
+      filtered.some(s => s.route === ROUTES.profile.root && !s.requiresClick)
+    ).toBe(true);
   });
 
   it("should return all admin steps for hr role (same as admin)", () => {
     const filtered = filterTourStepsByRole("hr");
     // HR should see admin-button and admin page info step
     expect(filtered.some(s => s.target.includes("admin-button"))).toBe(true);
-    expect(filtered.some(s => s.route === ROUTES.admin && s.target.includes("logo") && s.roles?.includes("hr"))).toBe(true);
+    expect(
+      filtered.some(
+        s =>
+          s.route === ROUTES.admin &&
+          s.target.includes("logo") &&
+          s.roles?.includes("hr")
+      )
+    ).toBe(true);
     // HR should also see tree-editor-button and tree-editor page info step (same rights as admin)
     expect(filtered.some(s => s.target.includes("tree-editor-button"))).toBe(
       true
     );
-    expect(filtered.some(s => s.route === ROUTES.treeEditor && s.target.includes("logo") && s.roles?.includes("hr"))).toBe(
-      true
-    );
+    expect(
+      filtered.some(
+        s =>
+          s.route === ROUTES.treeEditor &&
+          s.target.includes("logo") &&
+          s.roles?.includes("hr")
+      )
+    ).toBe(true);
     // And all basic steps
     expect(filtered.some(s => s.target.includes("logo"))).toBe(true);
     expect(filtered.some(s => s.target.includes("profile-button"))).toBe(true);
-    expect(filtered.some(s => s.route === ROUTES.profile.root && !s.requiresClick)).toBe(true);
+    expect(
+      filtered.some(s => s.route === ROUTES.profile.root && !s.requiresClick)
+    ).toBe(true);
   });
 
   it("should return all steps for admin role", () => {
     const filtered = filterTourStepsByRole("admin");
     // Admin should see everything
     expect(filtered.some(s => s.target.includes("admin-button"))).toBe(true);
-    expect(filtered.some(s => s.route === ROUTES.admin && s.target.includes("logo") && s.roles?.includes("admin"))).toBe(true);
+    expect(
+      filtered.some(
+        s =>
+          s.route === ROUTES.admin &&
+          s.target.includes("logo") &&
+          s.roles?.includes("admin")
+      )
+    ).toBe(true);
     expect(filtered.some(s => s.target.includes("tree-editor-button"))).toBe(
       true
     );
-    expect(filtered.some(s => s.route === ROUTES.treeEditor && s.target.includes("logo") && s.roles?.includes("admin"))).toBe(
-      true
-    );
+    expect(
+      filtered.some(
+        s =>
+          s.route === ROUTES.treeEditor &&
+          s.target.includes("logo") &&
+          s.roles?.includes("admin")
+      )
+    ).toBe(true);
     expect(filtered.some(s => s.target.includes("logo"))).toBe(true);
     expect(filtered.some(s => s.target.includes("profile-button"))).toBe(true);
-    expect(filtered.some(s => s.route === ROUTES.profile.root && !s.requiresClick)).toBe(true);
+    expect(
+      filtered.some(s => s.route === ROUTES.profile.root && !s.requiresClick)
+    ).toBe(true);
     // Admin gets all 13 steps (including 3 "return to home" steps)
     expect(filtered.length).toBe(13);
   });
 
-  it("employee should get 7 steps (excluding admin and tree-editor button/page steps)", () => {
+  it("employee should get 10 steps (including employees table)", () => {
     const filtered = filterTourStepsByRole("employee");
-    // Employee gets: logo x2, zoom, profile-button, profile-page, return home, about
-    expect(filtered.length).toBe(7);
+    // Employee gets: logo x2, zoom, admin-button (employees table), admin page (employee view), return home, profile-button, profile-page, return home, about
+    expect(filtered.length).toBe(10);
   });
 
   it("hr should get 13 steps (same as admin)", () => {

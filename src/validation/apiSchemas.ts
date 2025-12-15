@@ -110,6 +110,7 @@ export const apiUserProfileSchema = z.object({
   workExperience: optionalString,
   contacts: optionalContacts,
   managerId: optionalString,
+  hierarchyId: z.number().int().optional(),
 });
 
 export const usersResponseSchema = z.object({

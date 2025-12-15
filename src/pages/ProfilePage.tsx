@@ -285,6 +285,12 @@ const ProfilePage: React.FC = () => {
     navigate(ROUTES.profile.byId(managerId));
   };
 
+  const handleShowOnMap = () => {
+    if (profile?.hierarchyId) {
+      navigate(ROUTES.department.byId(profile.hierarchyId));
+    }
+  };
+
   const isOwnProfile = !userId || userId === currentUser?.id;
   const canEdit = canEditProfile(profile?.id || "");
   // const editableFields = profile ? getEditableFields(profile.id) : { allEditableFields: [] };
@@ -365,7 +371,7 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="container mx-auto pt-24 pb-12" data-tour="profile-page">
       <div className="bg-secondary rounded-lg shadow-md p-8 mx-4 md:mx-6 lg:mx-8">
-        {/* Заголовок и кнопка выхода */}
+        {/* Заголовок и кнопки управления */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-primary font-golos">
@@ -376,15 +382,26 @@ const ProfilePage: React.FC = () => {
                 : "Профиль сотрудника"}
             </h1>
           </div>
-          {isOwnProfile && (
-            <Button
-              onClick={handleLogout}
-              label="Выйти"
-              icon="pi pi-sign-out"
-              severity="danger"
-              className="font-inter"
-            />
-          )}
+          <div className="flex space-x-2">
+            {profile?.hierarchyId && (
+              <Button
+                onClick={handleShowOnMap}
+                label="Показать на карте"
+                icon="pi pi-map-marker"
+                severity="secondary"
+                className="font-inter"
+              />
+            )}
+            {isOwnProfile && (
+              <Button
+                onClick={handleLogout}
+                label="Выйти"
+                icon="pi pi-sign-out"
+                severity="danger"
+                className="font-inter"
+              />
+            )}
+          </div>
         </div>
 
         {profile ? (

@@ -284,4 +284,66 @@ describe("ProfilePage - Manager card feature", () => {
       expect(screen.queryByText("Руководитель")).not.toBeInTheDocument();
     });
   });
+
+  describe("Show on map button", () => {
+    it("displays 'Show on map' button when hierarchyId exists", async () => {
+      const profileWithHierarchy: User = {
+        ...mockUserProfile,
+        hierarchyId: 47,
+      };
+
+      mockGetUserProfile
+        .mockResolvedValueOnce(profileWithHierarchy)
+        .mockResolvedValueOnce(mockManagerProfile);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Иванов Иван/)).toBeInTheDocument();
+      });
+
+      // Проверяем что кнопка "Показать на карте" отображается
+      expect(screen.getByText("Показать на карте")).toBeInTheDocument();
+    });
+
+    it("does not display 'Show on map' button when hierarchyId is missing", async () => {
+      const profileWithoutHierarchy: User = {
+        ...mockUserProfile,
+        hierarchyId: undefined,
+      };
+
+      mockGetUserProfile.mockResolvedValueOnce(profileWithoutHierarchy);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Иванов Иван/)).toBeInTheDocument();
+      });
+
+      // Проверяем что кнопка "Показать на карте" не отображается
+      expect(screen.queryByText("Показать на карте")).not.toBeInTheDocument();
+    });
+
+    it("navigates to department page when 'Show on map' button is clicked", async () => {
+      const profileWithHierarchy: User = {
+        ...mockUserProfile,
+        hierarchyId: 47,
+      };
+
+      mockGetUserProfile
+        .mockResolvedValueOnce(profileWithHierarchy)
+        .mockResolvedValueOnce(mockManagerProfile);
+
+      renderProfilePage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Иванов Иван/)).toBeInTheDocument();
+      });
+
+      const showOnMapButton = screen.getByText("Показать на карте");
+      fireEvent.click(showOnMapButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith("/department/47");
+    });
+  });
 });

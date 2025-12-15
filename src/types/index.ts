@@ -30,6 +30,7 @@ export interface User {
   birthDate?: string;
   hireDate?: string;
   managerId?: string;
+  hierarchyId?: number;
   subordinates?: string[];
   messengerLink?: string;
   contacts?: UserContacts;

@@ -834,6 +834,47 @@ describe("userService.getUserProfile", () => {
 
     expect(result.managerId).toBeUndefined();
   });
+
+  it("корректно маппит hierarchy_id из snake_case в hierarchyId", async () => {
+    const hierarchyId = 47;
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify({
+        ...createApiUser(),
+        hierarchy_id: hierarchyId,
+      }),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.hierarchyId).toBe(hierarchyId);
+  });
+
+  it("корректно обрабатывает hierarchyId в camelCase формате", async () => {
+    const hierarchyId = 99;
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify({
+        ...createApiUser(),
+        hierarchyId: hierarchyId,
+      }),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.hierarchyId).toBe(hierarchyId);
+  });
+
+  it("устанавливает hierarchyId в undefined если он отсутствует", async () => {
+    mockGet.mockResolvedValueOnce({
+      status: 200,
+      data: JSON.stringify(createApiUser()),
+    });
+
+    const result = await userService.getUserProfile(SERVER_USER_ID);
+
+    expect(result.hierarchyId).toBeUndefined();
+  });
 });
 
 describe("вспомогательные методы userService", () => {

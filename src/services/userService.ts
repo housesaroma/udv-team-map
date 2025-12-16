@@ -582,6 +582,23 @@ export const updateUserProfile = async (
 
     if (status === 400) {
       console.error("Ошибка 400 при обновлении профиля:", errorText);
+      // Попробуем достать детальное сообщение от сервера (validation errors)
+      try {
+        const parsed = typeof rawData === "object" ? rawData : JSON.parse(String(rawData));
+        const errors = (parsed && (parsed as any).errors) || null;
+        if (errors && typeof errors === "object") {
+          const details: Record<string, string[]> = {};
+          for (const [field, msgs] of Object.entries(errors)) {
+            details[field] = Array.isArray(msgs) ? (msgs as string[]) : [String(msgs)];
+          }
+          const err: any = new Error("Неверный формат запроса: ошибки в полях");
+          err.details = details;
+          throw err;
+        }
+      } catch (e) {
+        // ignore parse errors - fallthrough to generic
+      }
+
       throw new Error("Неверный запрос");
     }
 

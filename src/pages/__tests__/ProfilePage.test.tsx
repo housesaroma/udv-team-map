@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import ProfilePage from "../ProfilePage";
 import type { User } from "../../types";
 
+
 // Создаем моки для сервисов
 const mockGetUserProfile = vi.fn();
 const mockGetAllDepartments = vi.fn();
@@ -224,6 +225,48 @@ describe("ProfilePage - Manager card feature", () => {
         .getByText(/Петров Петр/)
         .closest("div")?.parentElement;
       expect(managerCard).toBeTruthy();
+    });
+  });
+
+  describe("Client-side validation and toasts", () => {
+    it("normalizes phone with separators and sends normalized value to updateUserProfile", async () => {
+      const profileWithHyphens = { ...mockUserProfile, phone: "+7-495-444-44-44" } as User;
+      mockGetUserProfile.mockResolvedValueOnce(profileWithHyphens);
+
+      const { findByText, getByText, getByPlaceholderText } = renderProfilePage();
+
+      await findByText(/Иванов Иван/);
+
+      fireEvent.click(getByText("Редактировать"));
+
+      const phoneInput = getByPlaceholderText("+79991234567");
+
+      // После нормализации в editData должно быть +74954444444
+      expect((phoneInput as HTMLInputElement).value).toBe("+74954444444");
+
+      fireEvent.click(getByText("Сохранить"));
+
+      const { updateUserProfile } = await vi.importMock("../../services/userService");
+      expect(updateUserProfile).toHaveBeenCalled();
+      const calledWith = (updateUserProfile as any).mock.calls[0][1];
+      expect(calledWith.phone).toBe("+74954444444");
+    });
+
+    it("shows warning toast when required fields are missing", async () => {
+      // профиль без позиции
+      const incompleteProfile = { ...mockUserProfile, position: "" } as User;
+      mockGetUserProfile.mockResolvedValueOnce(incompleteProfile);
+
+      const { findByText, getByText } = renderProfilePage();
+
+      await findByText(/Иванов Иван/);
+
+      fireEvent.click(getByText("Редактировать"));
+
+      // Поскольку позиция пустая, ensure Save catches it
+      fireEvent.click(getByText("Сохранить"));
+
+      await findByText(/Пожалуйста, заполните/);
     });
   });
 

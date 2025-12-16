@@ -1,6 +1,8 @@
 import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
+import { InputMask } from "primereact/inputmask";
+import { Toast } from "primereact/toast";
 import { InputTextarea } from "primereact/inputtextarea";
 import { MultiSelect } from "primereact/multiselect";
 import React, { useEffect, useMemo, useState } from "react";
@@ -15,6 +17,7 @@ import type { SelectOption } from "../types/ui";
 import { calculateExperience, formatDate } from "../utils/dateUtils";
 import { getDepartmentColor } from "../utils/departmentUtils";
 import { ROUTES } from "../constants/routes";
+import TOAST_MESSAGES from "../constants/toastMessages";
 import {
   MESSENGER_OPTIONS,
   ALL_MESSENGER_TYPES,
@@ -58,6 +61,19 @@ const ProfilePage: React.FC = () => {
     []
   );
   const [editContacts, setEditContacts] = useState<UserContacts>({});
+  const toastRef = React.useRef<Toast | null>(null);
+
+  // Нормализация номера телефона для редактирования
+  const normalizePhoneForEdit = (phone?: string) => {
+    if (!phone) return "";
+    // Оставляем только цифры и ведущий +
+    const withPlus = phone.replace(/[^\d+]/g, "");
+    // Если нет + в начале и начинается с 7 - добавим +
+    if (!withPlus.startsWith("+") && withPlus.startsWith("7")) {
+      return "+" + withPlus;
+    }
+    return withPlus;
+  };
 
   // Загрузка данных профиля и руководителя
   useEffect(() => {
@@ -193,8 +209,7 @@ const ProfilePage: React.FC = () => {
       setEditContacts(contacts);
 
       setEditData({
-        phone: profile.phone || "",
-        email: profile.email || "",
+        phone: normalizePhoneForEdit(profile.phone) || "",
         city: profile.city || "",
         interests: profile.interests || "",
         avatar: profile.avatar || "",
@@ -207,8 +222,55 @@ const ProfilePage: React.FC = () => {
   };
 
   // Обработка сохранения изменений
+  const validatePhone = (phone?: string) => {
+    if (!phone) return false;
+    return /^\+7\d{10}$/.test(phone);
+  };
+
+  const validateRequiredFields = (data: Partial<User>) => {
+    const required: Array<{ key: keyof User; label: string }> = [
+      { key: "phone", label: "Телефон" },
+      { key: "position", label: "Должность" },
+      { key: "department", label: "Подразделение" },
+    ];
+
+    const missing = required
+      .filter(r => {
+        const value = (data as any)[r.key];
+        if (r.key === "department") {
+          return !(value && ((value as any).name || typeof value === "string"));
+        }
+        return !value;
+      })
+      .map(r => r.label);
+
+    return missing;
+  };
+
   const handleSave = async () => {
     if (!profile) return;
+
+    // Клиентская валидация
+    const missing = validateRequiredFields(editData as Partial<User>);
+    if (missing.length > 0) {
+      toastRef.current?.show({
+        severity: "warn",
+        summary: TOAST_MESSAGES.profileSaveValidationTitle,
+        detail: `${TOAST_MESSAGES.requiredFieldsMissing}${missing.join(", ")}`,
+        life: 6000,
+      });
+      return;
+    }
+
+    if (!validatePhone(String(editData.phone))) {
+      toastRef.current?.show({
+        severity: "error",
+        summary: TOAST_MESSAGES.profileSaveValidationTitle,
+        detail: TOAST_MESSAGES.phoneInvalid,
+        life: 6000,
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -222,8 +284,35 @@ const ProfilePage: React.FC = () => {
       setIsEditing(false);
       setSelectedMessengers([]);
       setEditContacts({});
-    } catch (error) {
+
+      toastRef.current?.show({
+        severity: "success",
+        summary: "Успех",
+        detail: TOAST_MESSAGES.profileSaveSuccess,
+        life: 4000,
+      });
+    } catch (error: any) {
       console.error("Ошибка при сохранении профиля:", error);
+      // Если сервер вернул детали в error.details, отображаем их
+      if (error && error.details && typeof error.details === "object") {
+        const details = Object.entries(error.details)
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+          .join("; ");
+        toastRef.current?.show({
+          severity: "error",
+          summary: TOAST_MESSAGES.profileSaveError,
+          detail: details,
+          life: 8000,
+        });
+      } else {
+        toastRef.current?.show({
+          severity: "error",
+          summary: TOAST_MESSAGES.profileSaveError,
+          detail: error?.message || "Неизвестная ошибка",
+          life: 6000,
+        });
+      }
+
       setError("Ошибка при сохранении профиля");
     } finally {
       setSaving(false);
@@ -370,6 +459,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="container mx-auto pt-24 pb-12" data-tour="profile-page">
+      <Toast ref={toastRef} position="top-right" />
       <div className="bg-secondary rounded-lg shadow-md p-8 mx-4 md:mx-6 lg:mx-8">
         {/* Заголовок и кнопки управления */}
         <div className="flex justify-between items-center mb-8">
@@ -573,22 +663,15 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div>
                           <span className="font-medium">Телефон:</span>
-                          <InputText
-                            value={editData.phone || ""}
-                            onChange={e =>
-                              handleChange("phone", e.target.value)
-                            }
+                          <InputMask
+                            mask="+79999999999"
+                            value={String(editData.phone || "")}
+                            onChange={e => handleChange("phone", e.value)}
+                            placeholder="+79991234567"
                             className="w-full font-inter mt-1"
                           />
                         </div>
-                        <div>
-                          <span className="font-medium">Email:</span>
-                          <InputText
-                            value={profile.email || ""}
-                            disabled
-                            className="w-full font-inter mt-1"
-                          />
-                        </div>
+
                         <div>
                           <span className="font-medium">Дата рождения:</span>
                           <InputText

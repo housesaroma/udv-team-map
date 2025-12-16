@@ -21,6 +21,7 @@ import { ConnectionLines } from "./ConnectionLines";
 import { DepartmentStructureCard } from "./DepartmentStructureCard";
 import { EmployeeCard } from "./EmployeeCard";
 import { PageLoader } from "../../ui/PageLoader";
+import TOAST_MESSAGES from "../../../constants/toastMessages";
 
 const NOOP = () => {};
 
@@ -48,6 +49,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     number | null
   >(null);
   const [moveFeedback, setMoveFeedback] = useState<ActionFeedback | null>(null);
+  
   const [moveLoading, setMoveLoading] = useState(false);
 
   const nodesWithLayout = useMemo(() => {
@@ -172,6 +174,15 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
 
   const handleSwapToggle = useCallback(
     (node: TreeNode) => {
+      // Prevent starting swap when a move selection exists
+      if (moveSourceUserId) {
+        setSwapFeedback({
+          type: "warn",
+          text: "Сначала отмените выбор для перемещения",
+        });
+        return;
+      }
+
       if (node.nodeType !== "employee") {
         return;
       }
@@ -219,7 +230,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         return [...prevSelected, node.userId];
       });
     },
-    [swapDepartment]
+    [swapDepartment, moveSourceUserId]
   );
 
   const handleSwapEmployees = useCallback(async () => {
@@ -268,11 +279,20 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         text: `${firstNode.userName} и ${secondNode.userName} успешно поменялись местами`,
       });
     } catch (swapError) {
-      const message =
-        swapError instanceof Error
-          ? swapError.message
-          : "Не удалось выполнить обмен сотрудников";
-      setSwapFeedback({ type: "error", text: message });
+      const rawMessage = parseServerErrorMessage(swapError);
+      const normalized = normalizeMoveErrorMessage(rawMessage);
+      setSwapFeedback({ type: "error", text: normalized });
+      if (toastRef.current) {
+        console.info("Showing swap error toast:", normalized);
+        toastRef.current.show({
+          severity: "error",
+          summary: TOAST_MESSAGES.swapRejectedSummary,
+          detail: normalized,
+          life: 5000,
+        });
+      } else {
+        console.warn("Toast ref is null — swap error toast not shown:", normalized);
+      }
     } finally {
       setSwapLoading(false);
     }
@@ -287,13 +307,59 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
 
   const normalizeMoveErrorMessage = useCallback((text: string) => {
     if (text.includes("Cannot move CEO user with subordinates")) {
-      return "Нельзя перемещать руководителя с подчиненными - воспользуйтесь обменом сотрудников";
+      return TOAST_MESSAGES.moveDeniedCEO;
     }
     return text;
   }, []);
 
+  const parseServerErrorMessage = useCallback((error: unknown) => {
+    // Извлекаем полезный текст ошибки из разных форматов
+    let raw = error instanceof Error ? error.message : String(error);
+
+    // Если это JSON внутри строки, попытаемся распарсить
+    const jsonStart = raw.indexOf("{");
+    if (jsonStart !== -1) {
+      const jsonText = raw.slice(jsonStart);
+      try {
+        const parsed = JSON.parse(jsonText);
+        // Если есть поле message
+        if (parsed && typeof parsed === "object") {
+          if (parsed.message && typeof parsed.message === "string") {
+            return String(parsed.message);
+          }
+          // Если есть validation errors
+          if (parsed.errors && typeof parsed.errors === "object") {
+            // Собираем текст всех ошибок
+            const details: string[] = [];
+            for (const [k, v] of Object.entries(parsed.errors)) {
+              if (Array.isArray(v)) {
+                details.push(`${k}: ${v.join(", ")}`);
+              } else {
+                details.push(`${k}: ${String(v)}`);
+              }
+            }
+            return details.join("; ");
+          }
+        }
+      } catch (e) {
+        // ignore parse error
+      }
+    }
+
+    return raw;
+  }, []);
+
   const handleMoveSourceToggle = useCallback(
     (node: TreeNode) => {
+      // Prevent starting move when swap selection exists
+      if (selectedSwapUserIds.length > 0) {
+        setMoveFeedback({
+          type: "warn",
+          text: "Сначала отмените выбор для обмена",
+        });
+        return;
+      }
+
       if (moveLoading) {
         return;
       }
@@ -320,7 +386,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         return node.userId;
       });
     },
-    [moveLoading]
+    [moveLoading, selectedSwapUserIds]
   );
 
   const handleMoveTargetToggle = useCallback(
@@ -476,18 +542,20 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         text: successText,
       });
     } catch (moveError) {
-      const message =
-        moveError instanceof Error
-          ? moveError.message
-          : "Не удалось переместить сотрудника";
-      const normalizedMessage = normalizeMoveErrorMessage(message);
+      const rawMessage = parseServerErrorMessage(moveError);
+      const normalizedMessage = normalizeMoveErrorMessage(rawMessage);
       setMoveFeedback({ type: "error", text: normalizedMessage });
-      toastRef.current?.show({
-        severity: "error",
-        summary: "Перемещение отклонено",
-        detail: normalizedMessage,
-        life: 6000,
-      });
+      if (toastRef.current) {
+        console.info("Showing move error toast:", normalizedMessage);
+        toastRef.current.show({
+          severity: "error",
+          summary: TOAST_MESSAGES.moveRejectedSummary,
+          detail: normalizedMessage,
+          life: 5000,
+        });
+      } else {
+        console.warn("Toast ref is null — move error toast not shown:", normalizedMessage);
+      }
     } finally {
       setMoveLoading(false);
     }
@@ -565,7 +633,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         minHeight: `${MAP_CONSTANTS.MAP_HEIGHT}px`,
       }}
     >
-      <Toast ref={toastRef} position="top-right" />
+      <Toast ref={toastRef} position="top-right" baseZIndex={100000} appendTo={typeof document !== 'undefined' ? document.body : undefined} />
       <div className="absolute top-6 left-6 z-20 w-[360px] max-w-full space-y-4 rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-2xl backdrop-blur">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
@@ -738,7 +806,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
                 ? selectedSwapUserIds.indexOf(node.userId) + 1
                 : undefined
             }
-            swapSelectionDisabled={isSelectionDisabled(node)}
+            swapSelectionDisabled={isSelectionDisabled(node) || Boolean(moveSourceUserId)}
             onSwapAction={swapReady ? handleSwapEmployees : undefined}
             showSwapAction={
               swapReady && selectedSwapUserIds.includes(node.userId)
@@ -755,13 +823,20 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
               node.department === swapDepartment ||
               selectedSwapUserIds.includes(node.userId)
             }
+            // Если выбран отдел для свапа и узел не в этом отделе и не выбран — приглушаем и делаем некликабельным
+            clickDisabled={Boolean(
+              swapDepartment &&
+                !selectedSwapUserIds.includes(node.userId) &&
+                (!node.department || node.department !== swapDepartment)
+            )}
             onMoveSourceToggle={handleMoveSourceToggle}
             onMoveTargetToggle={handleMoveTargetToggle}
             isMoveSource={moveSourceUserId === node.userId}
             isMoveTarget={moveTargetManagerId === node.userId}
-            moveSourceDisabled={moveLoading}
+            moveSourceDisabled={moveLoading || selectedSwapUserIds.length > 0}
             moveTargetDisabled={
               moveLoading ||
+              selectedSwapUserIds.length > 0 ||
               !moveSourceUserId ||
               typeof node.hierarchyId !== "number"
             }

@@ -8,6 +8,9 @@ import styles from "./EmployeeCard.module.css";
 import { ROUTES } from "../../../constants/routes";
 
 interface EmployeeCardProps {
+  /** Если true — карточка визуально приглушена и не должна реагировать на клики */
+  clickDisabled?: boolean;
+  
   node: TreeNode;
   onToggleExpand: (nodeId: string) => void;
   onSwapToggle?: (node: TreeNode) => void;
@@ -54,6 +57,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
     moveActionDisabled = false,
     onMoveConfirm,
     moveReady = false,
+      clickDisabled = false,
   }) => {
     const navigate = useNavigate();
     const [isDragging, setIsDragging] = useState(false);
@@ -91,9 +95,15 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
           e.stopPropagation();
           return;
         }
+        if (clickDisabled) {
+          // Когда карточка приглушена — полностью игнорируем клики
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         navigate(ROUTES.profile.byId(node.userId));
       },
-      [isDragging, navigate, node.userId]
+      [isDragging, navigate, node.userId, clickDisabled]
     );
 
     const handleExpandClick = (e: React.MouseEvent) => {
@@ -172,7 +182,9 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
       ) : null;
 
     const cardClassName = [
-      "cursor-pointer shadow-md hover:shadow-lg border-1 rounded-lg",
+      "shadow-md border-1 rounded-lg",
+      // При отключённой кликабельности показываем минимум интерактивности
+      clickDisabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-lg",
       styles.noPaddingCard,
       "transition-all",
       isSwapCandidate ? styles.swapSelectedCard : "",
@@ -185,15 +197,15 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
       .join(" ");
 
     const swapButtonDisabled = Boolean(
-      swapSelectionDisabled && !isSwapCandidate
+      (swapSelectionDisabled && !isSwapCandidate) || clickDisabled
     );
 
     const moveSourceButtonDisabled = Boolean(
-      (moveSourceDisabled && !isMoveSource) || moveActionDisabled
+      ((moveSourceDisabled && !isMoveSource) || moveActionDisabled) || clickDisabled
     );
 
     const moveTargetButtonDisabled = Boolean(
-      moveTargetDisabled || moveActionDisabled
+      (moveTargetDisabled || moveActionDisabled) || clickDisabled
     );
 
     const moveSourceButtonLabel = isMoveSource
@@ -231,6 +243,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
           onClick={handleCardClick}
         >
           <div className="flex flex-col">
+            
             {(onSwapToggle || onMoveSourceToggle || onMoveTargetToggle) && (
               <div
                 className={`${styles.cardActions} mb-3 flex flex-wrap items-center justify-end gap-2`}

@@ -736,7 +736,7 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="md:col-span-2">
                           <span className="font-medium">
-                            Корпоративные чаты:
+                            Мессенджеры:
                           </span>
                           <MultiSelect
                             value={selectedMessengers}
@@ -812,7 +812,7 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="md:col-span-2">
                           <span className="font-medium">
-                            Корпоративные чаты:
+                            Мессенджеры:
                           </span>
                           {profile.contacts &&
                           Object.entries(profile.contacts).some(

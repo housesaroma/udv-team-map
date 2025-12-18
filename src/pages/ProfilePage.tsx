@@ -482,14 +482,68 @@ const ProfilePage: React.FC = () => {
                 className="font-inter"
               />
             )}
+            {/* Кнопки действий (только для своего профиля) */}
             {isOwnProfile && (
-              <Button
-                onClick={handleLogout}
-                label="Выйти"
-                icon="pi pi-sign-out"
-                severity="danger"
-                className="font-inter"
-              />
+              <div className="flex justify-end space-x-4">
+                {isEditing ? (
+                  <>
+                    <Button
+                      label="Отмена"
+                      icon="pi pi-times"
+                      onClick={handleCancel}
+                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
+                      disabled={saving}
+                    />
+                    <Button
+                      label={saving ? "Сохранение..." : "Сохранить"}
+                      icon="pi pi-check"
+                      onClick={handleSave}
+                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
+                      disabled={saving}
+                    />
+                  </>
+                ) : (
+                  <Button
+                    label="Редактировать"
+                    icon="pi pi-pencil"
+                    onClick={handleStartEditing}
+                    className="font-inter bg-primary border-primary hover:bg-primary-dark"
+                    disabled={!canEdit}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Кнопки действий для администраторов и HR при просмотре чужого профиля */}
+            {!isOwnProfile && currentUser && canEdit && (
+              <div className="flex justify-end space-x-4">
+                {isEditing ? (
+                  <>
+                    <Button
+                      label="Отмена"
+                      icon="pi pi-times"
+                      onClick={handleCancel}
+                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
+                      disabled={saving}
+                    />
+                    <Button
+                      label={saving ? "Сохранение..." : "Сохранить"}
+                      icon="pi pi-check"
+                      onClick={handleSave}
+                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
+                      disabled={saving}
+                    />
+                  </>
+                ) : (
+                  <Button
+                    label="Редактировать"
+                    icon="pi pi-pencil"
+                    onClick={handleStartEditing}
+                    className="font-inter bg-primary border-primary hover:bg-primary-dark"
+                    disabled={!canEdit}
+                  />
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -845,70 +899,17 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Кнопки действий (только для своего профиля) */}
-            {isOwnProfile && (
-              <div className="flex justify-end space-x-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      label="Отмена"
-                      icon="pi pi-times"
-                      onClick={handleCancel}
-                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
-                      disabled={saving}
-                    />
-                    <Button
-                      label={saving ? "Сохранение..." : "Сохранить"}
-                      icon="pi pi-check"
-                      onClick={handleSave}
-                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
-                      disabled={saving}
-                    />
-                  </>
-                ) : (
-                  <Button
-                    label="Редактировать"
-                    icon="pi pi-pencil"
-                    onClick={handleStartEditing}
-                    className="font-inter bg-primary border-primary hover:bg-primary-dark"
-                    disabled={!canEdit}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Кнопки действий для администраторов и HR при просмотре чужого профиля */}
-            {!isOwnProfile && currentUser && canEdit && (
-              <div className="flex justify-end space-x-4">
-                {isEditing ? (
-                  <>
-                    <Button
-                      label="Отмена"
-                      icon="pi pi-times"
-                      onClick={handleCancel}
-                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
-                      disabled={saving}
-                    />
-                    <Button
-                      label={saving ? "Сохранение..." : "Сохранить"}
-                      icon="pi pi-check"
-                      onClick={handleSave}
-                      className="font-inter bg-primary border-primary hover:bg-primary-dark"
-                      disabled={saving}
-                    />
-                  </>
-                ) : (
-                  <Button
-                    label="Редактировать"
-                    icon="pi pi-pencil"
-                    onClick={handleStartEditing}
-                    className="font-inter bg-primary border-primary hover:bg-primary-dark"
-                    disabled={!canEdit}
-                  />
-                )}
-              </div>
-            )}
+            <div className="flex justify-end">
+              {isOwnProfile && (
+                <Button
+                  onClick={handleLogout}
+                  label="Выйти"
+                  icon="pi pi-sign-out"
+                  severity="danger"
+                  className="font-inter"
+                />
+              )}
+            </div>
           </div>
         ) : (
           <div className="text-center py-8">

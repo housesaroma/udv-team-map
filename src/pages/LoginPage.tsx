@@ -97,7 +97,7 @@ const LoginPage: React.FC = () => {
                   errors.username ? "text-red-600" : "text-gray-500"
                 }`}
               >
-                {errors.username?.message ?? usernameHint}
+                {errors.username?.message ?? <></>}
               </small>
             </div>
           </div>
@@ -138,7 +138,7 @@ const LoginPage: React.FC = () => {
                   errors.password ? "text-red-600" : "text-gray-500"
                 }`}
               >
-                {errors.password?.message ?? passwordHint}
+                {errors.password?.message ?? <></>}
               </small>
             </div>
           </div>
@@ -158,9 +158,10 @@ const LoginPage: React.FC = () => {
           />
         </form>
 
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
-          <p className="text-blue-700 text-sm font-golos mb-2"></p>
-          {USE_MOCK_DATA ? (
+        {USE_MOCK_DATA ? (
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
+            <p className="text-blue-700 text-sm font-golos mb-2"></p>
+
             <>
               <strong>Тестовые данные:</strong>
               <p className="text-blue-600 text-xs font-golos">
@@ -176,10 +177,10 @@ const LoginPage: React.FC = () => {
                 Пароль для всех: password123
               </p>
             </>
-          ) : (
-            <></>
-          )}
-        </div>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

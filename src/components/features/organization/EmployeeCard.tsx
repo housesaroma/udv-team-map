@@ -10,7 +10,7 @@ import { ROUTES } from "../../../constants/routes";
 interface EmployeeCardProps {
   /** Если true — карточка визуально приглушена и не должна реагировать на клики */
   clickDisabled?: boolean;
-  
+
   node: TreeNode;
   onToggleExpand: (nodeId: string) => void;
   onSwapToggle?: (node: TreeNode) => void;
@@ -57,7 +57,7 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
     moveActionDisabled = false,
     onMoveConfirm,
     moveReady = false,
-      clickDisabled = false,
+    clickDisabled = false,
   }) => {
     const navigate = useNavigate();
     const [isDragging, setIsDragging] = useState(false);
@@ -184,7 +184,9 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
     const cardClassName = [
       "shadow-md border-1 rounded-lg",
       // При отключённой кликабельности показываем минимум интерактивности
-      clickDisabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-lg",
+      clickDisabled
+        ? "opacity-60 cursor-not-allowed"
+        : "cursor-pointer hover:shadow-lg",
       styles.noPaddingCard,
       "transition-all",
       isSwapCandidate ? styles.swapSelectedCard : "",
@@ -201,11 +203,13 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
     );
 
     const moveSourceButtonDisabled = Boolean(
-      ((moveSourceDisabled && !isMoveSource) || moveActionDisabled) || clickDisabled
+      (moveSourceDisabled && !isMoveSource) ||
+        moveActionDisabled ||
+        clickDisabled
     );
 
     const moveTargetButtonDisabled = Boolean(
-      (moveTargetDisabled || moveActionDisabled) || clickDisabled
+      moveTargetDisabled || moveActionDisabled || clickDisabled
     );
 
     const moveSourceButtonLabel = isMoveSource
@@ -243,7 +247,6 @@ export const EmployeeCard: React.FC<EmployeeCardProps> = memo(
           onClick={handleCardClick}
         >
           <div className="flex flex-col">
-            
             {(onSwapToggle || onMoveSourceToggle || onMoveTargetToggle) && (
               <div
                 className={`${styles.cardActions} mb-3 flex flex-wrap items-center justify-end gap-2`}

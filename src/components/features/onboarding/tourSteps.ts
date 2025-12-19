@@ -153,8 +153,7 @@ export const tourSteps: TourStepWithRoles[] = [
   {
     target: "[data-tour='logo']",
     title: "Страница профиля",
-    content:
-      "Здесь вы можете просмотреть и отредактировать свою информацию.",
+    content: "Здесь вы можете просмотреть и отредактировать свою информацию.",
     placement: "bottom",
     route: ROUTES.profile.root,
     disableScroll: true,

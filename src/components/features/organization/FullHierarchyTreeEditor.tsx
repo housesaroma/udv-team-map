@@ -49,7 +49,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     number | null
   >(null);
   const [moveFeedback, setMoveFeedback] = useState<ActionFeedback | null>(null);
-  
+
   const [moveLoading, setMoveLoading] = useState(false);
 
   const nodesWithLayout = useMemo(() => {
@@ -291,7 +291,10 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
           life: 5000,
         });
       } else {
-        console.warn("Toast ref is null — swap error toast not shown:", normalized);
+        console.warn(
+          "Toast ref is null — swap error toast not shown:",
+          normalized
+        );
       }
     } finally {
       setSwapLoading(false);
@@ -314,7 +317,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
 
   const parseServerErrorMessage = useCallback((error: unknown) => {
     // Извлекаем полезный текст ошибки из разных форматов
-    let raw = error instanceof Error ? error.message : String(error);
+    const raw = error instanceof Error ? error.message : String(error);
 
     // Если это JSON внутри строки, попытаемся распарсить
     const jsonStart = raw.indexOf("{");
@@ -341,7 +344,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
             return details.join("; ");
           }
         }
-      } catch (e) {
+      } catch {
         // ignore parse error
       }
     }
@@ -554,7 +557,10 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
           life: 5000,
         });
       } else {
-        console.warn("Toast ref is null — move error toast not shown:", normalizedMessage);
+        console.warn(
+          "Toast ref is null — move error toast not shown:",
+          normalizedMessage
+        );
       }
     } finally {
       setMoveLoading(false);
@@ -633,7 +639,12 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
         minHeight: `${MAP_CONSTANTS.MAP_HEIGHT}px`,
       }}
     >
-      <Toast ref={toastRef} position="top-right" baseZIndex={100000} appendTo={typeof document !== 'undefined' ? document.body : undefined} />
+      <Toast
+        ref={toastRef}
+        position="top-right"
+        baseZIndex={100000}
+        appendTo={typeof document !== "undefined" ? document.body : undefined}
+      />
       <div className="absolute top-6 left-6 z-20 w-[360px] max-w-full space-y-4 rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-2xl backdrop-blur">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
@@ -806,7 +817,9 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
                 ? selectedSwapUserIds.indexOf(node.userId) + 1
                 : undefined
             }
-            swapSelectionDisabled={isSelectionDisabled(node) || Boolean(moveSourceUserId)}
+            swapSelectionDisabled={
+              isSelectionDisabled(node) || Boolean(moveSourceUserId)
+            }
             onSwapAction={swapReady ? handleSwapEmployees : undefined}
             showSwapAction={
               swapReady && selectedSwapUserIds.includes(node.userId)

@@ -62,6 +62,8 @@ const ProfilePage: React.FC = () => {
   );
   const [editContacts, setEditContacts] = useState<UserContacts>({});
   const toastRef = React.useRef<Toast | null>(null);
+  const [editSkills, setEditSkills] = useState<string[]>([]);
+  const [newSkill, setNewSkill] = useState<string>("");
 
   // Нормализация номера телефона для редактирования
   const normalizePhoneForEdit = (phone?: string) => {
@@ -217,6 +219,7 @@ const ProfilePage: React.FC = () => {
         department: profile.department || undefined,
         contacts: contacts,
       });
+      setEditSkills(profile.skills || []);
       setIsEditing(true);
     }
   };
@@ -236,9 +239,12 @@ const ProfilePage: React.FC = () => {
 
     const missing = required
       .filter(r => {
-        const value = (data as any)[r.key];
+        const value = (data as Record<string, unknown>)[r.key];
         if (r.key === "department") {
-          return !(value && ((value as any).name || typeof value === "string"));
+          return !(
+            value &&
+            ((value as { name?: string }).name || typeof value === "string")
+          );
         }
         return !value;
       })
@@ -281,9 +287,38 @@ const ProfilePage: React.FC = () => {
       };
       const updatedProfile = await updateUserProfile(profile.id, dataToSave);
       setProfile(updatedProfile);
+
+      // Обработка навыков
+      const currentSkills = profile.skills || [];
+      const toAdd = editSkills.filter(skill => !currentSkills.includes(skill));
+      const toRemove = currentSkills.filter(
+        skill => !editSkills.includes(skill)
+      );
+
+      try {
+        for (const skill of toAdd) {
+          await userService.addSkill(profile.id, skill);
+        }
+        for (const skill of toRemove) {
+          await userService.removeSkill(profile.id, skill);
+        }
+        // Обновляем профиль с новыми навыками
+        setProfile(prev => prev ? { ...prev, skills: editSkills } : null);
+      } catch (skillError) {
+        console.error("Ошибка при сохранении навыков:", skillError);
+        toastRef.current?.show({
+          severity: "warn",
+          summary: "Предупреждение",
+          detail: "Профиль сохранен, но некоторые навыки не удалось обновить",
+          life: 5000,
+        });
+      }
+
       setIsEditing(false);
       setSelectedMessengers([]);
       setEditContacts({});
+      setEditSkills([]);
+      setNewSkill("");
 
       toastRef.current?.show({
         severity: "success",
@@ -291,12 +326,20 @@ const ProfilePage: React.FC = () => {
         detail: TOAST_MESSAGES.profileSaveSuccess,
         life: 4000,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Ошибка при сохранении профиля:", error);
       // Если сервер вернул детали в error.details, отображаем их
-      if (error && error.details && typeof error.details === "object") {
-        const details = Object.entries(error.details)
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+      if (
+        error &&
+        typeof error === "object" &&
+        "details" in error &&
+        error.details &&
+        typeof error.details === "object"
+      ) {
+        const details = Object.entries(error.details as Record<string, unknown>)
+          .map(
+            ([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`
+          )
           .join("; ");
         toastRef.current?.show({
           severity: "error",
@@ -308,7 +351,7 @@ const ProfilePage: React.FC = () => {
         toastRef.current?.show({
           severity: "error",
           summary: TOAST_MESSAGES.profileSaveError,
-          detail: error?.message || "Неизвестная ошибка",
+          detail: (error as Error)?.message || "Неизвестная ошибка",
           life: 6000,
         });
       }
@@ -325,6 +368,8 @@ const ProfilePage: React.FC = () => {
     setEditData({});
     setSelectedMessengers([]);
     setEditContacts({});
+    setEditSkills([]);
+    setNewSkill("");
   };
 
   // Обработка изменения полей формы
@@ -355,6 +400,19 @@ const ProfilePage: React.FC = () => {
       ...prev,
       [type]: value || undefined,
     }));
+  };
+
+  // Обработка добавления навыка
+  const handleAddSkill = () => {
+    const skill = newSkill.trim();
+    if (skill && !editSkills.includes(skill) && editSkills.length < 5) {
+      setEditSkills(prev => [...prev, skill]);
+      setNewSkill("");
+    }
+  };
+
+  const handleRemoveSkill = (skill: string) => {
+    setEditSkills(prev => prev.filter(s => s !== skill));
   };
 
   const handleLogout = () => {
@@ -735,9 +793,7 @@ const ProfilePage: React.FC = () => {
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <span className="font-medium">
-                            Мессенджеры:
-                          </span>
+                          <span className="font-medium">Мессенджеры:</span>
                           <MultiSelect
                             value={selectedMessengers}
                             options={MESSENGER_OPTIONS}
@@ -811,9 +867,7 @@ const ProfilePage: React.FC = () => {
                           {formatDate(profile.birthDate)}
                         </div>
                         <div className="md:col-span-2">
-                          <span className="font-medium">
-                            Мессенджеры:
-                          </span>
+                          <span className="font-medium">Мессенджеры:</span>
                           {profile.contacts &&
                           Object.entries(profile.contacts).some(
                             ([, value]) => value
@@ -885,6 +939,79 @@ const ProfilePage: React.FC = () => {
                     <p className="text-gray-700 font-golos leading-relaxed">
                       {profile.interests || "Информация не указана"}
                     </p>
+                  )}
+                </div>
+
+                {/* Навыки */}
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 font-golos">
+                    Навыки
+                  </h3>
+                  {isEditing ? (
+                    <>
+                      {editSkills.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {editSkills.map(skill => (
+                            <div
+                              key={skill}
+                              className="bg-gray-200 px-2 py-1 rounded flex items-center gap-1"
+                            >
+                              {skill}
+                              <Button
+                                icon="pi pi-minus"
+                                text
+                                onClick={() => handleRemoveSkill(skill)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                                title="Удалить навык"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {editSkills.length < 5 && (
+                        <div className="flex gap-2">
+                          <InputText
+                            placeholder="Новый навык"
+                            value={newSkill}
+                            onChange={e => setNewSkill(e.target.value)}
+                            className="flex-1 font-inter"
+                            onKeyDown={e => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddSkill();
+                              }
+                            }}
+                          />
+                          <Button
+                            icon="pi pi-plus"
+                            onClick={handleAddSkill}
+                            disabled={
+                              !newSkill.trim() ||
+                              editSkills.includes(newSkill.trim())
+                            }
+                            className="font-inter"
+                          />
+                        </div>
+                      )}
+                      {editSkills.length >= 5 && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          Максимум 5 навыков
+                        </p>
+                      )}
+                    </>
+                  ) : profile.skills && profile.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {profile.skills.map(skill => (
+                        <span
+                          key={skill}
+                          className="bg-gray-200 px-2 py-1 rounded text-sm"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Не указаны</p>
                   )}
                 </div>
 

@@ -33,11 +33,6 @@ const LoginPage: React.FC = () => {
     },
   });
 
-  const usernameHint = USE_MOCK_DATA
-    ? "Используйте корпоративный email"
-    : "Минимум 3 символа";
-  const passwordHint = "Минимум 8 символов";
-
   const onSubmit = async ({ username, password }: LoginFormValues) => {
     setSubmitError("");
 

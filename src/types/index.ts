@@ -34,6 +34,7 @@ export interface User {
   subordinates?: string[];
   messengerLink?: string;
   contacts?: UserContacts;
+  skills?: string[];
 }
 
 export interface Department {

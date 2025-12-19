@@ -1,4 +1,8 @@
-import { API_USER_BY_ID, API_USERS_MOVE } from "../constants/apiConstants";
+import {
+  API_USER_BY_ID,
+  API_USERS_MOVE,
+  API_USER_SKILLS,
+} from "../constants/apiConstants";
 import { getDepartmentInfo } from "../utils/departmentUtils";
 import type { ApiUserProfile, User } from "../types";
 import { MOCK_USERS } from "../constants/mockUsers";
@@ -257,6 +261,7 @@ export const userService = {
         hierarchyId: (data.hierarchyId || data.hierarchy_id) as
           | number
           | undefined,
+        skills: data.skills || [],
       };
 
       console.log("Нормализованные данные профиля:", normalizedData);
@@ -463,6 +468,36 @@ export const userService = {
       throw new Error(message);
     }
   },
+
+  async addSkill(userId: string, skill: string): Promise<void> {
+    if (!this.isValidUUID(userId)) {
+      throw new Error("Неверный формат ID пользователя");
+    }
+    try {
+      await apiClient.post(API_USER_SKILLS(userId), null, {
+        params: { title: skill },
+        validateStatus: () => true,
+      });
+    } catch (error) {
+      console.error("Ошибка добавления навыка:", error);
+      throw new Error("Не удалось добавить навык");
+    }
+  },
+
+  async removeSkill(userId: string, skill: string): Promise<void> {
+    if (!this.isValidUUID(userId)) {
+      throw new Error("Неверный формат ID пользователя");
+    }
+    try {
+      await apiClient.delete(API_USER_SKILLS(userId), {
+        params: { title: skill },
+        validateStatus: () => true,
+      });
+    } catch (error) {
+      console.error("Ошибка удаления навыка:", error);
+      throw new Error("Не удалось удалить навык");
+    }
+  },
 };
 
 const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
@@ -501,6 +536,7 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     },
     managerId: apiUser.managerId,
     hierarchyId: apiUser.hierarchyId,
+    skills: apiUser.skills || [],
   };
 };
 
@@ -584,18 +620,23 @@ export const updateUserProfile = async (
       console.error("Ошибка 400 при обновлении профиля:", errorText);
       // Попробуем достать детальное сообщение от сервера (validation errors)
       try {
-        const parsed = typeof rawData === "object" ? rawData : JSON.parse(String(rawData));
-        const errors = (parsed && (parsed as any).errors) || null;
+        const parsed =
+          typeof rawData === "object" ? rawData : JSON.parse(String(rawData));
+        const errors = (parsed as { errors?: unknown }).errors;
         if (errors && typeof errors === "object") {
           const details: Record<string, string[]> = {};
-          for (const [field, msgs] of Object.entries(errors)) {
-            details[field] = Array.isArray(msgs) ? (msgs as string[]) : [String(msgs)];
+          for (const [field, msgs] of Object.entries(
+            errors as Record<string, unknown>
+          )) {
+            details[field] = Array.isArray(msgs)
+              ? (msgs as string[])
+              : [String(msgs)];
           }
-          const err: any = new Error("Неверный формат запроса: ошибки в полях");
-          err.details = details;
+          const err = new Error("Неверный формат запроса: ошибки в полях");
+          (err as any).details = details;
           throw err;
         }
-      } catch (e) {
+      } catch {
         // ignore parse errors - fallthrough to generic
       }
 
@@ -675,6 +716,7 @@ export const updateUserProfile = async (
       hierarchyId: (data.hierarchyId || data.hierarchy_id) as
         | number
         | undefined,
+      skills: data.skills || [],
     };
 
     console.log("Нормализованные данные обновленного профиля:", normalizedData);

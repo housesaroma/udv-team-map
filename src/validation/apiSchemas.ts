@@ -111,6 +111,7 @@ export const apiUserProfileSchema = z.object({
   contacts: optionalContacts,
   managerId: optionalString,
   hierarchyId: z.number().int().optional(),
+  skills: z.array(z.string()).optional(),
 });
 
 export const usersResponseSchema = z.object({
@@ -137,6 +138,7 @@ const updateUserResponseSchemaRaw = z.object({
   bornDate: optionalString,
   workExperience: optionalString,
   contacts: optionalContacts,
+  skills: z.array(z.string()).optional(),
 });
 
 export const updateUserResponseSchema = updateUserResponseSchemaRaw.transform(

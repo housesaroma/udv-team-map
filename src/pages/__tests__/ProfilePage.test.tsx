@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "../../test/test-utils";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
 import ProfilePage from "../ProfilePage";
 import type { User } from "../../types";
-
 
 // Создаем моки для сервисов
 const mockGetUserProfile = vi.fn();
@@ -230,10 +230,14 @@ describe("ProfilePage - Manager card feature", () => {
 
   describe("Client-side validation and toasts", () => {
     it("normalizes phone with separators and sends normalized value to updateUserProfile", async () => {
-      const profileWithHyphens = { ...mockUserProfile, phone: "+7-495-444-44-44" } as User;
+      const profileWithHyphens = {
+        ...mockUserProfile,
+        phone: "+7-495-444-44-44",
+      } as User;
       mockGetUserProfile.mockResolvedValueOnce(profileWithHyphens);
 
-      const { findByText, getByText, getByPlaceholderText } = renderProfilePage();
+      const { findByText, getByText, getByPlaceholderText } =
+        renderProfilePage();
 
       await findByText(/Иванов Иван/);
 
@@ -246,9 +250,11 @@ describe("ProfilePage - Manager card feature", () => {
 
       fireEvent.click(getByText("Сохранить"));
 
-      const { updateUserProfile } = await vi.importMock("../../services/userService");
+      const { updateUserProfile } = await vi.importMock(
+        "../../services/userService"
+      );
       expect(updateUserProfile).toHaveBeenCalled();
-      const calledWith = (updateUserProfile as any).mock.calls[0][1];
+      const calledWith = (updateUserProfile as Mock).mock.calls[0][1];
       expect(calledWith.phone).toBe("+74954444444");
     });
 

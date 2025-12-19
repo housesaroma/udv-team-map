@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { API_USER_BY_ID, API_USERS_MOVE } from "../../constants/apiConstants";
+import { API_USER_BY_ID, API_USERS_MOVE, BASE_URL } from "../../constants/apiConstants";
 import type { ApiUserProfile, User } from "../../types";
 import { apiClient } from "../../utils/apiClient";
 import {
@@ -17,6 +17,7 @@ vi.mock("../../utils/apiClient", () => ({
     post: vi.fn(),
     get: vi.fn(),
     put: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -27,6 +28,7 @@ const mockExtractFullNameFromToken = jwtUtilsMock.extractFullNameFromToken;
 const mockPost = apiClient.post as Mock;
 const mockGet = apiClient.get as Mock;
 const mockPut = apiClient.put as Mock;
+const mockDelete = apiClient.delete as Mock;
 
 interface LocalStorageLike {
   length: number;
@@ -104,6 +106,7 @@ beforeEach(() => {
   mockPost.mockReset();
   mockGet.mockReset();
   mockPut.mockReset();
+  mockDelete.mockReset();
   mockExtractFullNameFromToken.mockReset();
   localStorageMock.clear();
 });
@@ -1167,5 +1170,51 @@ describe("updateUserProfile", () => {
     await expect(updateUserProfile(SERVER_USER_ID, baseUpdate)).rejects.toThrow(
       "Неизвестная ошибка при обновлении профиля: boom"
     );
+  });
+});
+
+describe("userService.addSkill", () => {
+  it("успешно добавляет навык", async () => {
+    mockPost.mockResolvedValueOnce({ status: 200 });
+
+    await expect(userService.addSkill(SERVER_USER_ID, "tennis")).resolves.toBeUndefined();
+
+    expect(mockPost).toHaveBeenCalledWith(`${BASE_URL}/api/Users/${SERVER_USER_ID}/skills`, null, {
+      params: { title: "tennis" },
+      validateStatus: expect.any(Function),
+    });
+  });
+
+  it("бросает ошибку при неверном UUID", async () => {
+    await expect(userService.addSkill("invalid", "skill")).rejects.toThrow("Неверный формат ID пользователя");
+  });
+
+  it("бросает ошибку при сетевой ошибке", async () => {
+    mockPost.mockRejectedValueOnce(new Error("network error"));
+
+    await expect(userService.addSkill(SERVER_USER_ID, "skill")).rejects.toThrow("Не удалось добавить навык");
+  });
+});
+
+describe("userService.removeSkill", () => {
+  it("успешно удаляет навык", async () => {
+    mockDelete.mockResolvedValueOnce({ status: 200 });
+
+    await expect(userService.removeSkill(SERVER_USER_ID, "tennis")).resolves.toBeUndefined();
+
+    expect(mockDelete).toHaveBeenCalledWith(`${BASE_URL}/api/Users/${SERVER_USER_ID}/skills`, {
+      params: { title: "tennis" },
+      validateStatus: expect.any(Function),
+    });
+  });
+
+  it("бросает ошибку при неверном UUID", async () => {
+    await expect(userService.removeSkill("invalid", "skill")).rejects.toThrow("Неверный формат ID пользователя");
+  });
+
+  it("бросает ошибку при сетевой ошибке", async () => {
+    mockDelete.mockRejectedValueOnce(new Error("network error"));
+
+    await expect(userService.removeSkill(SERVER_USER_ID, "skill")).rejects.toThrow("Не удалось удалить навык");
   });
 });

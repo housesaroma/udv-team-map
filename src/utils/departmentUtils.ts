@@ -53,9 +53,16 @@ export const getDepartmentColor = (departmentName: string): string => {
   if (!departmentName) return "#6B7280";
 
   const normalizedName = departmentName.toLowerCase().trim();
-  const departmentKey = departmentNameToKey[normalizedName];
+  let departmentKey: string | undefined;
 
-  return departmentColors[departmentKey] || "#6B7280";
+  for (const [key, value] of Object.entries(departmentNameToKey)) {
+    if (normalizedName.includes(key)) {
+      departmentKey = value;
+      break;
+    }
+  }
+
+  return departmentColors[departmentKey as keyof typeof departmentColors] || "#6B7280";
 };
 
 export const generateDepartmentId = (departmentName: string): string => {

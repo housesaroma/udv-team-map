@@ -87,11 +87,11 @@ describe("departmentUtils", () => {
     it("должен возвращать полную информацию об отделе", () => {
       const result = getDepartmentInfo("IT Department");
 
-      // "IT Department" не совпадает с ключами в departmentNameToKey, поэтому используется дефолтный цвет
+      // "IT Department" содержит "it", поэтому используется цвет для IT
       expect(result).toEqual({
         id: "it-department",
         name: "IT Department",
-        color: "#6B7280", // Дефолтный цвет для неизвестного отдела
+        color: "#3697FF", // Цвет для IT отдела
       });
     });
 

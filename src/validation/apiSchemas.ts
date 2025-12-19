@@ -100,7 +100,7 @@ export const apiUserProfileSchema = z.object({
   userId: z.string().min(1),
   userName: z.string().min(1),
   position: z.string().min(1),
-  department: z.string().min(1),
+  department: z.string(),
   hierarchyColor: optionalString,
   avatar: optionalString,
   phoneNumber: optionalString,

@@ -30,14 +30,32 @@ export interface UpdateUserRequest {
   position: string;
 }
 
+// Вспомогательная функция для проверки, является ли строка base64
+const isBase64 = (str: string): boolean => {
+  return /^[A-Za-z0-9+/]*={0,2}$/.test(str.trim());
+};
+
+// Вспомогательная функция для декодирования base64 строк
+const decodeBase64 = (str: string): string => {
+  if (isBase64(str)) {
+    try {
+      return atob(str.replace(/-/g, "+").replace(/_/g, "/"));
+    } catch {
+      return str;
+    }
+  } else {
+    return str;
+  }
+};
+
 // Вспомогательная функция для преобразования ApiUserProfile в User
 const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
   const nameParts = apiUser.userName.split(" ");
 
-  const departmentName = apiUser.department;
+  const decodedDepartment = decodeBase64(apiUser.department.replace(/^: /, ""));
   // Используем hierarchyColor из API, если он есть, иначе fallback на getDepartmentColor
   const departmentColor =
-    apiUser.hierarchyColor || getDepartmentColor(departmentName);
+    apiUser.hierarchyColor || getDepartmentColor(decodedDepartment);
 
   return {
     id: apiUser.userId,
@@ -46,8 +64,8 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     middleName: nameParts[2] || "", // Отчество
     position: apiUser.position,
     department: {
-      id: departmentName,
-      name: apiUser.department,
+      id: decodedDepartment,
+      name: decodedDepartment,
       color: departmentColor,
     },
     avatar: apiUser.avatar,

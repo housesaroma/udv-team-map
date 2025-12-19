@@ -1160,7 +1160,7 @@ describe("updateUserProfile", () => {
   it("валидирует структуру ответа", async () => {
     mockPut.mockResolvedValueOnce({
       status: 200,
-      data: JSON.stringify(createApiUser({ department: "" })),
+      data: JSON.stringify(createApiUser({ userName: "" })),
     });
 
     await expect(updateUserProfile(SERVER_USER_ID, baseUpdate)).rejects.toThrow(

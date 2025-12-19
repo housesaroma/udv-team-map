@@ -62,7 +62,10 @@ export const getDepartmentColor = (departmentName: string): string => {
     }
   }
 
-  return departmentColors[departmentKey as keyof typeof departmentColors] || "#6B7280";
+  return (
+    departmentColors[departmentKey as keyof typeof departmentColors] ||
+    "#6B7280"
+  );
 };
 
 export const generateDepartmentId = (departmentName: string): string => {

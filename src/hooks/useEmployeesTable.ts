@@ -137,11 +137,11 @@ export const useEmployeesTable = () => {
 
         const positionFilterStr =
           tableState.positionFilter.length > 0
-            ? tableState.positionFilter.join(",")
+            ? tableState.positionFilter.join("_")
             : "";
         const departmentFilterStr =
           tableState.departmentFilter.length > 0
-            ? tableState.departmentFilter.join(",")
+            ? tableState.departmentFilter.join("_")
             : "";
 
         const params: UsersQueryParams = {

@@ -11,5 +11,6 @@ export const API_DEPARTMENT_USERS = (hierarchyId: number | string) =>
 export const API_USER_BY_ID = (userId: string) => `${API_USERS}/${userId}`;
 export const API_USERS_DEPARTMENTS = `${API_USERS}/departments`;
 export const API_USERS_POSITIONS = `${API_USERS}/positions`;
+export const API_HIERARCHIES = `${BASE_URL}/api/Dev/hierarchies`;
 export const API_USER_SKILLS = (userId: string) =>
   `${API_USERS}/${userId}/skills`;

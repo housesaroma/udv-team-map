@@ -28,7 +28,9 @@ const AdminPanel: React.FC = () => {
     <div className="container mx-auto p-6 pt-24" data-tour="admin-page">
       <div className="bg-secondary rounded-lg shadow-md p-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-primary font-golos">Админ панель</h1>
+          <h1 className="text-2xl font-bold text-primary font-golos">
+            Админ панель
+          </h1>
           <BackToTreeButton className="p-button-secondary" />
         </div>
         {/* Переключатель видов */}

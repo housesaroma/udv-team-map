@@ -1,4 +1,8 @@
-import { API_USER_BY_ID, API_USERS } from "../constants/apiConstants";
+import {
+  API_USER_BY_ID,
+  API_USERS,
+  API_HIERARCHIES,
+} from "../constants/apiConstants";
 import { MOCK_USERS_RESPONSE } from "../constants/mockUsersProfile";
 import type { ApiUserProfile, User } from "../types";
 import type { SortToken } from "../types/ui";
@@ -197,8 +201,17 @@ export const adminService = {
 
   // Метод для получения всех доступных подразделений
   async getAllDepartments(): Promise<string[]> {
-    const { departments } = await loadHierarchyFilterOptions();
-    return departments;
+    try {
+      const response = await apiClient.get<string[]>(API_HIERARCHIES);
+      return response.data.sort(collator.compare);
+    } catch (error) {
+      console.error(
+        "Не удалось получить список подразделений, используем мок-данные",
+        error
+      );
+      // Fallback to mock data if API fails
+      return getFallbackDepartmentsFromMocks();
+    }
   },
 
   // Метод для получения всех доступных должностей
@@ -280,6 +293,16 @@ const extractFilterOptionsFromHierarchy = (
     departments: Array.from(departmentSet).sort(collator.compare),
     positions: Array.from(positionSet).sort(collator.compare),
   };
+};
+
+const getFallbackDepartmentsFromMocks = (): string[] => {
+  const departmentSet = new Set(
+    MOCK_USERS_RESPONSE.usersTable
+      .map(user => user.department.trim())
+      .filter(Boolean)
+  );
+
+  return Array.from(departmentSet).sort(collator.compare);
 };
 
 const getFallbackFilterOptionsFromMocks = (): FilterOptions => {

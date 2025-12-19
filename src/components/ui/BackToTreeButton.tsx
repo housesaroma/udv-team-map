@@ -7,8 +7,8 @@ interface BackToTreeButtonProps {
   className?: string;
 }
 
-export const BackToTreeButton: React.FC<BackToTreeButtonProps> = ({ 
-  className = "" 
+export const BackToTreeButton: React.FC<BackToTreeButtonProps> = ({
+  className = "",
 }) => {
   const navigate = useNavigate();
 
@@ -22,7 +22,7 @@ export const BackToTreeButton: React.FC<BackToTreeButtonProps> = ({
       onClick={handleBackToTree}
       className={`font-inter ${className}`}
       tooltip="Вернуться к дереву"
-      tooltipOptions={{ position: 'left' }}
+      tooltipOptions={{ position: "left" }}
     />
   );
 };

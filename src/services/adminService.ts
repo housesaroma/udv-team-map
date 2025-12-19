@@ -80,6 +80,19 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     hireDate: apiUser.workExperience,
     messengerLink:
       apiUser.contacts?.telegram?.[0] || apiUser.contacts?.skype?.[0],
+    skills: apiUser.skills,
+    managerId: apiUser.managerId,
+    hierarchyId: apiUser.hierarchyId,
+    contacts: apiUser.contacts
+      ? {
+          telegram: apiUser.contacts.telegram?.[0],
+          skype: apiUser.contacts.skype?.[0],
+          linkedin: apiUser.contacts.linkedin?.[0],
+          whatsapp: apiUser.contacts.whatsapp?.[0],
+          vk: apiUser.contacts.vk?.[0],
+          mattermost: apiUser.contacts.mattermost?.[0],
+        }
+      : undefined,
   };
 };
 

@@ -268,6 +268,36 @@ export const EmployeesTable: React.FC = () => {
     return <span className="text-gray-700 font-inter">{rowData.position}</span>;
   };
 
+  // Шаблон для навыков
+  const skillsBodyTemplate = (rowData: TableUser) => {
+    if (!rowData.skills || rowData.skills.length === 0) {
+      return <span className="text-gray-500">-</span>;
+    }
+
+    const searchTerm = globalFilter.toLowerCase().trim();
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {rowData.skills.slice(0, 5).map((skill, index) => {
+          const isMatch =
+            searchTerm && skill.toLowerCase().includes(searchTerm);
+          return (
+            <span
+              key={index}
+              className={`px-2 py-1 text-xs rounded-full font-inter ${
+                isMatch
+                  ? "bg-red-100 text-red-800 font-bold"
+                  : "bg-blue-100 text-blue-800"
+              }`}
+            >
+              {skill}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Header для департамента с иконкой фильтра
   const departmentHeaderTemplate = () => {
     return (
@@ -302,6 +332,15 @@ export const EmployeesTable: React.FC = () => {
           tooltip="Фильтр по должностям"
           tooltipOptions={{ position: "top" }}
         />
+      </div>
+    );
+  };
+
+  // Header для навыков
+  const skillsHeaderTemplate = () => {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="font-bold text-gray-900 font-golos">Навыки</span>
       </div>
     );
   };
@@ -418,6 +457,13 @@ export const EmployeesTable: React.FC = () => {
           body={positionBodyTemplate}
           sortable
           style={{ minWidth: "250px" }}
+        />
+
+        <Column
+          field="skills"
+          header={skillsHeaderTemplate}
+          body={skillsBodyTemplate}
+          style={{ minWidth: "200px" }}
         />
       </DataTable>
 

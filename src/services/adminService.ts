@@ -56,10 +56,24 @@ const decodeBase64 = (str: string): string => {
 const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
   const nameParts = apiUser.userName.split(" ");
 
-  const decodedDepartment = decodeBase64(apiUser.department.replace(/^: /, ""));
+  let finalDepartment: string;
+  if (!apiUser.department) {
+    finalDepartment = "Не указано";
+  } else {
+    const decodedDepartment = decodeBase64(
+      apiUser.department.replace(/^: /, "")
+    );
+    finalDepartment = decodedDepartment;
+    if (finalDepartment === "!") {
+      finalDepartment = "Не указано";
+    }
+    if (finalDepartment === "@") {
+      finalDepartment = "QA";
+    }
+  }
   // Используем hierarchyColor из API, если он есть, иначе fallback на getDepartmentColor
   const departmentColor =
-    apiUser.hierarchyColor || getDepartmentColor(decodedDepartment);
+    apiUser.hierarchyColor || getDepartmentColor(finalDepartment);
 
   return {
     id: apiUser.userId,
@@ -68,8 +82,8 @@ const transformApiUserToUser = (apiUser: ApiUserProfile): User => {
     middleName: nameParts[2] || "", // Отчество
     position: apiUser.position,
     department: {
-      id: decodedDepartment,
-      name: decodedDepartment,
+      id: finalDepartment,
+      name: finalDepartment,
       color: departmentColor,
     },
     avatar: apiUser.avatar,

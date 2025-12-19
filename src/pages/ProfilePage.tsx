@@ -18,6 +18,7 @@ import { calculateExperience, formatDate } from "../utils/dateUtils";
 import { getDepartmentColor } from "../utils/departmentUtils";
 import { ROUTES } from "../constants/routes";
 import TOAST_MESSAGES from "../constants/toastMessages";
+import { BackToTreeButton } from "../components/ui/BackToTreeButton";
 import {
   MESSENGER_OPTIONS,
   ALL_MESSENGER_TYPES,
@@ -531,6 +532,7 @@ const ProfilePage: React.FC = () => {
             </h1>
           </div>
           <div className="flex space-x-2">
+            <BackToTreeButton className="p-button-secondary" />
             {profile?.hierarchyId && (
               <Button
                 onClick={handleShowOnMap}

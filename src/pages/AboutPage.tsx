@@ -3,6 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { usePermissions } from "../hooks/usePermissions";
 import type { UserRole } from "../types";
+import { BackToTreeButton } from "../components/ui/BackToTreeButton";
 
 type TabKey = "info" | "training";
 
@@ -142,7 +143,7 @@ const AboutPage: React.FC = () => {
     <div className="container mx-auto p-6 pt-24">
       <div className="bg-secondary rounded-lg shadow-md p-8">
         {/* Вкладки */}
-        <div className="flex mb-8">
+        <div className="flex justify-between items-center mb-8">
           <div className="rounded-lg p-1 flex">
             {tabs.map(tab => (
               <button
@@ -162,6 +163,7 @@ const AboutPage: React.FC = () => {
               </button>
             ))}
           </div>
+          <BackToTreeButton className="p-button-secondary" />
         </div>
 
         {/* Контент вкладок */}

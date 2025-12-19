@@ -633,7 +633,8 @@ export const updateUserProfile = async (
               : [String(msgs)];
           }
           const err = new Error("Неверный формат запроса: ошибки в полях");
-          (err as any).details = details;
+          (err as Error & { details: Record<string, string[]> }).details =
+            details;
           throw err;
         }
       } catch {

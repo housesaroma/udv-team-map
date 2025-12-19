@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { API_USER_BY_ID, API_USERS_MOVE, BASE_URL } from "../../constants/apiConstants";
+import {
+  API_USER_BY_ID,
+  API_USERS_MOVE,
+  BASE_URL,
+} from "../../constants/apiConstants";
 import type { ApiUserProfile, User } from "../../types";
 import { apiClient } from "../../utils/apiClient";
 import {
@@ -1177,22 +1181,32 @@ describe("userService.addSkill", () => {
   it("успешно добавляет навык", async () => {
     mockPost.mockResolvedValueOnce({ status: 200 });
 
-    await expect(userService.addSkill(SERVER_USER_ID, "tennis")).resolves.toBeUndefined();
+    await expect(
+      userService.addSkill(SERVER_USER_ID, "tennis")
+    ).resolves.toBeUndefined();
 
-    expect(mockPost).toHaveBeenCalledWith(`${BASE_URL}/api/Users/${SERVER_USER_ID}/skills`, null, {
-      params: { title: "tennis" },
-      validateStatus: expect.any(Function),
-    });
+    expect(mockPost).toHaveBeenCalledWith(
+      `${BASE_URL}/api/Users/${SERVER_USER_ID}/skills`,
+      null,
+      {
+        params: { title: "tennis" },
+        validateStatus: expect.any(Function),
+      }
+    );
   });
 
   it("бросает ошибку при неверном UUID", async () => {
-    await expect(userService.addSkill("invalid", "skill")).rejects.toThrow("Неверный формат ID пользователя");
+    await expect(userService.addSkill("invalid", "skill")).rejects.toThrow(
+      "Неверный формат ID пользователя"
+    );
   });
 
   it("бросает ошибку при сетевой ошибке", async () => {
     mockPost.mockRejectedValueOnce(new Error("network error"));
 
-    await expect(userService.addSkill(SERVER_USER_ID, "skill")).rejects.toThrow("Не удалось добавить навык");
+    await expect(userService.addSkill(SERVER_USER_ID, "skill")).rejects.toThrow(
+      "Не удалось добавить навык"
+    );
   });
 });
 
@@ -1200,21 +1214,30 @@ describe("userService.removeSkill", () => {
   it("успешно удаляет навык", async () => {
     mockDelete.mockResolvedValueOnce({ status: 200 });
 
-    await expect(userService.removeSkill(SERVER_USER_ID, "tennis")).resolves.toBeUndefined();
+    await expect(
+      userService.removeSkill(SERVER_USER_ID, "tennis")
+    ).resolves.toBeUndefined();
 
-    expect(mockDelete).toHaveBeenCalledWith(`${BASE_URL}/api/Users/${SERVER_USER_ID}/skills`, {
-      params: { title: "tennis" },
-      validateStatus: expect.any(Function),
-    });
+    expect(mockDelete).toHaveBeenCalledWith(
+      `${BASE_URL}/api/Users/${SERVER_USER_ID}/skills`,
+      {
+        params: { title: "tennis" },
+        validateStatus: expect.any(Function),
+      }
+    );
   });
 
   it("бросает ошибку при неверном UUID", async () => {
-    await expect(userService.removeSkill("invalid", "skill")).rejects.toThrow("Неверный формат ID пользователя");
+    await expect(userService.removeSkill("invalid", "skill")).rejects.toThrow(
+      "Неверный формат ID пользователя"
+    );
   });
 
   it("бросает ошибку при сетевой ошибке", async () => {
     mockDelete.mockRejectedValueOnce(new Error("network error"));
 
-    await expect(userService.removeSkill(SERVER_USER_ID, "skill")).rejects.toThrow("Не удалось удалить навык");
+    await expect(
+      userService.removeSkill(SERVER_USER_ID, "skill")
+    ).rejects.toThrow("Не удалось удалить навык");
   });
 });

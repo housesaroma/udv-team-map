@@ -303,7 +303,7 @@ const ProfilePage: React.FC = () => {
           await userService.removeSkill(profile.id, skill);
         }
         // Обновляем профиль с новыми навыками
-        setProfile(prev => prev ? { ...prev, skills: editSkills } : null);
+        setProfile(prev => (prev ? { ...prev, skills: editSkills } : null));
       } catch (skillError) {
         console.error("Ошибка при сохранении навыков:", skillError);
         toastRef.current?.show({

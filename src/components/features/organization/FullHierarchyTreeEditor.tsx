@@ -233,6 +233,50 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     [swapDepartment, moveSourceUserId]
   );
 
+  const normalizeMoveErrorMessage = useCallback((text: string) => {
+    if (text.includes("Cannot move CEO user with subordinates")) {
+      return TOAST_MESSAGES.moveDeniedCEO;
+    }
+    return text;
+  }, []);
+
+  const parseServerErrorMessage = useCallback((error: unknown) => {
+    // Извлекаем полезный текст ошибки из разных форматов
+    const raw = error instanceof Error ? error.message : String(error);
+
+    // Если это JSON внутри строки, попытаемся распарсить
+    const jsonStart = raw.indexOf("{");
+    if (jsonStart !== -1) {
+      const jsonText = raw.slice(jsonStart);
+      try {
+        const parsed = JSON.parse(jsonText);
+        // Если есть поле message
+        if (parsed && typeof parsed === "object") {
+          if (parsed.message && typeof parsed.message === "string") {
+            return String(parsed.message);
+          }
+          // Если есть validation errors
+          if (parsed.errors && typeof parsed.errors === "object") {
+            // Собираем текст всех ошибок
+            const details: string[] = [];
+            for (const [k, v] of Object.entries(parsed.errors)) {
+              if (Array.isArray(v)) {
+                details.push(`${k}: ${v.join(", ")}`);
+              } else {
+                details.push(`${k}: ${String(v)}`);
+              }
+            }
+            return details.join("; ");
+          }
+        }
+      } catch {
+        // ignore parse error
+      }
+    }
+
+    return raw;
+  }, []);
+
   const handleSwapEmployees = useCallback(async () => {
     if (selectedSwapUserIds.length !== 2) {
       setSwapFeedback({
@@ -299,57 +343,19 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     } finally {
       setSwapLoading(false);
     }
-  }, [getNodeByUserId, loadFullHierarchy, selectedSwapUserIds]);
+  }, [
+    getNodeByUserId,
+    loadFullHierarchy,
+    selectedSwapUserIds,
+    normalizeMoveErrorMessage,
+    parseServerErrorMessage,
+  ]);
 
   const resetMoveSelection = useCallback(() => {
     setMoveSourceUserId(null);
     setMoveTargetManagerId(null);
     setMoveTargetHierarchyId(null);
     setMoveFeedback(null);
-  }, []);
-
-  const normalizeMoveErrorMessage = useCallback((text: string) => {
-    if (text.includes("Cannot move CEO user with subordinates")) {
-      return TOAST_MESSAGES.moveDeniedCEO;
-    }
-    return text;
-  }, []);
-
-  const parseServerErrorMessage = useCallback((error: unknown) => {
-    // Извлекаем полезный текст ошибки из разных форматов
-    const raw = error instanceof Error ? error.message : String(error);
-
-    // Если это JSON внутри строки, попытаемся распарсить
-    const jsonStart = raw.indexOf("{");
-    if (jsonStart !== -1) {
-      const jsonText = raw.slice(jsonStart);
-      try {
-        const parsed = JSON.parse(jsonText);
-        // Если есть поле message
-        if (parsed && typeof parsed === "object") {
-          if (parsed.message && typeof parsed.message === "string") {
-            return String(parsed.message);
-          }
-          // Если есть validation errors
-          if (parsed.errors && typeof parsed.errors === "object") {
-            // Собираем текст всех ошибок
-            const details: string[] = [];
-            for (const [k, v] of Object.entries(parsed.errors)) {
-              if (Array.isArray(v)) {
-                details.push(`${k}: ${v.join(", ")}`);
-              } else {
-                details.push(`${k}: ${String(v)}`);
-              }
-            }
-            return details.join("; ");
-          }
-        }
-      } catch {
-        // ignore parse error
-      }
-    }
-
-    return raw;
   }, []);
 
   const handleMoveSourceToggle = useCallback(
@@ -572,6 +578,7 @@ export const FullHierarchyTreeEditor: React.FC = memo(() => {
     moveTargetHierarchyId,
     moveTargetManagerNode,
     normalizeMoveErrorMessage,
+    parseServerErrorMessage,
     resetMoveSelection,
   ]);
 

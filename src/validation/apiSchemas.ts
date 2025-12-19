@@ -111,7 +111,7 @@ export const apiUserProfileSchema = z.object({
   contacts: optionalContacts,
   managerId: optionalString,
   hierarchyId: z.number().int().optional(),
-  skills: z.array(z.string()).optional(),
+  skills: optionalStringArray,
 });
 
 export const usersResponseSchema = z.object({
